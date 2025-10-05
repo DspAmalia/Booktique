@@ -1,0 +1,185 @@
+﻿@page "/profile"
+
+@using Booktique.Models.MainModels
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Components.Pages.Account.Charts
+
+@inject BooktiqueContext DbContext
+@inject NavigationManager NavigationManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>My Profile</PageTitle>
+
+<h2 class="text-center mt-4">My Profile</h2>
+
+@if (user == null)
+{
+    <p class="text-muted text-center">Loading profile...</p>
+}
+else
+{
+    <EditForm Model="@user"  FormName="profile" >
+        <div class="profile-container">
+    <div class="profile-card">
+                <img src="https://www.shutterstock.com/image-illustration/man-open-book-illustration-element-260nw-1103282219.jpg" alt="Avatar" class="profile-avatar" />
+        <h3>@user.UserName</h3>
+        <p class="email">@user.UserEmail</p>
+        <p class="role">@user.Role</p>
+
+        <div class="profile-actions">
+            <button class="btn edit" @onclick="EditProfile">Edit Profile</button>
+            <button class="btn logout" @onclick="Logout">Logout</button>
+            <button class="btn delete" @onclick="Delete">Delete</button>
+        </div>
+    </div>
+    </div>
+    </EditForm>
+
+    <div class="text-center mt-5 mb-3">
+        <h2>📊 Personal Statistics</h2>
+    </div>
+
+    <div class="d-flex justify-content-center">
+        <GenreChart @key="chartKey" />
+    </div>
+
+}
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .profile-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .profile-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .profile-avatar {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+    }
+
+    .profile-card h3 {
+        margin-bottom: 0.5rem;
+    }
+
+    .role {
+        color: #888;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-actions {
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .btn.edit {
+        background-color: darkgoldenrod;
+        color: white;
+    }
+
+    .btn.logout {
+        background-color: darkgray;
+        color: white;
+    }
+
+    .btn.delete {
+        background-color: red;
+        color: white;
+    }
+
+    .btn {
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+
+</style>
+
+@code {
+    [SupplyParameterFromForm]
+    private User? user { get; set; }
+
+    [CascadingParameter]
+    public HttpContext HttpContext { get; set; }
+
+    private Guid chartKey = Guid.NewGuid();
+
+    protected override void OnParametersSet()
+    {
+        chartKey = Guid.NewGuid(); // forțează re-rendere completă
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var username = HttpContextAccessor.HttpContext?.User?.Identity?.Name;
+
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            await InvokeAsync(() => NavigationManager.NavigateTo("/login"));
+            return;
+        }
+
+        user = await DbContext.User.FirstOrDefaultAsync(u => u.UserName == username);
+
+        if (user == null)
+        {
+            await InvokeAsync(() => NavigationManager.NavigateTo("/notfound"));
+            return;
+        }
+    }
+
+    private void EditProfile()
+    {
+        if (user?.UserId != null)
+        {
+            NavigationManager.NavigateTo($"/users/edit?userid={user.UserId}");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/notfound");
+        }
+    }
+
+    private async Task Logout()
+    {
+        NavigationManager.NavigateTo("/logout");
+    }
+
+    private async Task Delete()
+    {
+        NavigationManager.NavigateTo("/delete");
+    }
+}

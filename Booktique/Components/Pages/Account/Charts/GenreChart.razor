@@ -1,0 +1,73 @@
+﻿@using Booktique.Models.Services
+@inject FavoriteService FavoriteService
+@inject AuthenticationStateProvider AuthProvider
+
+<BarChart @ref="barChart" Width="800" Class="mb-4" />
+
+@code {
+    private BarChart barChart = default!;
+    private BarChartOptions barChartOptions = default!;
+    private ChartData chartData = default!;
+
+    private bool isChartReady = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst("UserId")?.Value;
+            if (int.TryParse(userIdClaim, out int userId))
+            {
+                var genreDict = await FavoriteService.GetGenreDistributionAsync(userId);
+
+                var labels = genreDict.Keys.ToList();
+                var values = genreDict.Values.Select(v => (double?)v).ToList();
+
+                var backgroundColors = labels.Select(_ => GetRandomColor()).ToList(); 
+                
+                var dataset = new BarChartDataset 
+                { 
+                    Label = "Favorite Categories", 
+                    Data = values, BackgroundColor = backgroundColors, 
+                    BorderColor = backgroundColors, 
+                    BorderWidth = Enumerable.Repeat(1.0, values.Count).ToList() 
+                };
+
+                chartData = new ChartData
+                    {
+                        Labels = labels,
+                        Datasets = new List<IChartDataset> { dataset }
+                    };          
+                    
+                StateHasChanged();
+
+                barChartOptions = new BarChartOptions
+                    {
+                        Responsive = true,
+                        Interaction = new Interaction { Mode = InteractionMode.Index }
+                    };
+
+                isChartReady = true;                
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && isChartReady && barChart is not null)
+        {
+            await barChart.InitializeAsync(chartData, barChartOptions);
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private string GetRandomColor() 
+    { 
+        var random = new Random(); 
+        return $"#{random.Next(0x1000000):X6}"; 
+    }
+}

@@ -1,0 +1,362 @@
+/* _content/Booktique/Components/Layout/MainLayout.razor.rz.scp.css */
+html[b-65vb9xm36g], body[b-65vb9xm36g] {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.page[b-65vb9xm36g] {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+main[b-65vb9xm36g] {
+    flex: 1;
+}
+
+/* Sidebar cu gradient maro vertical */
+.hover-dark-text:hover[b-65vb9xm36g] {
+    color: black !important;
+}
+
+.dropdown[b-65vb9xm36g] {
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #5a3e2b;
+}
+
+.dropdown-menu[b-65vb9xm36g] {
+    background-color: #ceb9a6;
+    border: 1px solid #ccc;
+}
+
+    .dropdown-menu a[b-65vb9xm36g] {
+        color: #5a3e2b;
+    }
+
+.top-row[b-65vb9xm36g] {
+    border-bottom: 1px solid #d6d5d5;
+    justify-content: flex-end;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    background-color: #ceb9a6 !important;
+    color: #5a3e2b;
+}
+
+    /* Linkuri din bara de sus */
+    .top-row[b-65vb9xm36g]  a,
+    .top-row[b-65vb9xm36g]  .btn-link {
+        white-space: nowrap;
+        margin-left: 1.5rem;
+        text-decoration: none;
+        color: #fff;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+        .top-row[b-65vb9xm36g]  a:hover,
+        .top-row[b-65vb9xm36g]  .btn-link:hover {
+            text-decoration: underline;
+            color: #ffebcd;
+        }
+
+        .top-row[b-65vb9xm36g]  a:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+@media (max-width: 640.98px) {
+    .top-row[b-65vb9xm36g] {
+        justify-content: space-between;
+    }
+
+        .top-row[b-65vb9xm36g]  a,
+        .top-row[b-65vb9xm36g]  .btn-link {
+            margin-left: 0;
+        }
+}
+
+@media (min-width: 641px) {
+    .page[b-65vb9xm36g] {
+        flex-direction: row;
+    }
+
+    .sidebar[b-65vb9xm36g] {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row[b-65vb9xm36g] {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+        .top-row.auth[b-65vb9xm36g]  a:first-child {
+            flex: 1;
+            text-align: right;
+            width: 0;
+        }
+
+    .top-row[b-65vb9xm36g],
+    article[b-65vb9xm36g] {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+}
+
+/* Blazor error UI */
+#blazor-error-ui[b-65vb9xm36g] {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss[b-65vb9xm36g] {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+/* _content/Booktique/Components/Layout/NavMenu.razor.rz.scp.css */
+html[b-u6f7j7dqw2], body[b-u6f7j7dqw2] {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.top-row[b-u6f7j7dqw2] {
+    height: 3.5rem;
+    background: #8d6e63;
+}
+
+.nav-scrollable[b-u6f7j7dqw2] {
+    display: none;
+    background: #8d6e63;
+}
+
+.navbar-toggler[b-u6f7j7dqw2] {
+    appearance: none;
+    cursor: pointer;
+    width: 3.5rem;
+    height: 2.5rem;
+    color: white;
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
+}
+
+    .navbar-toggler:checked[b-u6f7j7dqw2] {
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+
+.navbar-brand[b-u6f7j7dqw2] {
+    font-size: 1.1rem;
+    color: #fff;
+}
+
+.bi[b-u6f7j7dqw2] {
+    display: inline-block;
+    position: relative;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.75rem;
+    top: -1px;
+    background-size: cover;
+}
+
+.nav-item[b-u6f7j7dqw2] {
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+}
+
+    .nav-item:first-of-type[b-u6f7j7dqw2] {
+        padding-top: 1rem;
+    }
+
+    .nav-item:last-of-type[b-u6f7j7dqw2] {
+        padding-bottom: 1rem;
+    }
+
+    .nav-item[b-u6f7j7dqw2]  .nav-link {
+        color: #f5f5f5;
+        background: none;
+        border: none;
+        border-radius: 4px;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        line-height: 3rem;
+        width: 100%;
+    }
+
+    .nav-item[b-u6f7j7dqw2]  a.active {
+        background-color: rgba(255,255,255,0.2);
+        color: #fff;
+    }
+
+    .nav-item[b-u6f7j7dqw2]  .nav-link:hover {
+        background-color: rgba(255,255,255,0.1);
+        color: #fff;
+    }
+
+.navbar-toggler:checked ~ .nav-scrollable[b-u6f7j7dqw2] {
+    display: block;
+}
+
+.filters-sidebar[b-u6f7j7dqw2] {
+    background-color: #fdf6ee;
+    border-bottom: 1px solid #ccc;
+}
+
+    .filters-sidebar label[b-u6f7j7dqw2] {
+        font-weight: 500;
+        margin-top: 0.5rem;
+        display: block;
+        font-size: 0.85rem;
+    }
+
+    .filters-sidebar .form-select-sm[b-u6f7j7dqw2] {
+        font-size: 0.85rem;
+    }
+
+@media (min-width: 641px) {
+    .navbar-toggler[b-u6f7j7dqw2] {
+        display: none;
+    }
+
+    .nav-scrollable[b-u6f7j7dqw2] {
+        display: block;
+        height: calc(100vh - 3.5rem);
+        overflow-y: auto;
+    }
+}
+/* _content/Booktique/Components/Pages/Account/Login.razor.rz.scp.css */
+/*html, body {
+    height: 100%;
+    margin: 0;
+    background: #fdf6ee;
+}
+
+.login-page {
+    min-height: 100vh;
+    background: #fdf6ee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.book-gif {
+    width: 40px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.gif-wrapper {
+    margin-bottom: 0.5rem;
+}
+
+.text-brown {
+    color: #5a3e2b;
+}
+
+.btn-warning {
+    background-color: #f4d03f;
+    border: none;
+    font-weight: bold;
+}
+
+.link-warning {
+    color: #f4d03f;
+}
+
+    .link-warning:hover {
+        text-decoration: underline;
+    }
+
+.quote {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+*/
+/* _content/Booktique/Components/Pages/UserPages/Create.razor.rz.scp.css */
+/*html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #fdf6ee;
+    overflow-x: hidden;
+}*/
+
+/* Fundalul paginii de creare cont acoperă tot spațiul */
+/*.create-page {
+    min-height: 100vh;
+    width: 100vw;
+    background-color: #fdf6ee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;*/ /* eliminăm paddingul lateral */
+    /*margin: 0;
+}*/
+
+/* Cardul de creare cont */
+/*.create-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+}
+
+.text-brown {
+    color: #5a3e2b;
+}
+
+.btn-warning {
+    background-color: #f4d03f;
+    border: none;
+    font-weight: bold;
+}
+
+.link-warning {
+    color: #f4d03f;
+}
+
+    .link-warning:hover {
+        text-decoration: underline;
+    }*/

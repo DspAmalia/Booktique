@@ -1,0 +1,209 @@
+﻿@page "/"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.WebUtilities
+@using Booktique.Models.MainModels
+
+@implements IAsyncDisposable
+
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Booktique</PageTitle>
+<div class="card shadow p-4 text-center" style=" width: 100%; background-color:lightgoldenrodyellow">
+    <span class="text-brown fw-bold fs-5">The books are only available for purchase in physical stores.</span>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12 mt-3">
+        <h2>Welcome to <span class="text-brown fw-bold">Booktique</span></h2>
+    </div>
+</div>
+
+<main class="books-content">
+    <div class="search-bar mb-3 input-group">
+        <span class="input-group-text">
+            <img src="https://cdn-icons-png.flaticon.com/512/622/622669.png"
+                 alt="Search"
+                 style="width: 16px; height: 16px;" />
+        </span>
+        <input type="text"
+               @bind="searchText"
+               @bind:event="oninput"
+               placeholder="Search books by title or author..."
+               class="form-control" />
+    </div>
+
+    <div class="books-grid">
+        @foreach (var book in SearchedBooks)
+        {
+            <div class="book-card-wrapper">
+                <a class="book-card" href="@($"/books/details?bookid={book.BookId}")">
+                    <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img" />
+                    <div class="book-info">
+                        <h5 class="book-title">@book.BookTitle</h5>
+                        <p class="book-author-year">
+                             @book.BookAuthor <br />
+                             @book.BookYear   <br />
+                        </p>
+                        <p class="book-price"><strong> @book.BookPrice lei</strong></p>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</main>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .search-bar {
+        max-width: 600px;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+        .search-bar .input-group {
+            width: 100%;
+        }
+
+        .search-bar .input-group-text {
+            background-color: #fff;
+            border-right: none;
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-bar .form-control {
+            border-left: none;
+        }
+
+
+    .books-content {
+        padding: 1rem;
+        background-color: #fdf6ee;
+    }
+
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .book-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 0 6px rgba(0,0,0,0.1);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        color: #5a3e2b;
+        text-decoration: none;
+        transition: transform 0.2s ease;
+    }
+
+        .book-card:hover {
+            transform: scale(1.02);
+            cursor: pointer;
+        }
+
+    .book-img {
+        width: 100%;
+        max-height: 250px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .book-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+
+    .book-author-year {
+        font-size: 0.95rem;
+    }
+
+    .book-price {
+        color: #f0a500;
+        font-size: 1.1rem;
+    }
+</style>
+
+@code {
+    private BooktiqueContext context = default!;
+    private List<Book> books = new();
+    private List<Book> filteredBooks = new();
+
+    private string searchText = string.Empty;
+    private string selectedGenre = string.Empty;
+    private string selectedYear = string.Empty;
+    private string selectedPublisher = string.Empty;
+
+    private IEnumerable<Book> SearchedBooks =>
+        books.Where(b =>
+            (string.IsNullOrEmpty(searchText) ||
+             b.BookTitle!.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+             b.BookAuthor!.Contains(searchText, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(selectedGenre) || b.BookCategory == selectedGenre) &&
+            (string.IsNullOrEmpty(selectedYear) || b.BookYear.ToString() == selectedYear) &&
+            (string.IsNullOrEmpty(selectedPublisher) || b.BookPublishingHouse == selectedPublisher)
+        );
+
+    private List<string> genres = new();
+    private List<string> years = new();
+    private List<string> publishers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+        books = Shuffle(await context.Book.ToListAsync());
+
+        genres = books.Select(b => b.BookCategory).Distinct().OrderBy(g => g).ToList();
+        years = books.Select(b => b.BookYear.ToString()).Distinct().OrderByDescending(y => y).ToList();
+        publishers = books.Select(b => b.BookPublishingHouse).Distinct().OrderBy(p => p).ToList();
+    }
+
+    protected override void OnParametersSet()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        selectedGenre = query.TryGetValue("category", out var cat) ? cat.ToString() : string.Empty;
+        selectedYear = query.TryGetValue("year", out var yr) ? yr.ToString() : string.Empty;
+        selectedPublisher = query.TryGetValue("publisher", out var pub) ? pub.ToString() : string.Empty;
+
+        filteredBooks = books
+                    .Where(b =>
+                        (string.IsNullOrEmpty(selectedGenre) || b.BookCategory == selectedGenre) &&
+                        (string.IsNullOrEmpty(selectedYear) || b.BookYear.ToString() == selectedYear) &&
+                        (string.IsNullOrEmpty(selectedPublisher) || b.BookPublishingHouse == selectedPublisher)
+                    )
+                    .ToList();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (context is not null)
+            await context.DisposeAsync();
+    }
+
+    private static List<T> Shuffle<T>(List<T> list)
+    {
+        var rng = new Random(Guid.NewGuid().GetHashCode());
+        return list.OrderBy(_ => rng.Next()).ToList();
+    }
+
+}

@@ -1,0 +1,125 @@
+﻿@page "/ask-ai"
+
+@using Booktique.Models.Services
+@using Microsoft.AspNetCore.Components.Web
+
+@inject AIService AIService
+
+@rendermode InteractiveServer
+
+<PageTitle>Booktique AI</PageTitle>
+
+<h2 class="mt-4 mb-3 text-center">Ask <strong>Booktique AI</strong></h2>
+
+<div class="chat-box border rounded p-3 mb-4" style="max-height: 500px; overflow-y: auto;">
+    <div class="text-start">
+        <div class="d-inline-block bg-light border px-3 py-2 rounded">
+            <p>Hi! I am your Booktique guidance. I can suggest interesting books for you, exactly according to your own wishes. What do you want to read?</p>
+        </div>
+    </div>
+
+    @foreach (var message in messages)
+    {
+        <div class="mb-2">
+            @if (message.Sender == "user")
+            {
+                <div class="text-end">
+                    <div class="d-inline-block text-white px-3 py-2 rounded">
+                        @message.Text
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-start">
+                    <div class="d-inline-block bg-light border px-3 py-2 rounded">
+                        @message.Text
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (isTyping)
+    {
+        <div class="text-start">
+            <div class="d-inline-block bg-light border px-3 py-2 rounded text-muted typing-animation">
+                <em>AI is typing<span>@typingDots</span></em>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="input-group">
+    <InputText @bind-Value="userQuestion" class="form-control" placeholder="Ask about books..." />
+    <button type="submit" class="btn btn-warning" @onclick="SubmitQuestion">Send</button>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .chat-box {
+        background-color: #f9f9f9;
+    }
+
+    .d-inline-block {
+        background-color: #8d6e63;
+    }
+</style>
+
+@code {
+    private string userQuestion = string.Empty;
+    private List<(string Sender, string Text)> messages = new();
+    private bool isTyping = false;
+    private string typingDots = "";
+    private CancellationTokenSource? typingToken;
+
+    private async Task SubmitQuestion()
+    {
+        if (string.IsNullOrWhiteSpace(userQuestion))
+            return;
+
+        messages.Add(("user", userQuestion));
+        isTyping = true;
+        typingDots = "";
+        typingToken = new CancellationTokenSource();
+
+        // Start animation loop
+        _ = AnimateTypingDots(typingToken.Token);
+
+        await InvokeAsync(StateHasChanged); // update UI
+
+        await Task.Delay(1500); // 🔥 elegant delay
+
+        var response = await AIService.GetRecommendation(userQuestion);
+
+        typingToken.Cancel(); // stop animation
+        isTyping = false;
+        typingDots = "";
+
+        messages.Add(("ai", response));
+        userQuestion = string.Empty;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AnimateTypingDots(CancellationToken token)
+    {
+        var states = new[] { ".", "..", "..." };
+        var i = 0;
+
+        while (!token.IsCancellationRequested)
+        {
+            typingDots = states[i % states.Length];
+            i++;
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(400);
+        }
+    }
+}

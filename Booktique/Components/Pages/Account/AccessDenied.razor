@@ -1,0 +1,31 @@
+﻿@page "/access-denied"
+
+<div class="d-flex justify-content-center mt-5">
+    <div class="text-center">
+        <img src="https://static.vecteezy.com/system/resources/previews/021/433/000/non_2x/denied-rubber-stamp-free-png.png"
+             class="image-denied" alt="Access Denied" />
+    </div>
+</div>
+
+<div class="d-flex justify-content-center mt-3">
+    <div class="card shadow p-4 text-center" style="max-width: 600px; width: 100%;">
+        <span class="text-danger fw-bold fs-5">You don't have permission to access this page.</span>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .image-denied {
+        width: 160px;
+        height: 160px;
+        object-fit: contain;
+        background-color: transparent;
+    }
+</style>

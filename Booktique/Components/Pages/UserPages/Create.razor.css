@@ -1,0 +1,47 @@
+﻿/*html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #fdf6ee;
+    overflow-x: hidden;
+}*/
+
+/* Fundalul paginii de creare cont acoperă tot spațiul */
+/*.create-page {
+    min-height: 100vh;
+    width: 100vw;
+    background-color: #fdf6ee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;*/ /* eliminăm paddingul lateral */
+    /*margin: 0;
+}*/
+
+/* Cardul de creare cont */
+/*.create-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+}
+
+.text-brown {
+    color: #5a3e2b;
+}
+
+.btn-warning {
+    background-color: #f4d03f;
+    border: none;
+    font-weight: bold;
+}
+
+.link-warning {
+    color: #f4d03f;
+}
+
+    .link-warning:hover {
+        text-decoration: underline;
+    }*/

@@ -1,0 +1,176 @@
+﻿@page "/login"
+@using Booktique.Models.ViewModels
+@using Booktique.Models
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+
+@inject BooktiqueContext appContext
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+
+<div class="container-fluid login-page d-flex flex-column align-items-center justify-content-center">
+    <!-- Containerul formularului -->
+    <div class="login-card p-4 shadow rounded w-100" style="max-width: 400px;">
+
+        <!-- GIF deasupra containerului -->
+        <div class="gif-wrapper mb-3">
+            <img src="https://usagif.com/wp-content/uploads/gifs/book-90.gif" alt="Book opening" class="book-gif" />
+        </div>
+
+        <h2 class="fw-bold text-center text-brown">Login</h2>
+        <p class="text-center text-muted">Welcome back! Please log in.</p>
+
+        <EditForm Model="@Model" OnValidSubmit="Authenticate" FormName="loginForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+
+            <div class="mb-3">
+                <label class="form-label">User Name:</label>
+                <InputText @bind-Value="Model.UserName" class="form-control rounded-pill" aria-required="true" />
+                <ValidationMessage For="() => Model.UserName" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email:</label>
+                <InputText @bind-Value="Model.UserEmail" class="form-control rounded-pill" aria-required="true" />
+                <ValidationMessage For="() => Model.UserEmail" />
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <InputText id="password" @bind-Value="Model.Password" type="password" class="form-control rounded-pill" aria-required="true" />
+                <ValidationMessage For="() => Model.Password" />
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 rounded-pill">Login</button>
+            <p class="mt-3 text-center">
+                Don’t you have an account?
+                <NavLink href="/users/create" class="link-warning fw-bold">Sign up</NavLink>
+            </p>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger mt-3">@errorMessage</div>
+        }
+
+        <p class="quote text-center mt-4 fst-italic text-secondary">
+            “A room without books is like a body without a soul.”
+        </p>
+    </div>
+</div>
+
+<style>
+    html, body {
+    height: 100%;
+    margin: 0;
+    background: #fdf6ee;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.login-page {
+    min-height: 100vh;
+    background: #fdf6ee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.book-gif {
+    width: 100px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.gif-wrapper {
+    margin-bottom: 0.5rem;
+}
+
+.text-brown {
+    color: #5a3e2b;
+}
+
+.btn-warning {
+    background-color: #f4d03f;
+    border: none;
+    font-weight: bold;
+}
+
+    .btn-secondary {
+        background-color: #e0e0e0;
+        color: #5a3e2b;
+        font-weight: bold;
+        border: none;
+    }
+
+        .btn-secondary:hover {
+            background-color: #d5d5d5;
+        }
+
+.link-warning {
+    color: #f4d03f;
+}
+
+    .link-warning:hover {
+        text-decoration: underline;
+    }
+
+.quote {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+</style>
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    [SupplyParameterFromForm]
+    public LoginDTO Model { get; set; } = new();
+
+    private string? errorMessage;
+
+    private async Task Authenticate()
+    {
+        var user = appContext.User.Where(x => x.UserName == Model.UserName).FirstOrDefault();
+        if (user is null || user.Password != Model.Password)
+        {
+            errorMessage = "Invalid User Name or Password";
+            return;
+        }
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, Model.UserName),
+            new Claim("UserId", user.UserId.ToString()),
+            new Claim(ClaimTypes.Email, user.UserEmail ?? string.Empty),
+            new Claim(ClaimTypes.Role, user.Role)
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+        await HttpContext.SignInAsync(principal);
+        NavigationManager.NavigateTo("/");
+    }
+
+    private string HashPassword(string password)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(password);
+        var hash = sha.ComputeHash(bytes);
+        return Convert.ToBase64String(hash);
+    }
+}

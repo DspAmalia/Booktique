@@ -1,0 +1,50 @@
+﻿@page "/users"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Booktique.Models.MainModels
+@implements IAsyncDisposable
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+
+@attribute [Authorize(Roles = "Administrator")]
+
+
+<PageTitle>Users</PageTitle>
+
+<h1>Users</h1>
+
+<p>
+    <a href="users/create" class="btn btn-outline-secondary">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.User">
+    <PropertyColumn Property="user => user.UserName" />
+    <PropertyColumn Property="user => user.Password" />
+    <PropertyColumn Property="user => user.Role" />
+
+    <TemplateColumn Context="user">
+        <a href="@($"users/details?userid={user.UserId}")">Details</a> |
+        <a href="@($"users/delete?userid={user.UserId}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+</style>
+
+@code {
+    private BooktiqueContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

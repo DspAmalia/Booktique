@@ -1,0 +1,525 @@
+﻿@page "/favorites"
+@using Booktique.Models.MainModels
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<h2>Your <strong>Favorite Books</strong></h2>
+
+@if (!isAuthenticated)
+{
+    <p>Redirecting...</p>
+}
+else
+@if (favoriteBooks is null)
+{
+    <p>Loading...</p>
+}
+else if (!favoriteBooks.Any() && !userFolders.Any())
+{
+    <p>You haven't added any favorites yet.</p>
+}
+else
+{
+    <div class="d-flex">
+        <!-- Favorite books -->
+        <main class="flex-grow-1 pe-4">
+            <h5>Favorite Books (Unorganized)</h5>
+            <div class="books-grid">
+                @foreach (var book in SearchedBooks)
+                {
+                    <div class="book-card-wrapper">
+                        <a class="book-card" href="@($"/books/details?bookid={book.BookId}")">
+                            <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img" />
+                            <div class="book-info">
+                                <h5 class="book-title">@book.BookTitle</h5>
+                                <p class="book-author-year">
+                                    <strong>Author:</strong> @book.BookAuthor <br />
+                                    <strong>Year:</strong>   @book.BookYear   <br />
+                                    <strong>Price:</strong>  @book.BookPrice lei
+                                </p>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        </main>
+
+        <!-- Folder sidebar -->
+        <aside class="folder-sidebar">
+            <button class="btn btn-outline-dark mb-3" @onclick="ShowFolderModal">
+                ➕ Add Folder
+            </button>
+
+            <h5>Your Folders</h5>
+            @if (userFolders.Any())
+            {
+                @foreach (var folder in userFolders)
+                {
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>@folder.FolderName</strong>
+                            <button class="btn btn-sm btn-outline-warning" @onclick="() => ToggleFolderView(folder.FolderId)">
+                                @((expandedFolderIds.Contains(folder.FolderId)) ? "Hide" : "View")
+                            </button>
+                        </div>
+
+                        @if (expandedFolderIds.Contains(folder.FolderId))
+                        {
+                            <hr />
+                            <h6>📚 Folder Contents</h6>
+                            @if (folderContents.TryGetValue(folder.FolderId, out var books) && books.Any())
+                            {
+                                @foreach (var book in books)
+                                {
+                                    <div class="folder-book-preview d-flex justify-content-between align-items-center">
+                                        <span>@book.BookTitle</span>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                @onclick="() => RemoveBookFromFolder(book.BookId, folder.FolderId)">
+                                            🗑 Remove
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted">No books in this folder.</p>
+                            }
+
+                            <button class="btn btn-sm btn-success mt-2" @onclick="() => ShowAddBookPanelForFolder(folder.FolderId)">
+                                ➕ Add Book
+                            </button>
+                        }
+                    </div>
+                }
+
+            @if (showAddBookPanel && folderToAddTo is not null)
+            {
+                <hr />
+                <h6>Select a book to add:</h6>
+                @foreach (var book in favoriteBooks)
+                {
+                    <div class="folder-book-preview d-flex justify-content-between align-items-center">
+                        <span>@book.BookTitle</span>
+                        <button class="btn btn-sm btn-success"
+                                @onclick="() => AddBookToFolder(book.BookId)">
+                            ➕ Add
+                        </button>
+                    </div>
+                }
+            }
+            }
+            else
+            {
+                <p>No folders created yet.</p>
+            }
+        </aside>
+        @if (showModal)
+        {
+            <div class="modal-backdrop">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5>Create New Folder</h5>
+                            <button class="btn-close" @onclick="HideFolderModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <EditForm Model="@newFolder" OnValidSubmit="AddFolder">
+                                <InputText @bind-Value="newFolder.FolderName" class="form-control mb-3" placeholder="Folder name..." />
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="submit" class="btn btn-warning">Create</button>
+                                    <button type="button" class="btn btn-secondary" @onclick="HideFolderModal">Cancel</button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (showEditModal && folderToEdit is not null)
+        {
+            <div class="modal-backdrop">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5>Edit Folder Name</h5>
+                            <button class="btn-close" @onclick="HideEditFolderModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <EditForm Model="@folderToEdit" OnValidSubmit="UpdateFolderName">
+                                <InputText @bind-Value="folderToEdit.FolderName" class="form-control mb-3" />
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .book-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 0 6px rgba(0,0,0,0.1);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        color: #5a3e2b;
+        text-decoration: none;
+        transition: transform 0.2s ease;
+    }
+
+        .book-card:hover {
+            transform: scale(1.02);
+            cursor: pointer;
+        }
+
+    .book-img {
+        width: 100%;
+        max-height: 250px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .book-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+
+    .book-author-year {
+        font-size: 0.95rem;
+    }
+
+    .folder-sidebar {
+        width: 280px;
+        background-color: #fdf6ee;
+        padding: 1rem;
+        border-left: 1px solid #ddd;
+    }
+
+    .folder-card {
+        background-color: #fff;
+        padding: 0.75rem;
+        border-radius: 6px;
+        box-shadow: 0 0 4px rgba(0,0,0,0.1);
+    }
+
+    .folder-book-preview {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-dialog {
+        background-color: white;
+        border-radius: 8px;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+        padding: 1rem;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .btn-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+</style>
+
+@code {
+    private List<Book>? favoriteBooks;
+    private List<Folder> userFolders = new();
+    private HashSet<int> expandedFolderIds = new(); // ✅ foldere deschise
+    private Dictionary<int, List<Book>> folderContents = new(); // ✅ cache conținut
+
+    private bool isAuthenticated = false;
+    private bool showModal = false;
+    private Folder newFolder = new();
+
+    private string searchText = string.Empty;
+    private string selectedGenre = string.Empty;
+    private string selectedYear = string.Empty;
+    private string selectedPublisher = string.Empty;
+
+    private bool showAddBookPanel = false;
+    private int? folderToAddTo = null;
+
+    private IEnumerable<Book> SearchedBooks =>
+        favoriteBooks?.Where(b =>
+            (string.IsNullOrEmpty(searchText) ||
+             b.BookTitle!.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+             b.BookAuthor!.Contains(searchText, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(selectedGenre) || b.BookCategory == selectedGenre) &&
+            (string.IsNullOrEmpty(selectedYear) || b.BookYear.ToString() == selectedYear) &&
+            (string.IsNullOrEmpty(selectedPublisher) || b.BookPublishingHouse == selectedPublisher)
+        ) ?? Enumerable.Empty<Book>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+
+        if (!isAuthenticated)
+        {
+            NavigationManager.NavigateTo("/access-denied", forceLoad: true);
+            return;
+        }
+
+        using var context = DbFactory.CreateDbContext();
+        var userName = authState.User.Identity?.Name;
+
+        if (string.IsNullOrEmpty(userName))
+        {
+            favoriteBooks = new();
+            return;
+        }
+
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserName == userName);
+        if (user is null)
+        {
+            favoriteBooks = new();
+            return;
+        }
+
+        favoriteBooks = await context.Favorite
+            .Where(f => f.UserId == user.UserId && f.FolderId == null)
+            .Include(f => f.Book)
+            .Select(f => f.Book!)
+            .ToListAsync();
+
+        userFolders = await context.Folder
+            .Where(f => f.UserId == user.UserId)
+            .ToListAsync();
+    }
+
+    private async Task ToggleFolderView(int folderId)
+    {
+        if (expandedFolderIds.Contains(folderId))
+        {
+            expandedFolderIds.Remove(folderId);
+        }
+        else
+        {
+            expandedFolderIds.Add(folderId);
+
+            if (!folderContents.ContainsKey(folderId))
+            {
+                using var context = DbFactory.CreateDbContext();
+                var books = await context.Favorite
+                    .Where(f => f.FolderId == folderId)
+                    .Include(f => f.Book)
+                    .Select(f => f.Book!)
+                    .ToListAsync();
+
+                folderContents[folderId] = books;
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private void ShowAddBookPanelForFolder(int folderId)
+    {
+        folderToAddTo = folderId;
+        showAddBookPanel = true;
+    }
+
+    private async Task AddBookToFolder(int bookId)
+    {
+        if (folderToAddTo is null) return;
+
+        using var context = DbFactory.CreateDbContext();
+        var favorite = await context.Favorite
+            .FirstOrDefaultAsync(f => f.BookId == bookId && f.FolderId == null);
+
+        if (favorite is not null)
+        {
+            favorite.FolderId = folderToAddTo;
+            await context.SaveChangesAsync();
+        }
+
+        // Refresh folder contents
+        if (expandedFolderIds.Contains(folderToAddTo.Value))
+        {
+            var books = await context.Favorite
+                .Where(f => f.FolderId == folderToAddTo)
+                .Include(f => f.Book)
+                .Select(f => f.Book!)
+                .ToListAsync();
+
+            folderContents[folderToAddTo.Value] = books;
+        }
+
+        // Refresh unorganized favorites
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.Identity?.Name;
+
+        if (!string.IsNullOrEmpty(userName))
+        {
+            favoriteBooks = await context.Favorite
+                .Where(f => f.User.UserName == userName && f.FolderId == null)
+                .Include(f => f.Book)
+                .Select(f => f.Book!)
+                .ToListAsync();
+        }
+
+        showAddBookPanel = false;
+        folderToAddTo = null;
+        StateHasChanged();
+    }
+
+    private async Task RemoveBookFromFolder(int bookId, int folderId)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var favorite = await context.Favorite
+            .FirstOrDefaultAsync(f => f.BookId == bookId && f.FolderId == folderId);
+
+        if (favorite is not null)
+        {
+            favorite.FolderId = null;
+            await context.SaveChangesAsync();
+        }
+
+        // Refresh folder contents
+        if (expandedFolderIds.Contains(folderId))
+        {
+            var books = await context.Favorite
+                .Where(f => f.FolderId == folderId)
+                .Include(f => f.Book)
+                .Select(f => f.Book!)
+                .ToListAsync();
+
+            folderContents[folderId] = books;
+        }
+
+        // Refresh unorganized favorites
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.Identity?.Name;
+
+        if (!string.IsNullOrEmpty(userName))
+        {
+            favoriteBooks = await context.Favorite
+                .Where(f => f.User.UserName == userName && f.FolderId == null)
+                .Include(f => f.Book)
+                .Select(f => f.Book!)
+                .ToListAsync();
+        }
+
+        StateHasChanged();
+    }
+
+    private void ShowFolderModal() => showModal = true;
+
+    private void HideFolderModal()
+    {
+        showModal = false;
+        newFolder = new();
+    }
+
+    private async Task AddFolder()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.Identity?.Name;
+
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserName == userName);
+        if (user is null) return;
+
+        newFolder.UserId = user.UserId;
+        context.Folder.Add(newFolder);
+        await context.SaveChangesAsync();
+
+        userFolders.Add(newFolder);
+        HideFolderModal();
+        StateHasChanged();
+    }
+
+    private bool showEditModal = false;
+    private Folder? folderToEdit;
+
+    private void ShowEditFolderModal(Folder folder)
+    {
+        folderToEdit = new Folder
+            {
+                FolderId = folder.FolderId,
+                FolderName = folder.FolderName,
+                UserId = folder.UserId
+            };
+        showEditModal = true;
+    }
+
+    private void HideEditFolderModal()
+    {
+        showEditModal = false;
+        folderToEdit = null;
+    }
+
+    private async Task UpdateFolderName()
+    {
+        if (folderToEdit is null) return;
+
+        using var context = DbFactory.CreateDbContext();
+        var folder = await context.Folder.FirstOrDefaultAsync(f => f.FolderId == folderToEdit.FolderId);
+        if (folder is null) return;
+
+        folder.FolderName = folderToEdit.FolderName;
+        await context.SaveChangesAsync();
+
+        var updated = userFolders.FirstOrDefault(f => f.FolderId == folder.FolderId);
+        if (updated is not null)
+            updated.FolderName = folder.FolderName;
+
+        HideEditFolderModal();
+        StateHasChanged();
+    }
+
+}

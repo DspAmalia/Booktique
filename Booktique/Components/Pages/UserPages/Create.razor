@@ -1,0 +1,178 @@
+﻿@page "/users/create"
+
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@using Booktique.Models.DTO__Data_Transfer_Obj_
+@using System.Security.Cryptography
+@using System.Text
+@using System.Security.Claims
+
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create User</PageTitle>
+
+<div class="container-fluid create-page d-flex align-items-center justify-content-center">
+    <div class="create-card shadow p-4 rounded-4 w-100" style="max-width: 400px;">
+        <div class="text-center mb-4">
+            <i class="bi bi-person-plus fs-1 text-warning"></i>
+            <h2 class="fw-bold text-brown">Create Account</h2>
+            <p class="text-muted">Fill in your details to register.</p>
+        </div>
+
+        <EditForm Model="@NewUser" OnValidSubmit="AddUser" FormName="create">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+
+            <div class="mb-3">
+                <label for="username" class="form-label">User Name:</label>
+                <InputText id="username" @bind-Value="NewUser.UserName" class="form-control rounded-pill" />
+                <ValidationMessage For="() => NewUser.UserName" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label>
+                <InputText id="email" @bind-Value="NewUser.UserEmail" class="form-control rounded-pill" />
+                <ValidationMessage For="() => NewUser.UserEmail" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <InputText id="password" @bind-Value="NewUser.Password" type="password" class="form-control rounded-pill" />
+                <ValidationMessage For="() => NewUser.Password" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="confirm-password" class="form-label">Confirm Password:</label>
+                <InputText id="confirm-password" @bind-Value="NewUser.ConfirmPassword" type="password" class="form-control rounded-pill" />
+                <ValidationMessage For="() => NewUser.ConfirmPassword" class="text-danger" />
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 rounded-pill">Create Account</button>
+        </EditForm>
+
+        <p class="mt-3 text-center">
+            Already have an account?
+            <NavLink href="/login" class="link-warning fw-bold">Log in</NavLink>
+        </p>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        background: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .create-page {
+        min-height: 100vh;
+        background: #fdf6ee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .create-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .book-gif {
+        width: 100px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    .text-brown {
+        color: #5a3e2b;
+    }
+
+    .btn-warning {
+        background-color: #f4d03f;
+        border: none;
+        font-weight: bold;
+    }
+
+    .link-warning {
+        color: #f4d03f;
+    }
+
+        .link-warning:hover {
+            text-decoration: underline;
+        }
+
+</style>
+
+@code {
+    [SupplyParameterFromForm]
+    private RegisterDTO NewUser { get; set; } = new();
+    
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    private string? ErrorMessage;
+
+    private async Task AddUser()
+    {
+        if (NewUser.Password != NewUser.ConfirmPassword)
+        {
+            ErrorMessage = "Passwords do not match!";
+            return;
+        }
+
+        using var context = DbFactory.CreateDbContext();
+        
+        // verific dacă email-ul există deja
+        if (await context.User.AnyAsync(u => u.UserEmail == NewUser.UserEmail))
+        {
+            ErrorMessage = "Email already registered!";
+            return;
+        }
+
+        //Setare automată a rolului
+        var role = NewUser.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase)
+            ? "Administrator"
+            : "User";
+
+        var user = new User
+            {
+                UserName = NewUser.UserName,
+                Password = NewUser.Password,
+                Role = role,
+                UserEmail=NewUser.UserEmail
+            };
+
+        context.User.Add(user);
+        await context.SaveChangesAsync();
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(ClaimTypes.Role, user.Role),
+            new Claim(ClaimTypes.Email, user.UserEmail)
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+        await HttpContext.SignInAsync(principal);
+        NavigationManager.NavigateTo("/");
+    }
+
+    // private string HashPassword(string password)
+    // {
+    //     using var sha = SHA256.Create();
+    //     var bytes = Encoding.UTF8.GetBytes(password);
+    //     var hash = sha.ComputeHash(bytes);
+    //     return Convert.ToBase64String(hash);
+    // }
+}
