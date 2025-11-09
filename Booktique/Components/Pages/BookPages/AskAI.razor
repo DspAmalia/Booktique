@@ -1,9 +1,14 @@
 ﻿@page "/ask-ai"
 
 @using Booktique.Models.Services
+@using Booktique.Models.MainModels
 @using Microsoft.AspNetCore.Components.Web
-
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
 @inject AIService AIService
+@inject BooktiqueContext Db
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
 
 @rendermode InteractiveServer
 
@@ -11,12 +16,19 @@
 
 <h2 class="mt-4 mb-3 text-center">Ask <strong>Booktique AI</strong></h2>
 
-<div class="chat-box border rounded p-3 mb-4" style="max-height: 500px; overflow-y: auto;">
+<div class="chat-box border rounded p-3 mb-4" style="max-height: 500px; overflow-y: auto;" @ref="chatBoxRef">
     <div class="text-start">
         <div class="d-inline-block bg-light border px-3 py-2 rounded">
             <p>Hi! I am your Booktique guidance. I can suggest interesting books for you, exactly according to your own wishes. What do you want to read?</p>
         </div>
     </div>
+
+    @if (!string.IsNullOrEmpty(lastInteractionDate))
+    {
+        <div class="text-center mb-3">
+            <span class="badge bg-secondary">@lastInteractionDate</span>
+        </div>
+    }
 
     @foreach (var message in messages)
     {
@@ -24,8 +36,8 @@
             @if (message.Sender == "user")
             {
                 <div class="text-end">
-                    <div class="d-inline-block text-white px-3 py-2 rounded">
-                        @message.Text
+                    <div class="d-inline-block text-white px-3 py-2 rounded" style="background-color: #8d6e63">
+                        <small>@message.Text</small>
                     </div>
                 </div>
             }
@@ -33,7 +45,7 @@
             {
                 <div class="text-start">
                     <div class="d-inline-block bg-light border px-3 py-2 rounded">
-                        @message.Text
+                        <small>@((MarkupString)message.Text)</small>
                     </div>
                 </div>
             }
@@ -57,9 +69,6 @@
 
 <style>
     html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
         background-color: #fdf6ee;
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
@@ -68,10 +77,53 @@
         background-color: #f9f9f9;
     }
 
-    .d-inline-block {
-        background-color: #8d6e63;
+    .book-card-wrapper {
+        margin-top: 10px;
+    }
+
+    .book-card {
+        display: flex;
+        text-decoration: none;
+        color: inherit;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #fff;
+    }
+
+    .book-img {
+        width: 120px;
+        object-fit: cover;
+    }
+
+    .book-info {
+        padding: 10px;
+        flex-grow: 1;
+    }
+
+    .book-title {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .book-author-year {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .book-price {
+        font-size: 1rem;
+        color: #8d6e63;
     }
 </style>
+
+<script>
+    function scrollToBottom(element) {
+        if (element) {
+            element.scrollTop = element.scrollHeight;
+        }
+    }
+</script>
 
 @code {
     private string userQuestion = string.Empty;
@@ -79,6 +131,39 @@
     private bool isTyping = false;
     private string typingDots = "";
     private CancellationTokenSource? typingToken;
+    private ElementReference chatBoxRef;
+    private int currentUserId;
+    private string? lastInteractionDate;
+    private bool hasLoadedHistory = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var idClaim = user.FindFirst("sub") ?? user.FindFirst("nameidentifier");
+            if (idClaim != null && int.TryParse(idClaim.Value, out int parsedId))
+            {
+                currentUserId = parsedId;
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !hasLoadedHistory)
+        {
+            hasLoadedHistory = true;
+
+            // Dacă vrei să încarci mesaje simulate sau din memorie locală, le poți adăuga aici.
+            // În această versiune, nu se încarcă nimic din DB.
+
+            await InvokeAsync(StateHasChanged);
+            await ScrollToBottom();
+        }
+    }
 
     private async Task SubmitQuestion()
     {
@@ -90,23 +175,23 @@
         typingDots = "";
         typingToken = new CancellationTokenSource();
 
-        // Start animation loop
         _ = AnimateTypingDots(typingToken.Token);
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(1500);
 
-        await InvokeAsync(StateHasChanged); // update UI
+        var response = await AIService.GetRecommendation(userQuestion, currentUserId);
 
-        await Task.Delay(1500); // 🔥 elegant delay
-
-        var response = await AIService.GetRecommendation(userQuestion);
-
-        typingToken.Cancel(); // stop animation
+        typingToken.Cancel();
         isTyping = false;
         typingDots = "";
 
         messages.Add(("ai", response));
         userQuestion = string.Empty;
 
+        lastInteractionDate = DateTime.Now.ToString("dddd, dd MMMM yyyy");
+
         await InvokeAsync(StateHasChanged);
+        await ScrollToBottom();
     }
 
     private async Task AnimateTypingDots(CancellationToken token)
@@ -121,5 +206,10 @@
             await InvokeAsync(StateHasChanged);
             await Task.Delay(400);
         }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await JS.InvokeVoidAsync("scrollToBottom", chatBoxRef);
     }
 }

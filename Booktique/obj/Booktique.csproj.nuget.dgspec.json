@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\Booktique.csproj": {}
+    "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\Booktique.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\Booktique.csproj": {
+    "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\Booktique.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\Booktique.csproj",
+        "projectUniqueName": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\Booktique.csproj",
         "projectName": "Booktique",
-        "projectPath": "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\Booktique.csproj",
+        "projectPath": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\Booktique.csproj",
         "packagesPath": "C:\\Users\\Ami\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\obj\\",
+        "outputPath": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

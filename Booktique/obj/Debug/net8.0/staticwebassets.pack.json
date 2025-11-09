@@ -1,23 +1,23 @@
 {
   "Files": [
     {
-      "Id": "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Booktique.bundle.scp.css",
+      "Id": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Booktique.bundle.scp.css",
       "PackagePath": "staticwebassets\\Booktique.bundle.scp.css"
     },
     {
-      "Id": "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\wwwroot\\app.css",
+      "Id": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\app.css",
       "PackagePath": "staticwebassets\\app.css"
     },
     {
-      "Id": "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\wwwroot\\bootstrap\\bootstrap.min.css",
+      "Id": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\bootstrap\\bootstrap.min.css",
       "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css"
     },
     {
-      "Id": "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\wwwroot\\bootstrap\\bootstrap.min.css.map",
+      "Id": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\bootstrap\\bootstrap.min.css.map",
       "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css.map"
     },
     {
-      "Id": "C:\\Users\\Ami\\Desktop\\facultate\\Booktique\\Booktique\\Booktique\\wwwroot\\favicon.png",
+      "Id": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\favicon.png",
       "PackagePath": "staticwebassets\\favicon.png"
     },
     {
