@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Z8FdtHAKWiYMZDG0a9fqsYQb7ybwX7oOkVjk+z6ceJM=",
+  "Hash": "+9v2YuScPjzQre+rnfie/+9r6mLuqVTF/yWc/ochG/Y=",
   "Source": "Booktique",
   "BasePath": "_content/Booktique",
   "Mode": "Default",
@@ -10,7 +10,7 @@
     {
       "Name": "Booktique\\wwwroot",
       "Source": "Booktique",
-      "ContentRoot": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\",
       "BasePath": "_content/Booktique",
       "Pattern": "**"
     }
@@ -226,10 +226,10 @@
       "OriginalItemSpec": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.11\\staticwebassets\\QuickGrid.razor.js"
     },
     {
-      "Identity": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Booktique.styles.css",
+      "Identity": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Booktique.styles.css",
       "SourceId": "Booktique",
       "SourceType": "Computed",
-      "ContentRoot": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\bundle\\",
+      "ContentRoot": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\bundle\\",
       "BasePath": "_content/Booktique",
       "RelativePath": "Booktique.styles.css",
       "AssetKind": "All",
@@ -242,13 +242,13 @@
       "AssetTraitValue": "ApplicationBundle",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Booktique.styles.css"
+      "OriginalItemSpec": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Booktique.styles.css"
     },
     {
-      "Identity": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Booktique.bundle.scp.css",
+      "Identity": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Booktique.bundle.scp.css",
       "SourceId": "Booktique",
       "SourceType": "Computed",
-      "ContentRoot": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\",
+      "ContentRoot": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\",
       "BasePath": "_content/Booktique",
       "RelativePath": "Booktique.bundle.scp.css",
       "AssetKind": "All",
@@ -261,13 +261,13 @@
       "AssetTraitValue": "ProjectBundle",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Booktique.bundle.scp.css"
+      "OriginalItemSpec": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Booktique.bundle.scp.css"
     },
     {
-      "Identity": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\app.css",
+      "Identity": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\app.css",
       "SourceId": "Booktique",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\",
       "BasePath": "_content/Booktique",
       "RelativePath": "app.css",
       "AssetKind": "All",
@@ -283,10 +283,10 @@
       "OriginalItemSpec": "wwwroot\\app.css"
     },
     {
-      "Identity": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\bootstrap\\bootstrap.min.css",
+      "Identity": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\bootstrap\\bootstrap.min.css",
       "SourceId": "Booktique",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\",
       "BasePath": "_content/Booktique",
       "RelativePath": "bootstrap/bootstrap.min.css",
       "AssetKind": "All",
@@ -302,10 +302,10 @@
       "OriginalItemSpec": "wwwroot\\bootstrap\\bootstrap.min.css"
     },
     {
-      "Identity": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\bootstrap\\bootstrap.min.css.map",
+      "Identity": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\bootstrap\\bootstrap.min.css.map",
       "SourceId": "Booktique",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\",
       "BasePath": "_content/Booktique",
       "RelativePath": "bootstrap/bootstrap.min.css.map",
       "AssetKind": "All",
@@ -321,10 +321,10 @@
       "OriginalItemSpec": "wwwroot\\bootstrap\\bootstrap.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\favicon.png",
+      "Identity": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\favicon.png",
       "SourceId": "Booktique",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\",
       "BasePath": "_content/Booktique",
       "RelativePath": "favicon.png",
       "AssetKind": "All",

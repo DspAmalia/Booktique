@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "UvYhmkZkqmykNC+NJv7E6AVL+Ru/jo4ft7EAb94GKDYf4jAQhUcdAnW4Bv0tkihaHfQQd7nsywHDei9z9eOC7Q==",
+  "dgSpecHash": "KgWdek6UJuvQhIWgSJRghpYuuBvOYb07ku8LCpvlEcThRIi52a/Ixhx+AmtMfvxJAwhIwanViitYC3ou0Lkgjg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Ami\\Source\\Repos\\DspAmalia\\Booktique\\Booktique\\Booktique.csproj",
+  "projectFilePath": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\Booktique.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Ami\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
