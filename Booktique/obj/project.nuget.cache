@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "KgWdek6UJuvQhIWgSJRghpYuuBvOYb07ku8LCpvlEcThRIi52a/Ixhx+AmtMfvxJAwhIwanViitYC3ou0Lkgjg==",
+  "dgSpecHash": "0P5GSyid7tcpSsKDd89/BP8SH4rjP5zeBbIY4uUCs7BsR4n0o+fAHcPOiRWCJ+1/pYFhJXy+LS1XTi0VkW2Lgg==",
   "success": true,
   "projectFilePath": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\Booktique.csproj",
   "expectedPackageFiles": [
@@ -57,6 +57,7 @@
     "C:\\Users\\Ami\\.nuget\\packages\\humanizer.core.zh-cn\\2.14.1\\humanizer.core.zh-cn.2.14.1.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\humanizer.core.zh-hans\\2.14.1\\humanizer.core.zh-hans.2.14.1.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\humanizer.core.zh-hant\\2.14.1\\humanizer.core.zh-hant.2.14.1.nupkg.sha512",
+    "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.authentication.google\\8.0.11\\microsoft.aspnetcore.authentication.google.8.0.11.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.authorization\\8.0.11\\microsoft.aspnetcore.authorization.8.0.11.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components\\8.0.11\\microsoft.aspnetcore.components.8.0.11.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.analyzers\\8.0.11\\microsoft.aspnetcore.components.analyzers.8.0.11.nupkg.sha512",
