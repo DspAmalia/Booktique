@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="Booktique.styles.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <HeadOutlet />
 </head>
 
@@ -25,6 +26,27 @@
     <!-- Add sortable.js reference if SortableList component is used in your application. -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="_content/Blazor.Bootstrap/blazor.bootstrap.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        function initMap() {
+            // Centrare pe Centrul Vechi, București
+            console.log("initMap called");
+            var map = L.map('map').setView([44.4325, 26.1039], 16); // zoom mai mare pentru detalii
+
+            // Tile layer OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Marker pe Centrul Vechi
+            L.marker([44.4325, 26.1039])
+                .addTo(map)
+                .bindPopup('<div style="text - align: center;"><b>Booktique</b> <br> <i>Centrul Vechi - Str. Lipscani</i></div>');
+        }
+        document.addEventListener("DOMContentLoaded", initMap);
+    </script>
+
+
 </body>
 
 </html>

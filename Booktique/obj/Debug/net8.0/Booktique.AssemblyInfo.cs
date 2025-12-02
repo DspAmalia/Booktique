@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Booktique")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+475665e9a048f56c604bb57e6fe7be08b5197cae")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1199bcb37e1639bca4d008ddd3d7ffd3ffd6756a")]
 [assembly: System.Reflection.AssemblyProductAttribute("Booktique")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Booktique")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

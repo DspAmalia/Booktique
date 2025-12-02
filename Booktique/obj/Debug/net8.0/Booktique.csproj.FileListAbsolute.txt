@@ -1181,3 +1181,4 @@ C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\obj\Debug\net8.0\Booktique.pd
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\obj\Debug\net8.0\Booktique.genruntimeconfig.cache
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\obj\Debug\net8.0\ref\Booktique.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Radzen.Blazor.dll

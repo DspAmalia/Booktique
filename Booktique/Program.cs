@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Radzen;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,6 +45,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<FavoriteService>();
 builder.Services.AddScoped<AIService>();
+//builder.Services.AddRadzenComponents();
 
 var app = builder.Build();
 

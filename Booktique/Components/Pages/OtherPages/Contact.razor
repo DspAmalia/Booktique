@@ -1,0 +1,63 @@
+﻿@page "/contact"
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Contact Us</PageTitle>
+
+<h2><b>Contact</b> Us</h2>
+
+<div class="card map-card mb-4">
+    <div class="card-body">
+        <p class="mb-1">Tel: +40 749656025</p>
+        <p class="mb-0">Email: booktique@gmail.com</p>
+    </div>
+</div>
+
+<div class="card map-card">
+    <div class="card-header bg-white">
+        <h3 class="mb-4 text-dark">You can find us here</h3>
+    </div>
+    <div class="card-body p-0">
+        <div id="map" style="height:500px;"></div>
+    </div>
+</div>
+
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    #map {
+        height: 100vh; /* full viewport height */
+        width: 100%; /* full width of card */
+    }
+
+    /* Cardul puțin mai mare decât harta */
+    .map-card {
+        width: 100%;
+        max-width: 95vw;
+        margin: auto;
+        background-color: #fff;
+        padding: 10px;
+    }
+
+        /* Adaugă spațiu între carduri */
+        .map-card + .map-card {
+            margin-top: 20px;
+        }
+
+</style>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initMap");
+        }
+    }
+}

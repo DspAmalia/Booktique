@@ -14,7 +14,8 @@
           "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": "8.0.11",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.8",
           "Microsoft.EntityFrameworkCore.Tools": "9.0.8",
-          "Microsoft.VisualStudio.Web.CodeGeneration.Design": "8.0.7"
+          "Microsoft.VisualStudio.Web.CodeGeneration.Design": "8.0.7",
+          "Radzen.Blazor": "8.3.4"
         },
         "runtime": {
           "Booktique.dll": {}
@@ -1864,6 +1865,18 @@
           }
         }
       },
+      "Radzen.Blazor/8.3.4": {
+        "dependencies": {
+          "Microsoft.AspNetCore.Components": "8.0.11",
+          "Microsoft.AspNetCore.Components.Web": "8.0.11"
+        },
+        "runtime": {
+          "lib/net8.0/Radzen.Blazor.dll": {
+            "assemblyVersion": "8.3.4.0",
+            "fileVersion": "8.3.4.0"
+          }
+        }
+      },
       "System.ClientModel/1.0.0": {
         "dependencies": {
           "System.Memory.Data": "1.0.2",
@@ -3117,6 +3130,13 @@
       "sha512": "sha512-v/GGlIj2dd7svplFmASWEueu62veKW0MrMtBaZ7QG8aJTSGv2yE+pgUGhXRcQ4nxNOEq/wLBrz1vkth/1SND7A==",
       "path": "nuget.versioning/6.11.0",
       "hashPath": "nuget.versioning.6.11.0.nupkg.sha512"
+    },
+    "Radzen.Blazor/8.3.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-CsxW6RVVC6btLcJV1DvKslJdRz7BZO9kz/12NkCFp4GGyNqrRSvb0i5JEDMuZjREngj9cEmwCdPjPKITYqnF2w==",
+      "path": "radzen.blazor/8.3.4",
+      "hashPath": "radzen.blazor.8.3.4.nupkg.sha512"
     },
     "System.ClientModel/1.0.0": {
       "type": "package",

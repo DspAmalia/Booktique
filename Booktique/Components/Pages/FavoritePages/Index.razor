@@ -36,10 +36,10 @@ else
                             <div class="book-info">
                                 <h5 class="book-title">@book.BookTitle</h5>
                                 <p class="book-author-year">
-                                    <strong>Author:</strong> @book.BookAuthor <br />
-                                    <strong>Year:</strong>   @book.BookYear   <br />
-                                    <strong>Price:</strong>  @book.BookPrice lei
+                                    @book.BookAuthor <br />
+                                    @book.BookYear   <br />
                                 </p>
+                                <p class="book-price"><strong> @book.BookPrice lei</strong></p>
                             </div>
                         </a>
                     </div>
@@ -212,6 +212,11 @@ else
 
     .book-author-year {
         font-size: 0.95rem;
+    }
+
+    .book-price {
+        color: #f0a500;
+        font-size: 1.1rem;
     }
 
     .folder-sidebar {
