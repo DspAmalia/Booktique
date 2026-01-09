@@ -34,6 +34,14 @@ html, body {
     color: #fff;
 }
 
+.nav-link i.bi-chat-dots-fill-nav-menu {
+    transition: color 0.3s ease;
+}
+
+    .nav-link:hover .bi-chat-dots-fill-nav-menu {
+        color: #f4d03f;
+    }
+
 .bi {
     display: inline-block;
     position: relative;
@@ -42,6 +50,7 @@ html, body {
     margin-right: 0.75rem;
     top: -1px;
     background-size: cover;
+    vertical-align: middle;
 }
 
 .nav-item {

@@ -1,0 +1,239 @@
+﻿@page "/chat"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Booktique.Models.MainModels
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+@implements IAsyncDisposable
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Booktique Messenger</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0" style="max-width: 800px; margin: auto;">
+        <div class="card-header bg-warning text-white">
+            <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Booktique Messenger</h5>
+        </div>
+
+        <div class="card-body bg-light">
+            <div class="mb-3">
+                <label class="form-label fw-bold text-dark">Alege destinatarul:</label>
+                <select class="form-select" @onchange="OnUserSelected">
+                    <option value="">-- Select an user --</option>
+                    @if (users != null)
+                    {
+                        @foreach (var user in users)
+                        {
+                            <option value="@user.UserId">@user.UserName (@user.UserEmail)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="chat-window">
+                @{
+                    List<ChatMessage> messagesToDisplay;
+                    lock (_messageLock)
+                    {
+                        messagesToDisplay = chatMessages.ToList();
+                    }
+                }
+                @if (messagesToDisplay.Count == 0)
+                {
+                    <p class="text-muted text-center my-auto">Select an user and start the conversation.</p>
+                }
+                else
+                {
+                    @foreach (var msg in messagesToDisplay)
+                    {
+                        <div class="message-container @(msg.IsOwnMessage ? "message-right" : "message-left")">
+                            <div class="message-bubble @(msg.IsOwnMessage ? "bubble-mine" : "bubble-other")">
+                                <span class="message-user">@msg.User</span>
+                                <div>@msg.Text</div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="input-group mt-3">
+                <input @bind="messageInput"
+                       @bind:event="oninput"
+                       @onkeyup="HandleKeyUp"
+                       class="form-control"
+                       placeholder="Write a message..."
+                       disabled="@(string.IsNullOrEmpty(selectedUserId))" />
+                <button class="btn btn-warning"
+                        @onclick="Send"
+                        disabled="@(IsButtonDisabled)">
+                    <i class="bi bi-send"></i> Send
+                </button>
+            </div>
+
+            <div class="mt-2">
+                <small class="text-muted">Status: <span class="badge @(hubConnection?.State == HubConnectionState.Connected ? "bg-success" : "bg-danger")">@hubConnection?.State</span></small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-window {
+        height: 400px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 1rem;
+    }
+
+    .message-container {
+        display: flex;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+
+    .message-left {
+        justify-content: flex-start;
+    }
+
+    .message-right {
+        justify-content: flex-end;
+    }
+
+    .message-bubble {
+        max-width: 70%;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        position: relative;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .bubble-mine {
+        background-color: #8d6e63;
+        color: white;
+        border-bottom-right-radius: 0.1rem;
+    }
+
+    .bubble-other {
+        background-color: #f1f0f0;
+        color: #333;
+        border-bottom-left-radius: 0.1rem;
+    }
+
+    .message-user {
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-bottom: 0.2rem;
+        display: block;
+    }
+</style>
+
+@code {
+    private HubConnection? hubConnection;
+    private List<User> users = new();
+    private readonly object _messageLock = new();
+    private List<ChatMessage> chatMessages = new();
+    private string? selectedUserId;
+    private string? messageInput;
+    private string? currentUserId;
+    private string? currentUserName;
+
+    private bool IsButtonDisabled =>
+        hubConnection?.State != HubConnectionState.Connected ||
+        string.IsNullOrWhiteSpace(messageInput) ||
+        string.IsNullOrEmpty(selectedUserId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Injectarea AuthStateProvider era necesară pentru a popula currentUserId
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? authState.User.FindFirst("UserId")?.Value;
+        currentUserName = authState.User.Identity?.Name ?? "Anonim";
+
+        // 2. Populare listă utilizatori
+        using var context = DbFactory.CreateDbContext();
+        users = await context.User.ToListAsync();
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<string, string, string>("ReceiveMessage", (senderId, userName, text) =>
+        {
+            lock (_messageLock)
+            {
+                chatMessages.Add(new ChatMessage
+                    {
+                        User = userName,
+                        Text = text,
+                        IsOwnMessage = (userName == "Eu")
+                    });
+            }
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            await hubConnection.InvokeAsync("RegisterUser", currentUserId);
+        }
+    }
+
+    private async Task Send()
+    {
+        if (hubConnection is not null && !string.IsNullOrEmpty(selectedUserId))
+        {
+            try
+            {
+                await hubConnection.InvokeAsync("SendPrivateMessage",
+                    selectedUserId,
+                    messageInput,
+                    currentUserId,
+                    currentUserName);
+
+                messageInput = "";
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare trimitere: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task OnUserSelected(ChangeEventArgs e)
+    {
+        selectedUserId = e.Value?.ToString();
+        lock (_messageLock)
+        {
+            chatMessages.Clear();
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !IsButtonDisabled) await Send();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null) await hubConnection.DisposeAsync();
+    }
+
+    public class ChatMessage
+    {
+        public string User { get; set; } = "";
+        public string Text { get; set; } = "";
+        public bool IsOwnMessage { get; set; }
+    }
+}

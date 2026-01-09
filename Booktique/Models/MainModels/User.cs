@@ -27,5 +27,7 @@ namespace Booktique.Models.MainModels
         [Column("Role")]
         [MaxLength(20)]
         public string? Role { get; set; }
+
+        public bool IsSubscribed { get; set; } = false;
     }
 }

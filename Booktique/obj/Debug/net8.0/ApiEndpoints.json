@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "ContainingType": "PaymentsController",
+    "Method": "CreateCheckoutSession",
+    "RelativePath": "create-checkout-session",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "priceId",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

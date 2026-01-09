@@ -165,6 +165,14 @@ html[b-u6f7j7dqw2], body[b-u6f7j7dqw2] {
     color: #fff;
 }
 
+.nav-link i.bi-chat-dots-fill-nav-menu[b-u6f7j7dqw2] {
+    transition: color 0.3s ease;
+}
+
+    .nav-link:hover .bi-chat-dots-fill-nav-menu[b-u6f7j7dqw2] {
+        color: #f4d03f;
+    }
+
 .bi[b-u6f7j7dqw2] {
     display: inline-block;
     position: relative;
@@ -173,6 +181,7 @@ html[b-u6f7j7dqw2], body[b-u6f7j7dqw2] {
     margin-right: 0.75rem;
     top: -1px;
     background-size: cover;
+    vertical-align: middle;
 }
 
 .nav-item[b-u6f7j7dqw2] {

@@ -1,15 +1,15 @@
 using Booktique.Components;
-using Booktique.Models;
 using Booktique.Models.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Radzen;
+using Stripe;
 
 
 var builder = WebApplication.CreateBuilder(args);
+//builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+
+builder.Services.AddSignalR();
 builder.Services.AddDbContextFactory<BooktiqueContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("BooktiqueContext") ?? throw new InvalidOperationException("Connection string 'BooktiqueContext' not found.")));
 
@@ -43,8 +43,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
+
 builder.Services.AddScoped<FavoriteService>();
 builder.Services.AddScoped<AIService>();
+
 //builder.Services.AddRadzenComponents();
 
 var app = builder.Build();
@@ -58,17 +60,21 @@ if (!app.Environment.IsDevelopment())
     app.UseMigrationsEndPoint();
 }
 
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
-
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
+
 app.MapControllers();
+app.MapHub<ChatHub>("/chathub"); // Hub-ul pentru Chat
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
 
 app.Run();
 

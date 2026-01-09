@@ -1,0 +1,166 @@
+﻿@page "/subscriptions"
+@using System.Text.Json
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+
+<PageTitle>Subscriptions</PageTitle>
+
+<div class="subscriptions-container">
+    <div class="card book-card">
+        <div class="card-header text-center">
+            <h2><strong>Test</strong> Subscription - 1 RON</h2>
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                With your monthly subscription you gain access to:
+            </p>
+            <ul>
+                <li>Right to borrow 1 book </li>
+                <li>Right to purchase products from the café</li>
+                <li>Returning books on time</li>
+                <li>Penalty fees (if applicable): <strong>2 RON/day late</strong></li>
+                <li>Subscription suspension after <strong>14 days of non-payment</strong></li>
+            </ul>
+        </div>
+        <div class="card-footer text-center">
+            <form action="/create-checkout-session" method="POST">
+                <!-- priceId este ID-ul de preț din Stripe Dashboard -->
+                <input type="hidden" name="priceId" value="price_1SlpLfInaqYDz3lYP7ltigGe" />
+                <button type="submit" class="btn-subs">Activate Subscription</button>
+            </form>
+        </div>
+    </div>
+
+<div class="card book-card">
+    <div class="card-header text-center">
+        <h2><strong>Monthly</strong> Subscription - 50 RON</h2>
+    </div>
+    <div class="card-body">
+        <p class="card-text">
+            With your monthly subscription you gain access to:
+        </p>
+        <ul>
+            <li>Right to borrow 1 book </li>
+            <li>Right to purchase products from the café</li>
+            <li>Returning books on time</li>
+            <li>Penalty fees (if applicable): <strong>2 RON/day late</strong></li>
+            <li>Subscription suspension after <strong>14 days of non-payment</strong></li>
+        </ul>
+    </div>
+    <div class="card-footer text-center">
+        <form action="/create-checkout-session" method="POST">
+                <!-- priceId este ID-ul de preț din Stripe Dashboard -->
+                <input type="hidden" name="priceId" value="price_1SaWieInaqYDz3lYBqfhbi3M" />
+                <button type="submit" class="btn-subs">Activate Subscription</button>
+        </form>
+    </div>
+</div>
+
+<div class="card book-card">
+    <div class="card-header text-center">
+        <h2><strong>Yearly</strong> Subscription - 400 RON</h2>
+    </div>
+    <div class="card-body">
+        <p class="card-text">
+            With your yearly subscription you gain access to:
+        </p>
+        <ul>
+            <li>Right to borrow 2 books/month</li>
+            <li>Right to purchase products from the café</li>
+            <li>Returning books on time</li>
+            <li>Penalty fees (if applicable): <strong>2 RON/day late</strong></li>
+            <li>Subscription suspension after <strong>14 days of non-payment</strong></li>
+        </ul>
+    </div>
+    <div class="card-footer text-center">
+        <form action="/create-checkout-session" method="POST">
+            <!-- priceId pentru abonamentul anual -->
+                <input type="hidden" name="priceId" value="price_1Slp75InaqYDz3lYBN65bI5x" />
+            <button type="submit" class="btn-subs">Activate Yearly Subscription</button>
+        </form>
+    </div>
+</div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .subscriptions-container {
+        display: flex;
+        justify-content: center;
+        gap: 2rem; /* spațiu între carduri */
+        margin-top: 2rem;
+        flex-wrap: wrap; /* ca să se așeze frumos pe ecrane mici */
+    }
+
+    .book-card {
+        max-width: 600px;
+        margin: 2rem auto;
+        border: 2px solid #8d6e63; /* dark brown, like old book edges */
+        border-radius: 12px;
+        background: #fdfaf4; /* parchment-like background */
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+
+        .book-card:hover{
+            transform: scale(1.02);
+        }
+
+        .book-card .card-header {
+            background: #8d6e63;
+            color: #fff;
+            border-bottom: 2px solid #8d6e63;
+            padding: 1rem;
+        }
+
+        .book-card h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+
+        .book-card .card-body {
+            padding: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .book-card ul {
+            list-style-type: "📖 ";
+            padding-left: 1.5rem;
+        }
+
+        .book-card li {
+            margin-bottom: 0.6rem;
+        }
+
+        .book-card .card-footer {
+            background: #f0e9dd;
+            border-top: 1px solid #d6c9b3;
+            padding: 1rem;
+        }
+
+    .btn-subs {
+        background-color: #f4d03f;
+        color: #fff;
+        font-weight: bold;
+        padding: 0.8rem 1.6rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+        .btn-subs:hover {
+            background-color: #f4d03f;
+            transform: scale(1.05);
+        }
+
+</style>

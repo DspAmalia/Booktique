@@ -957,7 +957,6 @@ C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.Vi
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.VisualStudio.Web.CodeGeneration.Templating.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.VisualStudio.Web.CodeGeneration.Utils.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.VisualStudio.Web.CodeGenerators.Mvc.dll
-C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Mono.TextTemplating.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Newtonsoft.Json.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\NuGet.Common.dll
@@ -978,7 +977,6 @@ C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Compo
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Composition.TypedParts.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Configuration.ConfigurationManager.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
-C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Drawing.Common.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Formats.Asn1.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.IO.Pipelines.dll
@@ -986,10 +984,8 @@ C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Memor
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Reflection.MetadataLoadContext.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Runtime.Caching.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Security.Cryptography.ProtectedData.dll
-C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Security.Permissions.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Text.Encodings.Web.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Text.Json.dll
-C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.Windows.Extensions.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\af\Humanizer.resources.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\ar\Humanizer.resources.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\az\Humanizer.resources.dll
@@ -1148,12 +1144,8 @@ C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\win
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
-C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\win\lib\net7.0\Microsoft.Win32.SystemEvents.dll
-C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Drawing.Common.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Runtime.Caching.dll
-C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
-C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Windows.Extensions.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\obj\Debug\net8.0\Booktique.csproj.AssemblyReference.cache
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\obj\Debug\net8.0\Booktique.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\obj\Debug\net8.0\Booktique.AssemblyInfoInputs.cache
@@ -1182,3 +1174,7 @@ C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\obj\Debug\net8.0\Booktique.ge
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\obj\Debug\net8.0\ref\Booktique.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Radzen.Blazor.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Stripe.net.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.AspNetCore.Http.Connections.Client.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Client.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Client.Core.dll

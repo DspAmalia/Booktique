@@ -1,0 +1,103 @@
+﻿@page "/success"
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Success</PageTitle>
+
+<div class="container text-center mt-5">
+    <div class="card shadow p-5 border-0">
+        <h2 class="text-success mb-3">✅ The payment was made successfully!</h2>
+        <p class="lead">Thank you for subscribing. Your account has been updated.</p>
+        <hr />
+        <p class="text-muted">You now have access to Messenger and the rest of Booktique's features.</p>
+
+        <div class="mt-4">
+            <button class="btn btn-secondary btn-lg" @onclick="GoHome">Back to Home</button>
+            <button class="btn btn-outline-warning btn-lg ms-2" @onclick="GoToChat">Go to Chat</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        background: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .container {
+        max-width: 800px;
+    }
+
+    .card {
+        border-radius: 15px;
+        background-color: white;
+        transition: transform 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+    .text-success {
+        color: #28a745 !important;
+        font-weight: bold;
+    }
+
+    .btn-lg {
+        padding: 0.8rem 2rem;
+        font-weight: 600;
+        border-radius: 10px;
+    }
+
+    hr {
+        border-top: 1px solid #d6c9b3;
+        width: 50%;
+        margin: 1.5rem auto;
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Preluăm starea de autentificare
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            // 2. Extragem ID-ul utilizatorului din Claims
+            var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                            ?? user.FindFirst("UserId")?.Value;
+
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                using var context = DbFactory.CreateDbContext();
+                var dbUser = await context.User.FindAsync(userId);
+
+                if (dbUser != null && !dbUser.IsSubscribed)
+                {
+                    // 3. Actualizăm coloana IsSubscribed în SQL Server
+                    dbUser.IsSubscribed = true;
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
+    }
+
+    private void GoHome()
+    {
+        NavManager.NavigateTo("/");
+    }
+
+    private void GoToChat()
+    {
+        NavManager.NavigateTo("/chat");
+    }
+}
