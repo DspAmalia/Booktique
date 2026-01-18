@@ -1,0 +1,101 @@
+﻿@page "/order-success"
+@inject NavigationManager Nav
+
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="card shadow-lg border-0 text-center p-5 animate-fade-in" style="max-width: 600px; background-color: #fff; border-radius: 20px;">
+
+        <div class="mb-4">
+            <div class="success-icon">
+                <i class="bi bi-bag-check-fill text-orange"></i>
+            </div>
+        </div>
+
+        <h1 class="fw-bold text-brown mb-3">Thank you for your purchase!</h1>
+        <p class="text-muted fs-5 mb-4">
+            Your order has been placed successfully. We are already preparing your favorite books for delivery.
+        </p>
+
+        <div class="order-details-box bg-light p-3 rounded mb-4 border-dashed">
+            <span class="text-secondary small text-uppercase fw-bold">Confirmation</span>
+            <p class="mb-0 text-dark">A confirmation email will be sent shortly to your address.</p>
+        </div>
+
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a class="btn btn-warning btn-lg px-5 fw-bold shadow-sm rounded-pill" href="/">
+                Back to List
+            </a>
+            <a class="btn btn-outline-brown btn-lg px-4 rounded-pill" href="/my-orders">
+                My Orders
+            </a>
+        </div>
+
+        <p class="mt-5 text-secondary fst-italic">
+            "So many books, so little time."
+        </p>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .text-orange {
+        color: #f0a500;
+    }
+
+    .text-brown {
+        color: #5a3e2b;
+    }
+
+    .btn-outline-brown {
+        border: 2px solid #5a3e2b;
+        color: #5a3e2b;
+        font-weight: bold;
+    }
+
+        .btn-outline-brown:hover {
+            background-color: #5a3e2b;
+            color: #fff;
+        }
+
+    .success-icon {
+        font-size: 5rem;
+        display: inline-block;
+        animation: bounce 1.5s infinite;
+    }
+
+    @@keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .border-dashed {
+        border: 1px dashed #dee2e6;
+    }
+</style>

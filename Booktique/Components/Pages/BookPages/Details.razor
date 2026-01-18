@@ -2,17 +2,19 @@
 
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
+@using Booktique.Models.Services
 
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject CartService cartService
 
 @rendermode InteractiveServer
+@implements IDisposable
 
 <PageTitle>@pageTitle</PageTitle>
 
 <h2>Details</h2>
-
 
     <hr />
     @if (book is null)
@@ -78,6 +80,16 @@
                                         <span style="color:#aaa;">🤍 Add to Favorites</span>
                                     }
                                 </button>
+                            <button class="btn btn-cart-custom mt-2" @onclick="HandleAddToCart">
+                                @if (isAdded)
+                                {
+                                    <span style="color:#f0a500;"><i class="bi bi-cart-check-fill"></i> In Cart</span>
+                                }
+                                else
+                                {
+                                    <span style="color:#aaa;"><i class="bi bi-cart-plus"></i> Add to Cart</span>
+                                }
+                            </button>
                             </Authorized>
                         </AuthorizeView>
                     </div>
@@ -158,7 +170,7 @@
                                             <strong>Year:</strong>   @b.BookYear   <br />
                                         
                                         </p>
-                                        <p class="book-price">@b.BookPrice lei</p>
+                                    <p class="book-price"><strong> @book.BookPrice lei</strong></p>
                                     </div>
                                 </div>
                             </div>
@@ -272,6 +284,23 @@
             transform: scale(1.05);
         }
 
+    .btn-cart-custom {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        padding: 0.5rem 1 rem;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+        .btn-cart-custom:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-cart-custom:active {
+            transform: scale(0.98);
+        }
+
     /* Review-uri */
     .review-card {
         margin-bottom: 1rem;
@@ -371,6 +400,7 @@
         private bool isFavorite = false;
 
         private List<Book> relatedBooks = new();
+        private bool isAdded = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -413,7 +443,7 @@
                     book.BookRating = 0; // sau alt default
                 }
             }
-
+        cartService.OnChange += StateHasChanged;
         }
 
     private async Task HandleValidSubmit()
@@ -485,6 +515,21 @@
         }
 
         await context.SaveChangesAsync();
+    }
+
+    private void HandleAddToCart()
+    {
+        if (book != null)
+        {
+            cartService.AddToCart(book);
+            isAdded = true;
+            Console.WriteLine($"Cartea {book.BookTitle} a fost adăugată în coș.");
+        }
+    }
+
+    public void Dispose()
+    {
+        cartService.OnChange -= StateHasChanged;
     }
 
     private void NavigateToDetails(int bookId)

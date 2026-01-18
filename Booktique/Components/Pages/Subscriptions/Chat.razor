@@ -80,6 +80,14 @@
 </div>
 
 <style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
     .chat-window {
         height: 400px;
         overflow-y: auto;
@@ -150,15 +158,19 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // 1. Injectarea AuthStateProvider era necesară pentru a popula currentUserId
+        // 1. Injectarea AuthStateProvider pentru a popula currentUserId
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                         ?? authState.User.FindFirst("UserId")?.Value;
         currentUserName = authState.User.Identity?.Name ?? "Anonim";
 
-        // 2. Populare listă utilizatori
+        // 2. Populare listă utilizatori cu FILTRARE
         using var context = DbFactory.CreateDbContext();
-        users = await context.User.ToListAsync();
+
+        // Aici adăugăm .Where() pentru IsSubscribed și pentru a te exclude pe tine
+        users = await context.User
+            .Where(u => u.IsSubscribed == true && u.UserId.ToString() != currentUserId)
+            .ToListAsync();
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/chathub"))

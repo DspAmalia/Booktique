@@ -63,7 +63,7 @@
 </div>
 
 <div class="input-group">
-    <InputText @bind-Value="userQuestion" class="form-control" placeholder="Ask about books..." />
+    <InputText @bind-Value="userQuestion" @onkeyup="HandleKeyUp"  class="form-control" placeholder="Ask about books..." />
     <button type="submit" class="btn btn-warning" @onclick="SubmitQuestion">Send</button>
 </div>
 
@@ -211,5 +211,10 @@
     private async Task ScrollToBottom()
     {
         await JS.InvokeVoidAsync("scrollToBottom", chatBoxRef);
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SubmitQuestion();
     }
 }

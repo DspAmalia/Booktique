@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using Booktique.Components.Pages
+@using Booktique.Models.Services
+@inject CartService cartService
 
 <div class="page">
     <div class="sidebar">
@@ -13,8 +15,7 @@
                     <a class="btn btn-outline-light hover-dark-text" href="/users">
                         <span class="bi bi-list-nested-nav-menu"></span> Users
                     </a>
-                </div>
-                <div class="add-book-item px-3">
+                
                     <a class="btn btn-outline-light hover-dark-text" href="/books/create">
                         <span class="bi bi-list-nested-nav-menu"></span> Add Book
                     </a>
@@ -22,6 +23,14 @@
             </AuthorizeView>
             <AuthorizeView>
                 <Authorized>
+                    <a class="btn btn-outline-light hover-dark-text" href="/cart">
+                        <span class="bi bi-cart3"></span> Cart
+                        @if (cartService.Items.Any())
+                        {
+                            <span class="badge bg-danger rounded-pill">@cartService.Items.Sum(i => i.Quantity)</span>
+                        }
+                    </a>
+
                     <div class="dropdown">
                         <button class="btn btn-outline-light dropdown-toggle text-brown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             @context.User.Identity?.Name
@@ -38,7 +47,6 @@
             </AuthorizeView>
         </div>
 
-
         <article class="content px-4">
             @Body
         </article>
@@ -50,3 +58,27 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private bool _isInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isInitialized = true;
+            await cartService.LoadCartAsync();
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        cartService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        cartService.OnChange -= StateHasChanged;
+    }
+}

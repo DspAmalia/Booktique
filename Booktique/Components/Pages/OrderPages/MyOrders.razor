@@ -1,0 +1,144 @@
+﻿@page "/my-orders"
+@using Booktique.Models.MainModels
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<h2>My <strong>Order History</strong></h2>
+
+<hr />
+<div class="container mt-5 mb-5">
+    @if (orders == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-warning" role="status"></div>
+            <p>Loading your orders...</p>
+        </div>
+    }
+    else if (!orders.Any())
+    {
+        <div class="card shadow-sm border-0 p-5 text-center bg-white rounded-4">
+            <i class="bi bi-journal-x text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3">You haven't placed any orders yet.</h4>
+            <button class="btn btn-warning mt-3 px-4 rounded-pill fw-bold" @onclick='() => Nav.NavigateTo("/")'>
+                Start Shopping
+            </button>
+        </div>
+    }
+    else
+    {
+        @foreach (var order in orders.OrderByDescending(o => o.OrderDate))
+        {
+            <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
+                <div class="card-header bg-brown text-white p-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="small opacity-75">Order ID: #@order.OrderId</span>
+                        <div class="fw-bold">Placed on: @order.OrderDate.ToString("dd MMM yyyy, HH:mm")</div>
+                    </div>
+                    <div class="text-end">
+                        <span class="small opacity-75">Total Amount</span>
+                        <div class="fs-5 fw-bold text-warning">@order.TotalAmount lei</div>
+                    </div>
+                </div>
+                <div class="card-body bg-white">
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in order.OrderItems)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        @if (item.Book != null)
+                                        {
+                                            <img src="@item.Book.BookCoverPath" alt="@item.Book.BookTitle"
+                                                 class="img-thumbnail"
+                                                 style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light rounded text-center" style="width: 50px; height: 75px; line-height: 75px;">
+                                                <i class="bi bi-book text-muted"></i>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div>
+                                        <div class="fw-bold text-dark">@(item.Book?.BookTitle ?? "Unknown Title")</div>
+                                        <div class="text-muted small">Qty: @item.Quantity x @item.UnitPrice lei</div>
+                                    </div>
+                                </div>
+                                <div class="fw-bold text-dark">
+                                    @(item.Quantity * item.UnitPrice) lei
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .bg-brown {
+        background-color: #8d6e63;
+    }
+
+    .text-brown {
+        color: #5a3e2b;
+    }
+
+    .text-warning {
+        color: #f0a500 !important;
+    }
+
+    .rounded-4 {
+        border-radius: 1rem !important;
+    }
+
+    .img-thumbnail {
+        border: 1px solid #dee2e6;
+        background-color: #f8f9fa;
+    }
+</style>
+
+@code {
+    private List<Order>? orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        var userIdClaim = user.FindFirst("UserId");
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            using var ctx = DbFactory.CreateDbContext();
+
+            orders = await ctx.Order
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Book)
+                .Where(o => o.UserId == userId)
+                .ToListAsync();
+        }
+        else
+        {
+            orders = new List<Order>();
+        }
+    }
+}

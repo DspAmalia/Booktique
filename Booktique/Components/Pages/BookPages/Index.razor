@@ -1,5 +1,6 @@
 ﻿@page "/"
 
+@using Booktique.Models.Services
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.WebUtilities
 @using Booktique.Models.MainModels
@@ -8,19 +9,23 @@
 
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject CartService cartService
 
 @rendermode InteractiveServer
 
 <PageTitle>Booktique</PageTitle>
-<div class="card shadow p-4 text-center" style=" width: 100%; background-color:lightgoldenrodyellow">
+
+@* <div class="card shadow p-4 text-center" style=" width: 100%; background-color:lightgoldenrodyellow">
     <span class="text-brown fw-bold fs-5">The books are only available for purchase in physical stores.</span>
-</div>
+</div> *@
 
 <div class="row mb-3">
     <div class="col-12 mt-3">
         <h2>Welcome to <span class="text-brown fw-bold">Booktique</span></h2>
     </div>
 </div>
+
+<hr />
 
 <main class="books-content">
     <div class="search-bar mb-3 input-group">
@@ -51,6 +56,7 @@
                         <p class="book-price"><strong> @book.BookPrice lei</strong></p>
                     </div>
                 </a>
+                
             </div>
         }
     </div>
@@ -140,6 +146,17 @@
         color: #f0a500;
         font-size: 1.1rem;
     }
+
+    .btn-warning {
+        background-color: #f0a500;
+        border: none;
+        color: white;
+    }
+
+        .btn-warning:hover {
+            background-color: #d49200;
+            color: white;
+        }
 </style>
 
 @code {
@@ -175,6 +192,12 @@
         years = books.Select(b => b.BookYear.ToString()).Distinct().OrderByDescending(y => y).ToList();
         publishers = books.Select(b => b.BookPublishingHouse).Distinct().OrderBy(p => p).ToList();
     }
+
+    // private void AdaugaInCos(Book book)
+    // {
+    //     cartService.AddToCart(book);
+    //     StateHasChanged();
+    // }
 
     protected override void OnParametersSet()
     {

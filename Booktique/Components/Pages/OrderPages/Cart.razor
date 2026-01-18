@@ -1,0 +1,191 @@
+﻿@page "/cart"
+@using Booktique.Models.MainModels
+@using Booktique.Models.Services
+@using Microsoft.EntityFrameworkCore
+@inject CartService cartService
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+@implements IDisposable
+@rendermode InteractiveServer
+
+<PageTitle>Cart</PageTitle>
+
+<h2>My <strong>Cart</strong></h2>
+
+<hr />
+<div class="d-flex justify-content-between align-items-center">
+    <button class="btn btn-secondary" @onclick='() => Nav.NavigateTo("/my-orders")'>
+        <i class="bi bi-clock-history me-1"></i> My Order History
+    </button>
+</div>
+
+<div class="container mt-5">
+    @if (!cartService.Items.Any())
+    {
+        <div class="alert alert-light shadow-sm text-center py-5">
+            <p class="fs-4">Your cart is empty.</p>
+            <a href="/" class="btn btn-warning mt-3">Back to List</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                @foreach (var item in cartService.Items)
+                {
+                    <div class="cart-card mb-3 shadow-sm border rounded p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="img-container me-3">
+                                <img src="@item.ImagePath" alt="@item.Title" class="img-thumbnail cart-img-small" />
+                            </div>
+
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1 text-dark fw-bold">@item.Title</h5>
+                                <p class="text-muted mb-0 small">Price: @item.Price lei</p>
+                                <div class="mt-2 d-flex align-items-center gap-3">
+                                    <span class="badge bg-secondary">Quantity: @item.Quantity</span>
+                                    <button class="btn btn-sm btn-outline-danger border-0" @onclick="() => cartService.RemoveFromCart(item.BookId)">
+                                        <i class="bi bi-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <span class="fw-bold text-orange">@(item.Price * item.Quantity) lei</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow border-0 bg-light p-3">
+                    <h4 class="fw-bold mb-3">Sumary</h4>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total Items:</span>
+                        <span>@cartService.Items.Sum(i => i.Quantity)</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="fs-5 fw-bold">Total Payment:</span>
+                        <span class="fs-5 fw-bold text-orange">@cartService.Items.Sum(i => i.Price * i.Quantity) lei</span>
+                    </div>
+                    <button class="btn btn-warning w-100 fw-bold py-2 shadow-sm" @onclick="PlaceOrder">
+                        Place the Order
+                    </button>
+                    
+                    <button class="btn btn-link btn-sm mt-2 text-muted" @onclick="cartService.ClearCart">Clear the Cart</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .btn-outline-brown {
+        border: 2px solid #5a3e2b;
+        color: #5a3e2b;
+        background-color: transparent;
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-brown:hover {
+            background-color: #5a3e2b;
+            color: white;
+        }
+
+    .cart-img-small {
+        width: 70px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+    }
+
+    .cart-card {
+        background: white;
+        transition: transform 0.2s;
+    }
+
+        .cart-card:hover {
+            transform: translateY(-2px);
+        }
+
+    .text-orange {
+        color: #f0a500;
+    }
+
+    .text-brown {
+        color: #5a3e2b;
+    }
+</style>
+
+@code {
+    protected override void OnInitialized() => cartService.OnChange += StateHasChanged;
+    public void Dispose() => cartService.OnChange -= StateHasChanged;
+
+    private async Task PlaceOrder()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        // Căutăm exact "UserId", așa cum apare în lista ta de Claims
+        var userIdClaim = user.FindFirst("UserId");
+
+        if (userIdClaim == null)
+        {
+            Console.WriteLine("Eroare: Claim-ul 'UserId' nu a fost găsit!");
+            return;
+        }
+
+        if (!int.TryParse(userIdClaim.Value, out int userIdInt))
+        {
+            Console.WriteLine($"Ero her: Nu pot converti '{userIdClaim.Value}' în int!");
+            return;
+        }
+
+        try
+        {
+            using var ctx = DbFactory.CreateDbContext();
+
+            var order = new Order
+                {
+                    UserId = userIdInt,
+                    OrderDate = DateTime.Now,
+                    TotalAmount = cartService.Items.Sum(i => i.Price * i.Quantity),
+                    OrderItems = cartService.Items.Select(i => new OrderItem
+                    {
+                        BookId = i.BookId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.Price
+                    }).ToList()
+                };
+
+            ctx.Order.Add(order);
+            await ctx.SaveChangesAsync();
+
+            // Gătește coșul și mergi la pagina de succes
+            await cartService.ClearCart();
+            Nav.NavigateTo("/order-success");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Eroare la salvarea în baza de date: {ex.Message}");
+        }
+    }
+}
