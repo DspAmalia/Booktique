@@ -3,29 +3,30 @@
 @using Booktique.Models.Services
 @using Microsoft.EntityFrameworkCore
 @inject CartService cartService
-@inject IDbContextFactory<BooktiqueContext> DbFactory
-@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
 @implements IDisposable
 @rendermode InteractiveServer
 
 <PageTitle>Cart</PageTitle>
 
-<h2>My <strong>Cart</strong></h2>
-
-<hr />
-<div class="d-flex justify-content-between align-items-center">
-    <button class="btn btn-secondary" @onclick='() => Nav.NavigateTo("/my-orders")'>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">My <strong>Cart</strong></h2>
+    <button class="btn btn-outline-brown fw-bold shadow-sm" @onclick='() => Nav.NavigateTo("/my-orders")'>
         <i class="bi bi-clock-history me-1"></i> My Order History
     </button>
 </div>
 
-<div class="container mt-5">
+<hr />
+
+<div class="container mt-4">
     @if (!cartService.Items.Any())
     {
-        <div class="alert alert-light shadow-sm text-center py-5">
-            <p class="fs-4">Your cart is empty.</p>
-            <a href="/" class="btn btn-warning mt-3">Back to List</a>
+        <div class="alert alert-light shadow-sm text-center py-5 rounded-4">
+            <i class="bi bi-cart-x text-muted" style="font-size: 3rem;"></i>
+            <p class="fs-4 mt-3">Your cart is empty.</p>
+            <button class="btn btn-warning mt-2 px-4 fw-bold" @onclick='() => Nav.NavigateTo("/")'>
+                Back to Shop
+            </button>
         </div>
     }
     else
@@ -34,17 +35,17 @@
             <div class="col-lg-8">
                 @foreach (var item in cartService.Items)
                 {
-                    <div class="cart-card mb-3 shadow-sm border rounded p-3">
+                    <div class="cart-card mb-3 shadow-sm border rounded p-3 bg-white">
                         <div class="d-flex align-items-center">
                             <div class="img-container me-3">
-                                <img src="@item.ImagePath" alt="@item.Title" class="img-thumbnail cart-img-small" />
+                                <img src="@item.ImagePath" alt="@item.Title" class="img-thumbnail cart-img-small shadow-sm" />
                             </div>
 
                             <div class="flex-grow-1">
                                 <h5 class="mb-1 text-dark fw-bold">@item.Title</h5>
                                 <p class="text-muted mb-0 small">Price: @item.Price lei</p>
                                 <div class="mt-2 d-flex align-items-center gap-3">
-                                    <span class="badge bg-secondary">Quantity: @item.Quantity</span>
+                                    <span class="badge bg-secondary px-3 py-2">Quantity: @item.Quantity</span>
                                     <button class="btn btn-sm btn-outline-danger border-0" @onclick="() => cartService.RemoveFromCart(item.BookId)">
                                         <i class="bi bi-trash"></i> Remove
                                     </button>
@@ -52,7 +53,7 @@
                             </div>
 
                             <div class="text-end">
-                                <span class="fw-bold text-orange">@(item.Price * item.Quantity) lei</span>
+                                <span class="fw-bold text-orange fs-5">@(item.Price * item.Quantity) lei</span>
                             </div>
                         </div>
                     </div>
@@ -60,22 +61,25 @@
             </div>
 
             <div class="col-lg-4">
-                <div class="card shadow border-0 bg-light p-3">
-                    <h4 class="fw-bold mb-3">Sumary</h4>
+                <div class="card shadow border-0 bg-light p-4 rounded-4 sticky-top" style="top: 20px;">
+                    <h4 class="fw-bold mb-3">Summary</h4>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Total Items:</span>
-                        <span>@cartService.Items.Sum(i => i.Quantity)</span>
+                        <span class="fw-bold">@cartService.Items.Sum(i => i.Quantity)</span>
                     </div>
                     <hr />
                     <div class="d-flex justify-content-between mb-4">
                         <span class="fs-5 fw-bold">Total Payment:</span>
                         <span class="fs-5 fw-bold text-orange">@cartService.Items.Sum(i => i.Price * i.Quantity) lei</span>
                     </div>
-                    <button class="btn btn-warning w-100 fw-bold py-2 shadow-sm" @onclick="PlaceOrder">
-                        Place the Order
+
+                    <button class="btn btn-warning w-100 fw-bold py-3 shadow-sm rounded-pill mb-3" @onclick="GoToCheckout">
+                        PROCEED TO CHECKOUT <i class="bi bi-arrow-right ms-2"></i>
                     </button>
-                    
-                    <button class="btn btn-link btn-sm mt-2 text-muted" @onclick="cartService.ClearCart">Clear the Cart</button>
+
+                    <button class="btn btn-link btn-sm w-100 text-muted" @onclick="cartService.ClearCart">
+                        Clear the Cart
+                    </button>
                 </div>
             </div>
         </div>
@@ -104,88 +108,37 @@
         }
 
     .cart-img-small {
-        width: 70px;
-        height: 100px;
+        width: 75px;
+        height: 110px;
         object-fit: cover;
-        border-radius: 4px;
-        background-color: #f8f9fa;
+        border-radius: 6px;
     }
 
     .cart-card {
-        background: white;
         transition: transform 0.2s;
+        border-radius: 12px !important;
     }
 
         .cart-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
         }
 
     .text-orange {
         color: #f0a500;
     }
 
-    .text-brown {
-        color: #5a3e2b;
+    .rounded-4 {
+        border-radius: 1rem !important;
     }
 </style>
 
 @code {
     protected override void OnInitialized() => cartService.OnChange += StateHasChanged;
+
     public void Dispose() => cartService.OnChange -= StateHasChanged;
 
-    private async Task PlaceOrder()
+    private void GoToCheckout()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity == null || !user.Identity.IsAuthenticated)
-        {
-            Nav.NavigateTo("/login");
-            return;
-        }
-
-        // Căutăm exact "UserId", așa cum apare în lista ta de Claims
-        var userIdClaim = user.FindFirst("UserId");
-
-        if (userIdClaim == null)
-        {
-            Console.WriteLine("Eroare: Claim-ul 'UserId' nu a fost găsit!");
-            return;
-        }
-
-        if (!int.TryParse(userIdClaim.Value, out int userIdInt))
-        {
-            Console.WriteLine($"Ero her: Nu pot converti '{userIdClaim.Value}' în int!");
-            return;
-        }
-
-        try
-        {
-            using var ctx = DbFactory.CreateDbContext();
-
-            var order = new Order
-                {
-                    UserId = userIdInt,
-                    OrderDate = DateTime.Now,
-                    TotalAmount = cartService.Items.Sum(i => i.Price * i.Quantity),
-                    OrderItems = cartService.Items.Select(i => new OrderItem
-                    {
-                        BookId = i.BookId,
-                        Quantity = i.Quantity,
-                        UnitPrice = i.Price
-                    }).ToList()
-                };
-
-            ctx.Order.Add(order);
-            await ctx.SaveChangesAsync();
-
-            // Gătește coșul și mergi la pagina de succes
-            await cartService.ClearCart();
-            Nav.NavigateTo("/order-success");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Eroare la salvarea în baza de date: {ex.Message}");
-        }
+        Nav.NavigateTo("/checkout");
     }
 }

@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "rBV89zWhfmhu78AJEZstRevD8MxeNBLMIp2xZqxtotw=",
+  "Hash": "Nt0EJ2pUDj1yurZtB9uIx37Gk2/opK6TAVUZsI0OD5k=",
   "Source": "Booktique",
   "BasePath": "_content/Booktique",
   "Mode": "Default",
@@ -1060,6 +1060,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.png"
+    },
+    {
+      "Identity": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\images\\logo.png",
+      "SourceId": "Booktique",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\",
+      "BasePath": "_content/Booktique",
+      "RelativePath": "images/logo.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\logo.png"
     }
   ]
 }

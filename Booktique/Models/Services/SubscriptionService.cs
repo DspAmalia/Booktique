@@ -26,7 +26,6 @@ public class PaymentsController : ControllerBase
         var service = new SessionService();
         var session = await service.CreateAsync(options);
 
-        // Stripe recomandă redirect 303 către URL-ul sesiunii
         Response.Headers.Add("Location", session.Url);
         return new StatusCodeResult(303);
     }

@@ -1,0 +1,182 @@
+﻿@page "/invoice/{OrderId:int}"
+@using Booktique.Models.MainModels
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+@if (order == null)
+{
+    <p>Loading invoice...</p>
+}
+else
+{
+    <div class="invoice-container shadow-sm border p-5 bg-white mx-auto my-5" id="printableInvoice">
+        <div class="row align-items-center border-bottom pb-4 mb-5">
+            <div class="col-7 d-flex align-items-center">
+                <img src="/images/logo.png" alt="Booktique Logo" style="height: 80px; width: auto;" class="me-3" />
+                <div>
+                    <h1 class="text-brown fw-bold mb-0" style="font-size: 2.5rem;">BOOKTIQUE</h1>
+                    <p class="text-muted mb-0 small">Librăria ta online preferată</p>
+                </div>
+            </div>
+
+            <div class="col-5 text-end small">
+                <h5 class="fw-bold mb-1">S.C. BOOKTIQUE S.R.L.</h5>
+                <p class="mb-0"><strong>Address:</strong> Str. Lipscani Nr. 12, București</p>
+                <p class="mb-0"><strong>Phone:</strong> 0749 656 025</p>
+                <p class="mb-0"><strong>Email:</strong> booktique@gmail.com</p>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between mb-5">
+            <div>
+                <p class="text-muted small">Your Favorite Online Bookstore</p>
+            </div>
+            <div class="text-end">
+                <h4 class="fw-bold">INVOICE</h4>
+                <p class="mb-0">#INV-@order.OrderId</p>
+                <p>Date: @order.OrderDate.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-6">
+                <h6 class="fw-bold text-uppercase text-muted small">Billed To:</h6>
+                <p class="mb-0 fw-bold">@order.ShippingAddress.Split('|')[0]</p> <p class="mb-0">@order.ShippingAddress</p>
+                <p class="mb-0">@order.City</p>
+                <p>Tel: @order.PhoneNumber</p>
+            </div>
+            <div class="col-6 text-end">
+                <h6 class="fw-bold text-uppercase text-muted small">Payment Method:</h6>
+                <p>@order.PaymentMethod</p>
+            </div>
+        </div>
+
+        <table class="table table-borderless">
+            <thead class="border-bottom">
+                <tr>
+                    <th>Item Description</th>
+                    <th class="text-center">Qty</th>
+                    <th class="text-end">Price</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in order.OrderItems)
+                {
+                    <tr class="border-bottom">
+                        <td>
+                            <span class="fw-bold">@item.Book?.BookTitle</span>
+                        </td>
+                        <td class="text-center">@item.Quantity</td>
+                        <td class="text-end">@item.UnitPrice lei</td>
+                        <td class="text-end fw-bold">@(item.UnitPrice * item.Quantity) lei</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="row mt-4">
+            <div class="col-7">
+                <p class="text-muted small">Thank you for your business! For any questions regarding this invoice, please contact support@booktique.ro</p>
+            </div>
+            <div class="col-5 text-end">
+                <div class="d-flex justify-content-between border-top pt-2">
+                    <span class="fs-5 fw-bold">Total:</span>
+                    <span class="fs-5 fw-bold text-orange">@order.TotalAmount lei</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container text-center mb-5 d-print-none">
+        <button class="btn btn-primary me-2" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print / Save as PDF
+        </button>
+        <button class="btn btn-outline-secondary" @onclick='() => Nav.NavigateTo("/my-orders")'>
+            Back to Orders
+        </button>
+    </div>
+}
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .invoice-container {
+        max-width: 800px;
+        min-height: 1000px;
+    }
+
+    .text-brown {
+        color: #5a3e2b;
+    }
+
+    .text-orange {
+        color: #f0a500;
+    }
+
+    @@media print {
+        /* 1. Ascunde absolut tot ce nu este factura */
+        /* Am adăugat clasele standard de Blazor: .sidebar și .top-row */
+        nav, .sidebar, .top-row, .navbar, .d-print-none, header, footer {
+            display: none !important;
+        }
+
+        /* 2. Forțează browserul să afișeze culorile și imaginile (logo-ul) */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* 3. Configurare pagină: elimină antetul/subsolul automat al browserului (data, titlul paginii) */
+        @@page {
+            margin: 0;
+            size: auto;
+        }
+
+        /* 4. Resetare Body pentru print */
+        body {
+            background-color: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* 5. Containerul Facturii */
+        .invoice-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 1.5cm !important; /* Margine pentru imprimantă */
+            border: none !important;
+            box-shadow: none !important;
+            background-color: white !important;
+        }
+
+        /* Ajustare text pentru lizibilitate pe hârtie */
+        .text-brown { color: #5a3e2b !important; }
+        .text-orange { color: #f0a500 !important; }
+    }
+</style>
+
+@code {
+    [Parameter] public int OrderId { get; set; }
+    private Order? order;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var ctx = DbFactory.CreateDbContext();
+        order = await ctx.Order
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Book)
+            .FirstOrDefaultAsync(o => o.OrderId == OrderId);
+    }
+}

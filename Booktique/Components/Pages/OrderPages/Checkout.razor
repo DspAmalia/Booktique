@@ -1,0 +1,214 @@
+﻿@page "/checkout"
+@using Booktique.Models.MainModels
+@using Booktique.Models.Services
+@using Microsoft.EntityFrameworkCore
+@inject CartService cartService
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 p-4 rounded-4 bg-white">
+                <h3 class="text-brown fw-bold mb-4"><i class="bi bi-truck me-2"></i>Shipping Details</h3>
+
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label fw-bold">Full Name</label>
+                        <input @bind="fullName" @bind:event="oninput" type="text" class="form-control" placeholder="E.g. John Doe" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Phone Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
+                            <input @bind="phoneNumber" @bind:event="oninput" type="tel" class="form-control" placeholder="07xxxxxxxx" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">City</label>
+                        <input @bind="city" @bind:event="oninput" type="text" class="form-control" placeholder="Your City" />
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <label class="form-label fw-bold">Full Delivery Address</label>
+                        <textarea @bind="shippingAddress" @bind:event="oninput" class="form-control" rows="3" placeholder="Street, Number, Block, Apartment..."></textarea>
+                    </div>
+                </div>
+
+                <h3 class="text-brown fw-bold mb-3"><i class="bi bi-credit-card me-2"></i>Payment Method</h3>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="payment-card p-3 border rounded-3 text-center @(paymentMethod == "Cash" ? "selected" : "")"
+                             @onclick='() => paymentMethod = "Cash"'>
+                            <i class="bi bi-cash-stack fs-2 d-block mb-2 text-success"></i>
+                            <span class="fw-bold">Cash on Delivery</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="payment-card p-3 border rounded-3 text-center @(paymentMethod == "Card" ? "selected" : "")"
+                             @onclick='() => paymentMethod = "Card"'>
+                            <i class="bi bi-credit-card-2-front fs-2 d-block mb-2 text-primary"></i>
+                            <span class="fw-bold">Online Card</span>
+                        </div>
+                    </div>
+                </div>
+                @if (string.IsNullOrEmpty(paymentMethod))
+                {
+                    <p class="text-muted small mt-2 text-center"><i class="bi bi-info-circle"></i> Please select a payment method.</p>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 p-4 rounded-4 bg-light sticky-top" style="top: 20px;">
+                <h4 class="fw-bold mb-4">Order Summary</h4>
+
+                <div class="cart-items-preview mb-4" style="max-height: 300px; overflow-y: auto;">
+                    @foreach (var item in cartService.Items)
+                    {
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="@item.ImagePath" class="rounded me-3 shadow-sm" style="width: 45px; height: 65px; object-fit: cover;" />
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 small fw-bold">@item.Title</h6>
+                                <span class="text-muted small">@item.Quantity x @item.Price lei</span>
+                            </div>
+                            <span class="fw-bold small">@(item.Price * item.Quantity) lei</span>
+                        </div>
+                    }
+                </div>
+
+                <hr />
+                <div class="d-flex justify-content-between fs-5 fw-bold text-brown mb-4">
+                    <span>Total Payment:</span>
+                    <span class="text-orange">@cartService.Items.Sum(i => i.Price * i.Quantity) lei</span>
+                </div>
+
+                <button class="btn btn-warning w-100 fw-bold py-3 shadow rounded-pill btn-finalize"
+                        @onclick="FinalizeOrder"
+                        disabled="@(!IsFormValid)">
+                    <i class="bi bi-lock-fill me-1"></i> FINISH AND PAY
+                </button>
+
+                @if (!IsFormValid)
+                {
+                    <div class="alert alert-secondary mt-3 py-2 small border-0 text-center">
+                        Please fill in all details to finalize.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .text-brown {
+        color: #5a3e2b;
+    }
+
+    .text-orange {
+        color: #f0a500;
+    }
+
+    .payment-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid #eee !important;
+        background: white;
+    }
+
+        .payment-card:hover {
+            border-color: #f0a500 !important;
+            background-color: #fffdfa;
+        }
+
+        .payment-card.selected {
+            border-color: #f0a500 !important;
+            background-color: #fdf6ee;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+    .btn-finalize:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .rounded-4 {
+        border-radius: 1.25rem !important;
+    }
+</style>
+
+@code {
+    private string fullName = "";
+    private string phoneNumber = "";
+    private string city = "";
+    private string shippingAddress = "";
+    private string? paymentMethod = null;
+
+    // Proprietate de validare care controlează butonul
+    private bool IsFormValid =>
+        !string.IsNullOrWhiteSpace(fullName) &&
+        !string.IsNullOrWhiteSpace(phoneNumber) &&
+        !string.IsNullOrWhiteSpace(city) &&
+        !string.IsNullOrWhiteSpace(shippingAddress) &&
+        !string.IsNullOrEmpty(paymentMethod) &&
+        phoneNumber.Length >= 10;
+
+    private async Task FinalizeOrder()
+    {
+        if (!IsFormValid) return;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst("UserId");
+
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userIdInt))
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        try
+        {
+            using var ctx = DbFactory.CreateDbContext();
+
+            var order = new Order
+                {
+                    UserId = userIdInt,
+                    OrderDate = DateTime.Now,
+                    TotalAmount = cartService.Items.Sum(i => i.Price * i.Quantity),
+                    ShippingAddress = $"{fullName} - {shippingAddress}",
+                    City = city,
+                    PhoneNumber = phoneNumber,
+                    PaymentMethod = paymentMethod!,
+                    OrderItems = cartService.Items.Select(i => new OrderItem
+                    {
+                        BookId = i.BookId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.Price
+                    }).ToList()
+                };
+
+            ctx.Order.Add(order);
+            await ctx.SaveChangesAsync();
+
+            await cartService.ClearCart();
+            Nav.NavigateTo("/order-success");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DB Error: {ex.Message}");
+        }
+    }
+}

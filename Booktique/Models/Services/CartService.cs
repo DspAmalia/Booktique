@@ -26,7 +26,7 @@ namespace Booktique.Models.Services
                     NotifyDataChanged();
                 }
             }
-            catch { /* Prevenim erori la pre-randare pe server */ }
+            catch { /* Prevenire erori la pre-randare pe server */ }
         }
 
         public async Task AddToCart(Book book)
