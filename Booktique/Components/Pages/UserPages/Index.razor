@@ -8,26 +8,70 @@
 
 @attribute [Authorize(Roles = "Administrator")]
 
+<PageTitle>User Management | Booktique</PageTitle>
 
-<PageTitle>Users</PageTitle>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>User <strong>Management</strong></h2>
+            <p class="text-muted">Overview of all registered members in Booktique</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="users/create" class="btn btn-warning rounded-pill px-4 shadow-sm">
+                <i class="bi bi-person-plus-fill me-2"></i>Create New
+            </a>
+            <a href="/" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i>Back to Home
+            </a>
+        </div>
+    </div>
+    <hr />
+    <div class="card shadow border-0 rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <QuickGrid Class="table align-middle mb-0 custom-grid" Items="context.User">
 
-<h1>Users</h1>
+                <TemplateColumn Title="Profile" Class="col-profile">
+                    <img src="@(string.IsNullOrEmpty(context.ProfilePicture) ? "https://www.shutterstock.com/image-illustration/man-open-book-illustration-element-260nw-1103282219.jpg" : context.ProfilePicture)"
+                         class="rounded-circle border shadow-sm"
+                         style="width: 35px; height: 35px; object-fit: cover;" />
+                </TemplateColumn>
 
-<p>
-    <a href="users/create" class="btn btn-outline-secondary">Create New</a>
-    <a href="/" class="btn btn-outline-secondary">Back to the list</a>
-</p>
+                <PropertyColumn Title="Username" Property="user => user.UserName" Sortable="true" Class="fw-bold text-brown" />
 
-<QuickGrid Class="table" Items="context.User">
-    <PropertyColumn Property="user => user.UserName" />
-    <PropertyColumn Property="user => user.Password" />
-    <PropertyColumn Property="user => user.Role" />
+                <PropertyColumn Title="Email" Property="user => user.UserEmail" Sortable="true" />
 
-    <TemplateColumn Context="user">
-        <a href="@($"users/details?userid={user.UserId}")">Details</a> |
-        <a href="@($"users/delete?userid={user.UserId}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
+                <TemplateColumn Title="Role" Sortable="true">
+                    @{
+                        var roleClass = context.Role == "Administrator" ? "bg-danger" : "bg-brown";
+                    }
+                    <span class="badge @roleClass rounded-pill">@context.Role</span>
+                </TemplateColumn>
+
+                <TemplateColumn Title="Subscribed" Sortable="true" Class="col-subscribed">
+                    @if (context.IsSubscribed)
+                    {
+                        <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Yes</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted small"><i class="bi bi-x-circle me-1"></i>No</span>
+                    }
+                </TemplateColumn>
+
+                <TemplateColumn Title="Actions" Class="text-end pe-4">
+                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                        <a href="@($"users/details?userid={context.UserId}")" class="btn btn-sm btn-light border" title="Details">
+                            <i class="bi bi-eye-fill text-primary"></i>
+                        </a>
+                        <a href="@($"users/delete?userid={context.UserId}")" class="btn btn-sm btn-light border" title="Delete">
+                            <i class="bi bi-trash-fill text-danger"></i>
+                        </a>
+                    </div>
+                </TemplateColumn>
+            </QuickGrid>
+        </div>
+    </div>
+</div>
 
 <style>
     html, body {
@@ -36,6 +80,68 @@
         padding: 0;
         background-color: #fdf6ee;
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    :root {
+        --brown-primary: #5a3e2b;
+        --cream-bg: #fdf6ee;
+    }
+
+    body {
+        background-color: var(--cream-bg);
+    }
+
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .bg-brown {
+        background-color: var(--brown-primary);
+    }
+
+    .btn-warning {
+        color: white;
+    }
+
+    .custom-grid {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    ::deep .table thead th {
+        background-color: #f8f9fa !important;
+        color: #888 !important;
+        font-size: 0.7rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        padding: 12px 15px !important;
+        border-bottom: 2px solid #eee !important;
+        text-align: left !important; 
+    }
+
+        ::deep .table thead th:last-child {
+            text-align: right !important;
+        }
+
+    ::deep .table tbody td {
+        padding: 12px 15px !important;
+        border-bottom: 1px solid #f1f1f1 !important;
+        vertical-align: middle !important;
+        text-align: left !important; 
+    }
+
+    .col-profile {
+        width: 80px;
+    }
+
+    .badge {
+        padding: 0.5em 0.9em;
+        font-size: 0.75rem;
+    }
+
+    ::deep .quickgrid {
+        display: table; 
+        width: 100%;
     }
 </style>
 

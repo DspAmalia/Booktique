@@ -1,5 +1,4 @@
 ﻿@page "/delete"
-
 @using Booktique.Models.MainModels
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authorization
@@ -12,58 +11,141 @@
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 
 @rendermode InteractiveServer
-
 @attribute [Authorize]
 
-<PageTitle>Delete Account</PageTitle>
+<PageTitle>Delete Account | Booktique</PageTitle>
 
-<h2 class="text-center text-danger mt-4">Delete Account</h2>
+<div class="delete-container d-flex align-items-center justify-content-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                @if (deleted)
+                {
+                    <div class="card shadow-lg border-0 rounded-4 p-5 text-center animate-fade-in">
+                        <div class="mb-4">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                        </div>
+                        <h2 class="fw-bold text-dark">Account Deleted</h2>
+                        <p class="text-muted">We're sorry to see you go. Redirecting you to the home page...</p>
+                    </div>
+                }
+                else if (user == null)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-brown" role="status"></div>
+                        <p class="mt-2 text-muted">Retrieving account details...</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                        <div class="bg-danger py-3 text-center text-white">
+                            <h4 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Critical Action</h4>
+                        </div>
 
-@if (user == null)
-{
-    <p class="text-muted text-center">Loading profile...</p>
-}
-else if (deleted)
-{
-    <div class="alert alert-success text-center">
-        Your account has been deleted successfully.
-    </div>
-}
-else
-{
-    
-    <div class="mx-auto mt-4 p-4 shadow rounded" style="max-width: 500px;">
-        <p class="text-center text-danger fw-bold">
-            Are you sure you want to permanently delete your account?
-        </p>
+                        <div class="card-body p-4 p-md-5">
+                            <div class="text-center mb-4">
+                                <h2 class="fw-bold">Delete Account?</h2>
+                                <p class="text-muted">This action is irreversible. All your reading history, orders, and personal data will be permanently removed.</p>
+                            </div>
 
-        <dl class="row">
-            <dt class="col-sm-4">User Name</dt>
-            <dd class="col-sm-8">@user.UserName</dd>
+                            <div class="user-info-box rounded-3 p-3 mb-4 bg-light border">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small uppercase fw-bold">User</span>
+                                    <span class="fw-medium">@user.UserName</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small uppercase fw-bold">Email</span>
+                                    <span class="fw-medium">@user.UserEmail</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small uppercase fw-bold">Role</span>
+                                    <span class="badge bg-brown-subtle text-brown px-2">@user.Role</span>
+                                </div>
+                            </div>
 
-            <dt class="col-sm-4">Email</dt>
-            <dd class="col-sm-8">@user.UserEmail</dd>
+                            @if (!string.IsNullOrEmpty(errorMessage))
+                            {
+                                <div class="alert alert-danger small mb-4">
+                                    <i class="bi bi-x-circle me-1"></i> @errorMessage
+                                </div>
+                            }
 
-            <dt class="col-sm-4">Role</dt>
-            <dd class="col-sm-8">@user.Role</dd>
-        </dl>
+                            <div class="d-grid gap-2">
+                                <EditForm Model="user" OnValidSubmit="DeleteAccount" FormName="delete">
+                                    <button class="btn btn-danger w-100 py-2 fw-bold shadow-sm rounded-pill">
+                                        YES, DELETE PERMANENTLY
+                                    </button>
+                                </EditForm>
 
-        <div class="mt-3 d-flex justify-content-between">
-            <EditForm Model="user" OnValidSubmit="DeleteAccount" FormName="delete">    
-                <button class="btn btn-danger">Yes, Delete</button>
-            </EditForm>
-            <button type="submit" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                                <button type="button" class="btn btn-outline-secondary py-2 fw-bold rounded-pill" @onclick="Cancel">
+                                    NO, KEEP MY ACCOUNT
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
     </div>
-}
+</div>
 
 <style>
+    :root {
+        --brown-primary: #5a3e2b;
+        --cream-bg: #fdf6ee;
+    }
+
     html, body {
         height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #fdf6ee;
+        background-color: var(--cream-bg);
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .delete-container {
+        min-height: 80vh;
+    }
+
+    .bg-brown-subtle {
+        background-color: rgba(90, 62, 43, 0.1);
+    }
+
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .btn-brown {
+        background-color: var(--brown-primary);
+        color: white;
+    }
+
+    .user-info-box {
+        border-left: 4px solid #dc3545 !important;
+    }
+
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card {
+        transition: transform 0.3s ease;
     }
 </style>
 
@@ -100,43 +182,30 @@ else
 
     private async Task DeleteAccount()
     {
-        if (user is null)
-        {
-            errorMessage = "User not found.";
-            return;
-        }
-
-        var sessionEmail = HttpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
-
-        if (string.IsNullOrEmpty(sessionEmail) || sessionEmail != user.UserEmail)
-        {
-            errorMessage = "Unauthorized deletion attempt.";
-            return;
-        }
+        if (user is null) return;
 
         try
         {
             using var context = DbFactory.CreateDbContext();
-            context.User.Remove(user);
-            await context.SaveChangesAsync();
+
+            var userToDelete = await context.User.FindAsync(user.UserId);
+            if (userToDelete != null)
+            {
+                context.User.Remove(userToDelete);
+                await context.SaveChangesAsync();
+            }
 
             deleted = true;
-            shouldRedirect = true;
-            await HttpContextAccessor.HttpContext!.SignOutAsync();
+            StateHasChanged(); 
+
             await Task.Delay(2000);
+            shouldRedirect = true;
+            NavigationManager.NavigateTo("/logout", forceLoad: true);
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error deleting account: {ex.Message}";
-        }
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (shouldRedirect)
-        {
-            shouldRedirect = false;
-            NavigationManager.NavigateTo("/logout", forceLoad: true);
+            errorMessage = "Could not delete account. There might be active orders linked to it.";
+            Console.WriteLine(ex.Message);
         }
     }
 

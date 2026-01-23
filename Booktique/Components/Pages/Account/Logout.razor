@@ -1,40 +1,102 @@
 ﻿@page "/logout"
-
 @using Microsoft.AspNetCore.Authentication
 @inject NavigationManager navigationManager
 
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body flex-column">
-                <div class="text-center mt-2">
-                    <span class="text-danger fw-bolder">You successfully logged out of the application.</span>
+<PageTitle>Logged Out | Booktique</PageTitle>
+
+<div class="main-wrapper py-5">
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="glass-card shadow-lg border-0 overflow-hidden bg-white text-center p-5">
+                <div class="mb-4">
+                    <div class="logout-icon-container">
+                        <i class="bi bi-door-open-fill text-brown display-4"></i>
+                    </div>
+                </div>
+
+                <h2 class="fw-bold text-brown mb-2">You are <strong>Logged Out</strong></h2>
+                <p class="text-muted mb-5 px-3">
+                    Your session has been successfully closed. Thank you for visiting <strong>Booktique</strong>.
+                    See you again soon!
+                </p>
+
+                <div class="d-grid gap-3 px-md-4">
+                    <a href="/login" class="btn btn-warning py-2 rounded-pill fw-bold shadow-sm text-white">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Log In Again
+                    </a>
+                    <a href="/" class="btn btn-outline-secondary py-2 rounded-pill">
+                        <i class="bi bi-house-door me-1"></i>Return to Home
+                    </a>
                 </div>
             </div>
+
+            <p class="text-center mt-4 text-muted small italic">"A room without books is like a body without a soul."</p>
         </div>
     </div>
 </div>
 
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    :root {
+        --brown-primary: #5a3e2b;
+        --orange-accent: #f0a500;
+        --bg-soft: #fdf6ee;
+    }
+
+    body {
+        background-color: var(--bg-soft) !important;
+    }
+
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .glass-card {
+        border-radius: 1.5rem;
+    }
+
+    .logout-icon-container {
+        width: 100px;
+        height: 100px;
+        background-color: #fdf6ee; 
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        border: 2px dashed var(--brown-primary);
+    }
+
+    .btn-warning {
+        background-color: var(--orange-accent);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-warning:hover {
+            background-color: #d69400;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 165, 0, 0.3);
+        }
+
+    .italic {
+        font-style: italic;
     }
 </style>
 
 @code {
     [CascadingParameter]
-    public HttpContext HttpContext { get; set; }
+    public HttpContext? HttpContext { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        if (HttpContext.User.Identity.IsAuthenticated)
+
+        // Verificăm dacă HttpContext nu este null și utilizatorul este autentificat
+        if (HttpContext?.User?.Identity?.IsAuthenticated == true)
         {
             await HttpContext.SignOutAsync();
+            // ForceLoad este necesar pentru a curăța complet starea pe server
             navigationManager.NavigateTo("/logout", forceLoad: true);
         }
     }

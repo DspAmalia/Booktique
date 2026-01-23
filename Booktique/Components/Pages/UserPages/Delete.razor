@@ -5,38 +5,73 @@
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Administrator")]
 
-<PageTitle>Delete</PageTitle>
+<PageTitle>Delete User | Booktique</PageTitle>
 
-<h1>Delete</h1>
+<div class="delete-page-wrapper d-flex justify-content-center">
+    <div class="delete-container mt-4">
+        <div class="delete-card shadow-lg border-0 overflow-hidden">
 
-<p>Are you sure you want to delete this?</p>
-<div>
-    <h2>User</h2>
-    <hr />
-    @if (user is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">UserName</dt>
-            <dd class="col-sm-10">@user.UserName</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Password</dt>
-            <dd class="col-sm-10">@user.Password</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Role</dt>
-            <dd class="col-sm-10">@user.Role</dd>
-        </dl>
-        <EditForm Model="user" OnValidSubmit="DeleteUser" FormName="delete">
-            <button type="submit" class="btn btn-danger" disabled="@(user is null)">Delete</button> |
-            <a href="/users">Back to List</a>
-        </EditForm>
-    }
+            <div class="bg-danger p-3 text-center text-white">
+                <i class="bi bi-exclamation-triangle-fill fs-2"></i>
+                <h4 class="fw-bold mb-0">Delete Account?</h4>
+                <p class="mb-0 small opacity-75">This action is permanent.</p>
+            </div>
+
+            <div class="card-body p-4">
+                @if (user is null)
+                {
+                    <div class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-danger" role="status"></div>
+                        <p class="mt-2 text-muted small">Loading user...</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="user-preview text-center mb-3">
+                        <img src="@(string.IsNullOrEmpty(user.ProfilePicture) ? "https://www.shutterstock.com/image-illustration/man-open-book-illustration-element-260nw-1103282219.jpg" : user.ProfilePicture)"
+                             class="rounded-circle border shadow-sm mb-2"
+                             style="width: 70px; height: 70px; object-fit: cover;" />
+                        <h5 class="text-brown fw-bold mb-0">@user.UserName</h5>
+                        <span class="badge bg-light text-dark border ultra-small">@user.Role</span>
+                    </div>
+
+                    <div class="info-list border rounded-3 p-3 bg-light mb-4">
+                        <div class="row mb-2">
+                            <div class="col-4 fw-bold text-muted ultra-small text-uppercase">Email:</div>
+                            <div class="col-8 text-brown small text-truncate">@user.UserEmail</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4 fw-bold text-muted ultra-small text-uppercase">Status:</div>
+                            <div class="col-8 small">
+                                @(user.IsSubscribed ? "✅ Subscribed" : "❌ Not Subscribed")
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 fw-bold text-muted ultra-small text-uppercase">ID:</div>
+                            <div class="col-8 text-brown small">#@user.UserId</div>
+                        </div>
+                    </div>
+
+                    <EditForm Model="user" OnValidSubmit="DeleteUser" FormName="deleteForm">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger py-2 fw-bold rounded-pill shadow-sm" disabled="@(user is null)">
+                                CONFIRM DELETE
+                            </button>
+                            <a href="/users" class="btn btn-outline-secondary py-2 rounded-pill small">
+                                CANCEL
+                            </a>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+
+            <div class="py-2 text-center border-top bg-light">
+                <p class="quote-mini mb-0 text-muted">“Every book has its end.”</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -46,6 +81,63 @@
         padding: 0;
         background-color: #fdf6ee;
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    :root {
+        --brown-primary: #5a3e2b;
+        --cream-bg: #fdf6ee;
+    }
+
+    /* Am eliminat align-items-center pentru a-l urca sus */
+    .delete-page-wrapper {
+        min-height: 100vh;
+        background-color: var(--cream-bg);
+        padding-top: 2rem; /* Distanța de sus */
+    }
+
+    .delete-container {
+        width: 100%;
+        max-width: 380px; /* Puțin mai îngust pentru a părea mai înalt/zvelt */
+    }
+
+    .delete-card {
+        background: white;
+        border-radius: 20px;
+        animation: fadeInDown 0.4s ease-out;
+    }
+
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .ultra-small {
+        font-size: 0.65rem;
+    }
+
+    .quote-mini {
+        font-size: 0.7rem;
+        font-style: italic;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+    }
+
+        .btn-danger:hover {
+            background-color: #bb2d3b;
+        }
+
+    @@keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 
@@ -68,9 +160,12 @@
 
     private async Task DeleteUser()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.User.Remove(user!);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/users");
+        if (user != null)
+        {
+            using var context = DbFactory.CreateDbContext();
+            context.User.Remove(user);
+            await context.SaveChangesAsync();
+            NavigationManager.NavigateTo("/users");
+        }
     }
 }

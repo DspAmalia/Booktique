@@ -14,405 +14,368 @@
 
 <PageTitle>@pageTitle</PageTitle>
 
-<h2>Details</h2>
-
-    <hr />
-    @if (book is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <!-- Container principal: imagine + info -->
-        <div class="details-container">
-            <div class="book-image-wrapper">
-                <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img-details" />
-                <div class="rating-stars">
-                    @for (int i = 1; i <= 5; i++)
-                    {
-                        if (i <= book.BookRating)
-                        {
-                            @:★
-                        }
-                        else
-                        {
-                            @:☆
-                        }
-                    }
-                </div>
+<div class="main-wrapper py-4">
+    <div class="container">
+        @if (book is null)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-brown" role="status"></div>
+                <p class="mt-2">Loading book details...</p>
             </div>
+        }
+        else
+        {
+            <div class="glass-card mb-5 shadow-sm">
+                <div class="row g-0">
+                    <div class="col-md-3 p-4 text-center border-end bg-light-subtle">
+                        <div class="book-cover-container mb-3">
+                            <img src="@book.BookCoverPath" alt="@book.BookTitle" class="img-fluid rounded shadow-sm" style="max-height: 280px;" />
+                        </div>
+                        <div class="rating-display">
+                            <div class="stars mb-1 fs-4 text-warning">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <span>@(i <= book.BookRating ? "★" : "☆")</span>
+                                }
+                            </div>
+                            <span class="small text-muted fw-bold">@reviews.Count Reviews</span>
+                        </div>
+                    </div>
 
-            <div class="book-info">
-                <div class="title-price-wrapper">
-                    <div class="title-left">
-                        <h2 class="book-title">@book.BookTitle</h2>
-                        <p><strong>Author:</strong> @book.BookAuthor</p>
-                        <p><strong>Category:</strong> @book.BookCategory</p>
-                        <p><strong>Year:</strong> @book.BookYear</p>
-                        <p><strong>Number of pages:</strong> @book.BookNumberPag</p>
-                        <p><strong>Publisher:</strong> @book.BookPublishingHouse</p>
-                        <p><strong>Language:</strong> @book.BookLanguage</p>
-                        <p><strong>Stock:</strong> @book.BookStock</p>
-                        <div class="buttons d-flex gap-2">
-                            <a class="btn btn-secondary" href="@("/")">Back to List</a>
-                            <AuthorizeView Roles="Administrator">
+                    <div class="col-md-9 p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h2 class="fw-bold text-brown mb-0">@book.BookTitle</h2>
+                                <h3 class="text-orange fw-bold">@book.BookPrice lei</h3>
+                            </div>
+                            <p class="text-muted mb-4">by <span class="fw-bold">@book.BookAuthor</span></p>
+
+                            <div class="specs-grid mb-4">
+                                <div class="spec-item"><i class="bi bi-tag-fill me-2"></i><strong>Category:</strong> @book.BookCategory</div>
+                                <div class="spec-item"><i class="bi bi-calendar-event me-2"></i><strong>Year:</strong> @book.BookYear</div>
+                                <div class="spec-item"><i class="bi bi-file-earmark-text me-2"></i><strong>Pages:</strong> @book.BookNumberPag</div>
+
+                                <div class="spec-item"><i class="bi bi-translate me-2"></i><strong>Language:</strong> @book.BookLanguage</div>
+                                <div class="spec-item"><i class="bi bi-building me-2"></i><strong>Publisher:</strong> @book.BookPublishingHouse</div>
+                                <div class="spec-item"><i class="bi bi-box-seam me-2"></i><strong>Stock:</strong> @book.BookStock</div>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons d-flex gap-3 align-items-center bg-light p-3 rounded-4">
+                            <a class="btn btn-outline-secondary rounded-pill px-4" href="/">Back to List</a>
+
+                            <AuthorizeView>
                                 <Authorized>
-                                    <div class="admin-actions">
-                                        <a class="btn btn-warning" href="@($"/books/edit?bookid={BookId}")">Edit Book</a>
-                                        <a class="btn btn-danger" href="@($"/books/delete?bookid={BookId}")">Delete Book</a>
-                                    </div>
+                                    <button class="btn btn-brown flex-grow-1 rounded-pill fw-bold py-2" @onclick="HandleAddToCart">
+                                        <i class="bi @(isAdded ? "bi-cart-check-fill text-warning" : "bi-cart-plus") me-2"></i>
+                                        @(isAdded ? "In Cart" : "Add to Cart")
+                                    </button>
+                                    <button class="btn btn-favorite-circle" @onclick="ToggleFavorite">
+                                        <span style="color: @(isFavorite ? "#e74c3c" : "#aaa")">@(isFavorite ? "❤️" : "🤍")</span>
+                                    </button>
                                 </Authorized>
+                            </AuthorizeView>
+
+                            <AuthorizeView Roles="Administrator">
+                                <div class="admin-actions d-flex gap-2">
+                                    <a class="btn btn-warning btn-sm rounded-pill" href="@($"/books/edit?bookid={BookId}")">Edit</a>
+                                    <a class="btn btn-danger btn-sm rounded-pill" href="@($"/books/delete?bookid={BookId}")">Delete</a>
+                                </div>
                             </AuthorizeView>
                         </div>
                     </div>
-
-                    <div class="price-right">
-                        <span class="book-price-details">@book.BookPrice lei</span>
-
-                        <AuthorizeView>
-                            <Authorized>
-                                <button class="btn btn-favorite mt-2" @onclick="ToggleFavorite">
-                                    @if (isFavorite)
-                                    {
-                                        <span style="color:#e74c3c;">❤️ Remove from Favorites</span>
-                                    }
-                                    else
-                                    {
-                                        <span style="color:#aaa;">🤍 Add to Favorites</span>
-                                    }
-                                </button>
-                            <button class="btn btn-cart-custom mt-2" @onclick="HandleAddToCart">
-                                @if (isAdded)
-                                {
-                                    <span style="color:#f0a500;"><i class="bi bi-cart-check-fill"></i> In Cart</span>
-                                }
-                                else
-                                {
-                                    <span style="color:#aaa;"><i class="bi bi-cart-plus"></i> Add to Cart</span>
-                                }
-                            </button>
-                            </Authorized>
-                        </AuthorizeView>
-                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Container descriere -->
-        <div class="book-description-container">
-            <h2><strong>Description:</strong></h2>
-            <p class="book-description">@book.BookDescription</p>
-        </div>
+            <div class="description-card p-4 mb-5 shadow-sm rounded-4 bg-white border">
+                <h4 class="text-brown fw-bold border-bottom pb-2 mb-3">
+                    <i class="bi bi-justify-left me-2 text-orange"></i>Description
+                </h4>
+                <p class="book-description mb-0">@book.BookDescription</p>
+            </div>
 
-        <!-- Container reviews -->
-        <div class="book-description-container">
-            <h3><strong>Reviews</strong></h3>
-
-            @if (reviews is null)
-            {
-                <p><em>Loading reviews...</em></p>
-            }
-            else if (!reviews.Any())
-            {
-                <p>No reviews yet.</p>
-            }
-            else
-            {
-                @foreach (var r in reviews)
+            <div class="book-description-container">
+                <h3 class="text-brown fw-bold mb-4">User Reviews</h3>
+                @if (reviews is null)
                 {
-                    <div style="margin-bottom: 1rem; padding: 1rem; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background:#fff;">
-                        <strong>@(r.User?.UserName ?? r.GuestName ?? "Guest")</strong>
-                        <span class="text-muted">(@r.CreatedAt.ToShortDateString())</span>
-                        <div style="color:#f0a500;">
-                            @for (int i = 1; i <= 5; i++)
-                            {
-                                @: @(i <= r.Rating ? "★" : "☆")
-                            }
-                        </div>
-                        <p style="color:#5a3e2b; white-space: pre-line;">@r.Comment</p>
-                    </div>
+                    <p><em>Loading reviews...</em></p>
                 }
-            }
-        </div>
-
-        <!-- Formular review -->
-        <div class="book-description-container">
-            <h3>Add a Review</h3>
-            <EditForm Model="@newReview" OnValidSubmit="HandleValidSubmit" FormName="AddReviewForm" Enhance>
-                <div class="mb-3">
-                    <label class="form-label">Rating (1-5)</label>
-                    <InputNumber @bind-Value="newReview.Rating" min="1" max="5" class="form-control" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Comment</label>
-                    <InputTextArea @bind-Value="newReview.Comment" class="form-control" />
-                </div>
-                <button type="submit" class="btn btn-secondary">Submit Review</button>
-            </EditForm>
-        </div>
-
-        <!-- Recomandări For You -->
-        @if (relatedBooks?.Any() == true)
-        {
-            <section class="for-you-wrapper">
-                <div class="for-you-inner">
-                    <h3 class=" mb-4 text-dark"><strong>For You — More in <span class="fw-bold">@book.BookCategory</span></strong></h3>
-
-                    <div class="books-grid">
-                        @foreach (var b in relatedBooks)
+                else if (!reviews.Any())
+                {
+                    <p class="text-muted italic">No reviews yet for this book.</p>
+                }
+                else
+                {
+                    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+                        @foreach (var r in reviews)
                         {
-                            <div class="book-card-wrapper">
-                            <div class="book-card" @onclick="() => NavigateToDetails(b.BookId)">
-                                    <img src="@b.BookCoverPath" alt="@b.BookTitle" class="book-img" />
-                                    <div class="book-info">
-                                        <h5 class="book-title">@b.BookTitle</h5>
-                                        <p class="book-author-year">
-                                            <strong>Author:</strong> @b.BookAuthor <br />
-                                            <strong>Year:</strong>   @b.BookYear   <br />
-                                        
-                                        </p>
-                                    <p class="book-price"><strong> @book.BookPrice lei</strong></p>
+                            <div class="col">
+                                <div class="review-card-simple p-3 shadow-sm rounded-4 bg-white border h-100 position-relative">
+
+                                    <AuthorizeView Roles="Administrator">
+                                        <button class="btn btn-sm btn-outline-danger position-absolute bottom-0 end-0 m-2 rounded-circle"
+                                                style="width: 35px; height: 35px; padding: 0; z-index: 10;"
+                                                @onclick="() => HandleDeleteReview(r.ReviewId)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </AuthorizeView>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong class="text-brown">@(r.User?.UserName ?? r.GuestName ?? "Guest")</strong>
+                                        <span class="text-muted small">@r.CreatedAt.ToShortDateString()</span>
                                     </div>
+                                    <div class="text-warning mb-2">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            @(i <= r.Rating ? "★" : "☆")
+                                        }
+                                    </div>
+                                    <p class="mb-0 text-muted small" style="white-space: pre-line;">@r.Comment</p>
                                 </div>
                             </div>
                         }
                     </div>
-                </div>
-            </section>
+                }
+            </div>
+
+            <div class="add-review-card bg-white p-4 rounded-4 shadow-sm border mb-5">
+                <h4 class="text-brown fw-bold mb-3">Leave a Review</h4>
+                <EditForm Model="@newReview" OnValidSubmit="HandleValidSubmit" FormName="AddReviewForm">
+                    <div class="mb-3">
+                        <label class="form-label d-block small fw-bold text-muted text-uppercase">Rating</label>
+                        <div class="star-rating-input">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                var ratingValue = i;
+                                <span class="star-clickable @(newReview.Rating >= ratingValue ? "selected" : "")"
+                                      @onclick="() => newReview.Rating = ratingValue">★</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Your Comment</label>
+                        <InputTextArea @bind-Value="newReview.Comment" class="form-control rounded-3 border-light-subtle bg-light" rows="3" placeholder="What did you think about the book?" />
+                    </div>
+                    <button type="submit" class="btn btn-brown rounded-pill px-5 fw-bold">Post Review</button>
+                </EditForm>
+            </div>
+
+            @if (relatedBooks?.Any() == true)
+            {
+                <section class="for-you-wrapper">
+                    <div class="for-you-inner">
+                        <h3 class="mb-4 text-dark"><strong>For You — More in <span class="fw-bold">@book.BookCategory</span></strong></h3>
+                        <div class="books-grid">
+                            @foreach (var b in relatedBooks)
+                            {
+                                <div class="book-card-wrapper" @onclick="() => NavigateToDetails(b.BookId)">
+                                    <div class="book-card">
+                                        <img src="@b.BookCoverPath" alt="@b.BookTitle" class="book-img" />
+                                        <div class="book-info">
+                                            <h5 class="book-title text-truncate w-100">@b.BookTitle</h5>
+                                            <p class="book-author-year">
+                                                <strong>Author:</strong> @b.BookAuthor <br />
+                                                <strong>Year:</strong> @b.BookYear
+                                            </p>
+                                            <p class="book-price"><strong>@b.BookPrice lei</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    :root {
+        --brown-primary: #5a3e2b;
+        --orange-accent: #f0a500;
+    }
+
+    body {
+        background-color: #fdf6ee;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .glass-card {
+        background: white;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .text-orange {
+        color: var(--orange-accent);
+    }
+
+    .btn-brown {
+        background: var(--brown-primary);
+        color: white;
+        border: none;
+    }
+
+        .btn-brown:hover {
+            background: #452f21;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(90, 62, 43, 0.3);
+        }
+
+    .specs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 1.2rem; 
+    font-size: 0.95rem;
+    }
+
+    @@media (max-width: 768px) {
+        .specs-grid {
+            grid-template-columns: 1fr 1fr; /* 2 coloane pe tabletă */
+        }
+    }
+    @@media (max-width: 480px) {
+        .specs-grid {
+            grid-template-columns: 1fr;  /* 1 coloană pe telefon */
         }
     }
 
- <style>
-     html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-     }
-
-    /* Container general pentru fiecare secțiune */
-    .book-section {
-        margin-bottom: 2rem;
-        padding: 1.5rem;
-        background: #fff;
-        border-radius: 1rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    .spec-item i {
+        color: var(--orange-accent);
+        font-size: 1.1rem;
     }
 
-    /* Layout imagine + detalii */
-    .details-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 2rem;
-    }
-
-    /* Imaginea cărții */
-    .book-image-wrapper {
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .book-img-details {
-        width: 100%;
-        max-width: 250px;
-        border-radius: 0.5rem;
-    }
-
-    /* Stele rating */
-    .rating-stars {
-        font-size: 1.5rem;
-        color: #f0a500;
-        margin-top: 0.5rem;
-    }
-
-    /* Informații carte */
-    .book-info {
-        flex: 2;
-        min-width: 250px;
-    }
-
-    .book-title {
-        font-weight: bold;
-        color: #5a3e2b;
-    }
-
-    .title-price-wrapper {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 2rem;
-        flex-wrap: wrap;
-    }
-
-    .title-left {
-        flex: 2;
-        min-width: 250px;
-    }
-
-    .price-right {
-        flex: 1;
-        min-width: 150px;
-        text-align: right;
-    }
-
-    .book-price-details {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #f0a500;
-    }
-
-    /* Descriere carte */
-    .book-description-container {
-        margin-bottom: 2rem;
+    .description-card {
+        border-left: 5px solid var(--orange-accent) !important;
     }
 
     .book-description {
-        color: #5a3e2b;
+        color: #444;
+        line-height: 1.8;
+        font-size: 1.05rem;
         white-space: pre-line;
     }
 
-    .btn-favorite {
-        background: none;
-        border: none;
-        font-size: 1.2rem;
-        padding: 0.5rem 1rem;
+    .btn-favorite-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 1px solid #eee;
+        background: white;
+        transition: 0.3s;
+    }
+
+        .btn-favorite-circle:hover {
+            background: #fff5f5;
+            transform: scale(1.1);
+            border-color: #ffcdd2;
+        }
+
+    .star-rating-input {
+        font-size: 2.2rem;
+        color: #e0e0e0;
+        margin-top: -10px;
+    }
+
+    .star-clickable {
         cursor: pointer;
-        transition: transform 0.2s ease;
+        transition: 0.2s;
     }
 
-        .btn-favorite:hover {
-            transform: scale(1.05);
+        .star-clickable:hover, .star-clickable.selected {
+            color: var(--orange-accent);
         }
 
-    .btn-cart-custom {
-        background: none;
-        border: none;
-        font-size: 1.2rem;
-        padding: 0.5rem 1 rem;
-        cursor: pointer;
-        transition: transform 0.2s ease;
-    }
-
-        .btn-cart-custom:hover {
-            transform: scale(1.02);
-        }
-
-        .btn-cart-custom:active {
-            transform: scale(0.98);
-        }
-
-    /* Review-uri */
-    .review-card {
-        margin-bottom: 1rem;
-        padding: 1rem;
-        border-radius: 1rem;
-        background: #fdf6ee;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-        .review-card strong {
-            color: #5a3e2b;
-        }
-
-        .review-card .stars {
-            color: #f0a500;
-            margin-bottom: 0.5rem;
-        }
-
-    /* For you */
     .for-you-wrapper {
-        width: 100%;
-        margin: 0;
-        padding: 0;
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
         background-color: #ceb9a6;
+        padding: 4rem 0;
     }
 
     .for-you-inner {
-        padding: 2rem 1rem;
-        max-width: 1400px;
+        max-width: 1300px;
         margin: 0 auto;
+        padding: 0 2rem;
     }
 
     .books-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-
-    .book-card-wrapper {
-        width: 100%;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 2rem;
     }
 
     .book-card {
         background: white;
-        border-radius: 8px;
-        padding: 1rem;
-        box-shadow: 0 0 6px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        padding: 1.2rem;
         text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        color: #5a3e2b;
-        text-decoration: none;
-        transition: transform 0.2s ease;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        border: none;
     }
 
         .book-card:hover {
-            transform: scale(1.02);
-            cursor: pointer;
+            transform: translateY(-12px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
         }
 
     .book-img {
         width: 100%;
-        max-height: 250px;
+        height: 280px;
         object-fit: cover;
-        border-radius: 4px;
-    }
-
-    .book-title {
-        font-size: 1.1rem;
-        font-weight: bold;
-        margin: 0.5rem 0;
-    }
-
-    .book-author-year {
-        font-size: 0.95rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
     }
 
     .book-price {
         color: #f0a500;
-        font-size: 1.1rem;
     }
- </style>
+</style>
 
 @code {
-        private Book? book;
-        private string pageTitle = "Book Details";
-        private List<Review> reviews = new();
+    private Book? book;
+    private string pageTitle = "Book Details";
+    private List<Review> reviews = new();
 
-        [SupplyParameterFromForm]
-        private Review newReview { get; set; } = new();
+    [SupplyParameterFromForm]
+    private Review newReview { get; set; } = new() { Rating = 0 }; 
 
-        [SupplyParameterFromQuery]
-        public int BookId { get; set; }
+    [SupplyParameterFromQuery]
+    public int BookId { get; set; }
 
-        private bool isFavorite = false;
+    private bool isFavorite = false;
+    private List<Book> relatedBooks = new();
+    private bool isAdded = false;
 
-        private List<Book> relatedBooks = new();
-        private bool isAdded = false;
-
-        protected override async Task OnInitializedAsync()
-        {
-            using var context = DbFactory.CreateDbContext();
-            book = await context.Book
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        book = await context.Book
             .Include(b => b.Reviews)
             .ThenInclude(r => r.User)
             .FirstOrDefaultAsync(b => b.BookId == BookId);
 
+        if (book != null)
+        {
+            pageTitle = book.BookTitle;
+            reviews = book.Reviews.OrderByDescending(r => r.CreatedAt).ToList();
+
+            // Verificăm dacă e favorit
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var userName = authState.User.Identity?.Name;
-
             if (!string.IsNullOrEmpty(userName))
             {
                 var user = await context.User.FirstOrDefaultAsync(u => u.UserName == userName);
@@ -422,90 +385,84 @@
                 }
             }
 
-            if (book != null)
-            {
-                relatedBooks = await context.Book
+            // Cărți sugerate
+            relatedBooks = await context.Book
                 .Where(b => b.BookCategory == book.BookCategory && b.BookId != book.BookId)
-                .OrderBy(_ => Guid.NewGuid()) // random
+                .OrderBy(_ => Guid.NewGuid())
                 .Take(4)
                 .ToListAsync();
-
-                pageTitle = book.BookTitle;
-                reviews = book.Reviews.OrderByDescending(r => r.CreatedAt).ToList();
-
-                // Calculăm media ratingurilor
-                if (reviews.Any())
-                {
-                    book.BookRating = (int)Math.Round(reviews.Average(r => r.Rating));
-                }
-                else
-                {
-                    book.BookRating = 0; // sau alt default
-                }
-            }
-        cartService.OnChange += StateHasChanged;
         }
+        cartService.OnChange += StateHasChanged;
+    }
 
     private async Task HandleValidSubmit()
     {
+        if (string.IsNullOrWhiteSpace(newReview.Comment)) return;
+
         using var context = DbFactory.CreateDbContext();
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var userName = authState.User.Identity?.IsAuthenticated == true
-            ? authState.User.Identity.Name
-            : "Guest";
-
-        // Caută utilizatorul în baza de date dacă e logat
+        var userName = authState.User.Identity?.IsAuthenticated == true ? authState.User.Identity.Name : "Guest";
         var user = await context.User.FirstOrDefaultAsync(u => u.UserName == userName);
 
         newReview.BookId = BookId;
         newReview.CreatedAt = DateTime.Now;
-
-        if (user != null)
-        {
-            newReview.UserId = user.UserId;
-        }
-        else
-        {
-            newReview.GuestName = "Guest";
-        }
+        if (user != null) newReview.UserId = user.UserId; else newReview.GuestName = "Guest";
 
         context.Review.Add(newReview);
         await context.SaveChangesAsync();
 
+        // Adăugăm în lista locală pentru refresh instant
         reviews.Insert(0, newReview);
+        await UpdateBookRating(context);
 
+        newReview = new Review() { Rating = 5 }; // Resetare formular
+        StateHasChanged();
+    }
+
+    private async Task HandleDeleteReview(int reviewId)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var reviewToDelete = await context.Review.FindAsync(reviewId);
+
+        if (reviewToDelete != null)
+        {
+            context.Review.Remove(reviewToDelete);
+            await context.SaveChangesAsync();
+
+            reviews.RemoveAll(x => x.ReviewId == reviewId);
+            await UpdateBookRating(context);
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdateBookRating(BooktiqueContext context)
+    {
         var bookToUpdate = await context.Book.FindAsync(BookId);
         if (bookToUpdate != null)
         {
-            bookToUpdate.BookRating = (int)Math.Round(reviews.Average(r => r.Rating));
+            int newRating = reviews.Any() ? (int)Math.Round(reviews.Average(r => r.Rating)) : 0;
+            bookToUpdate.BookRating = newRating;
+            if (book != null) book.BookRating = newRating; // Update vizual instant
             await context.SaveChangesAsync();
         }
-
-        newReview = new Review();
     }
 
     private async Task ToggleFavorite()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var userName = authState.User.Identity?.Name;
-
-        if (string.IsNullOrEmpty(userName) || book is null)
-            return;
+        if (string.IsNullOrEmpty(userName)) return;
 
         using var context = DbFactory.CreateDbContext();
         var user = await context.User.FirstOrDefaultAsync(u => u.UserName == userName);
-        if (user is null) return;
+        if (user == null) return;
 
-        var favorite = await context.Favorite.FirstOrDefaultAsync(f => f.UserId == user.UserId && f.BookId == BookId);
+        var favorite = await context.Favorite
+            .FirstOrDefaultAsync(f => f.UserId == user.UserId && f.BookId == BookId);
 
-        if (favorite is null)
+        if (favorite == null)
         {
-            context.Favorite.Add(new Favorite
-                {
-                    UserId = user.UserId,
-                    BookId = BookId,
-                });
+            context.Favorite.Add(new Favorite { UserId = user.UserId, BookId = BookId });
             isFavorite = true;
         }
         else
@@ -513,7 +470,6 @@
             context.Favorite.Remove(favorite);
             isFavorite = false;
         }
-
         await context.SaveChangesAsync();
     }
 
@@ -523,19 +479,11 @@
         {
             cartService.AddToCart(book);
             isAdded = true;
-            Console.WriteLine($"Cartea {book.BookTitle} a fost adăugată în coș.");
         }
     }
 
-    public void Dispose()
-    {
-        cartService.OnChange -= StateHasChanged;
-    }
+    public void Dispose() => cartService.OnChange -= StateHasChanged;
 
-    private void NavigateToDetails(int bookId)
-    {
-        NavigationManager.NavigateTo($"/books/details?bookid={bookId}", forceLoad: true);
-    }
-
+    private void NavigateToDetails(int id) => NavigationManager.NavigateTo($"/books/details?bookid={id}", true);
 }
 

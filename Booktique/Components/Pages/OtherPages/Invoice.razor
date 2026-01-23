@@ -122,32 +122,26 @@ else
     }
 
     @@media print {
-        /* 1. Ascunde absolut tot ce nu este factura */
-        /* Am adăugat clasele standard de Blazor: .sidebar și .top-row */
         nav, .sidebar, .top-row, .navbar, .d-print-none, header, footer {
             display: none !important;
         }
 
-        /* 2. Forțează browserul să afișeze culorile și imaginile (logo-ul) */
         * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
 
-        /* 3. Configurare pagină: elimină antetul/subsolul automat al browserului (data, titlul paginii) */
         @@page {
             margin: 0;
             size: auto;
         }
 
-        /* 4. Resetare Body pentru print */
         body {
             background-color: white !important;
             margin: 0 !important;
             padding: 0 !important;
         }
 
-        /* 5. Containerul Facturii */
         .invoice-container {
             position: absolute;
             top: 0;
@@ -155,13 +149,12 @@ else
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 !important;
-            padding: 1.5cm !important; /* Margine pentru imprimantă */
+            padding: 1.5cm !important; 
             border: none !important;
             box-shadow: none !important;
             background-color: white !important;
         }
 
-        /* Ajustare text pentru lizibilitate pe hârtie */
         .text-brown { color: #5a3e2b !important; }
         .text-orange { color: #f0a500 !important; }
     }

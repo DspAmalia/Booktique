@@ -1,115 +1,234 @@
 ﻿@page "/books/create"
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrator")]
 
-<PageTitle>Add Book</PageTitle>
+<PageTitle>Add New Book | Booktique</PageTitle>
 
-<h1>Add Book</h1>
-
-<hr />
-
-<div class="d-flex justify-content-center mt-4">
-    <div class="card shadow p-4" style="max-width: 900px; width: 100%;">
-        <EditForm method="post" Model="Book" OnValidSubmit="AddBook" FormName="create" Enhance>
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-
-            <div class="row">
-                <div class="col-md-6">
-                    @* Coloana 1 *@
-                    <div class="mb-3">
-                        <label for="booktitle" class="form-label">Title:</label>
-                        <InputText id="booktitle" @bind-Value="Book.BookTitle" class="form-control" />
-                        <ValidationMessage For="() => Book.BookTitle" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="bookauthor" class="form-label">Author:</label>
-                        <InputText id="bookauthor" @bind-Value="Book.BookAuthor" class="form-control" />
-                        <ValidationMessage For="() => Book.BookAuthor" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="bookdescription" class="form-label">Description:</label>
-                        <InputText id="bookdescription" @bind-Value="Book.BookDescription" class="form-control" />
-                        <ValidationMessage For="() => Book.BookDescription" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="bookyear" class="form-label">Year:</label>
-                        <InputNumber id="bookyear" @bind-Value="Book.BookYear" class="form-control" />
-                        <ValidationMessage For="() => Book.BookYear" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="booknumberpag" class="form-label">Nr. pages:</label>
-                        <InputNumber id="booknumberpag" @bind-Value="Book.BookNumberPag" class="form-control" />
-                        <ValidationMessage For="() => Book.BookNumberPag" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="bookpublishinghouse" class="form-label">Publisher:</label>
-                        <InputText id="bookpublishinghouse" @bind-Value="Book.BookPublishingHouse" class="form-control" />
-                        <ValidationMessage For="() => Book.BookPublishingHouse" class="text-danger" />
-                    </div>
+<div class="main-wrapper py-4">
+    <div class="container">
+                <div >
+                    <h2>Add <strong>New Book</strong></h2>
+                    <p class="text-muted small">Complete all fields below. Use "Update Preview" to check the cover image.</p>
                 </div>
+                <hr />
+                <div class="glass-card shadow-lg border-0 overflow-hidden bg-white">
+                    <EditForm Model="Book" OnValidSubmit="AddBook" FormName="createBook">
+                        <DataAnnotationsValidator />
 
-                <div class="col-md-6">
-                    @* Coloana 2 *@
-                    <div class="mb-3">
-                        <label for="bookcategory" class="form-label">Category:</label>
-                        <InputText id="bookcategory" @bind-Value="Book.BookCategory" class="form-control" />
-                        <ValidationMessage For="() => Book.BookCategory" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="booklanguage" class="form-label">Language:</label>
-                        <InputText id="booklanguage" @bind-Value="Book.BookLanguage" class="form-control" />
-                        <ValidationMessage For="() => Book.BookLanguage" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="bookstock" class="form-label">Stock:</label>
-                        <InputNumber id="bookstock" @bind-Value="Book.BookStock" class="form-control" />
-                        <ValidationMessage For="() => Book.BookStock" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="bookprice" class="form-label">Price:</label>
-                        <InputNumber id="bookprice" @bind-Value="Book.BookPrice" class="form-control" />
-                        <ValidationMessage For="() => Book.BookPrice" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="bookcoverpath" class="form-label">Cover Path (URL):</label>
-                        <InputText id="bookcoverpath" @bind-Value="Book.BookCoverPath" class="form-control" />
-                        <ValidationMessage For="() => Book.BookCoverPath" class="text-danger" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="bookrating" class="form-label">Rating:</label>
-                        <InputNumber id="bookrating" @bind-Value="Book.BookRating" class="form-control" />
-                        <ValidationMessage For="() => Book.BookRating" class="text-danger" />
-                    </div>
+                        <div class="row g-0">
+                            <div class="col-md-8 p-4 p-md-5 border-end">
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <h5 class="fw-bold text-brown mb-2 border-bottom pb-2">
+                                            <i class="bi bi-book me-2"></i>General Information
+                                        </h5>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold small">Book Title</label>
+                                        <InputText @bind-Value="Book.BookTitle" class="form-control rounded-pill px-3" placeholder="The Great Gatsby" />
+                                        <ValidationMessage For="() => Book.BookTitle" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">Author</label>
+                                        <InputText @bind-Value="Book.BookAuthor" class="form-control rounded-pill px-3" placeholder="F. Scott Fitzgerald" />
+                                        <ValidationMessage For="() => Book.BookAuthor" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">Category</label>
+                                        <InputText @bind-Value="Book.BookCategory" class="form-control rounded-pill px-3" placeholder="Fiction" />
+                                        <ValidationMessage For="() => Book.BookCategory" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold small">Description</label>
+                                        <InputTextArea @bind-Value="Book.BookDescription" class="form-control rounded-3 px-3" rows="3" placeholder="Short summary..." />
+                                        <ValidationMessage For="() => Book.BookDescription" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-12 mt-4">
+                                        <h5 class="fw-bold text-brown mb-2 border-bottom pb-2">
+                                            <i class="bi bi-gear me-2"></i>Technical Details
+                                        </h5>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Publishing House</label>
+                                        <InputText @bind-Value="Book.BookPublishingHouse" class="form-control rounded-pill px-3" />
+                                        <ValidationMessage For="() => Book.BookPublishingHouse" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Language</label>
+                                        <InputText @bind-Value="Book.BookLanguage" class="form-control rounded-pill px-3" />
+                                        <ValidationMessage For="() => Book.BookLanguage" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Year</label>
+                                        <InputNumber @bind-Value="Book.BookYear" class="form-control rounded-pill px-3" />
+                                        <ValidationMessage For="() => Book.BookYear" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold small">Pages</label>
+                                        <InputNumber @bind-Value="Book.BookNumberPag" class="form-control rounded-pill px-3" />
+                                        <ValidationMessage For="() => Book.BookNumberPag" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold small">Price (RON)</label>
+                                        <InputNumber @bind-Value="Book.BookPrice" class="form-control rounded-pill px-3" />
+                                        <ValidationMessage For="() => Book.BookPrice" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold small">Stock</label>
+                                        <InputNumber @bind-Value="Book.BookStock" class="form-control rounded-pill px-3" />
+                                        <ValidationMessage For="() => Book.BookStock" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold small">Rating (0-5)</label>
+                                        <InputNumber @bind-Value="Book.BookRating" class="form-control rounded-pill px-3" step="1" />
+                                        <ValidationMessage For="() => Book.BookRating" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-12 mt-3">
+                                        <label class="form-label fw-bold small">Cover URL</label>
+                                        <InputText @bind-Value="Book.BookCoverPath" class="form-control rounded-pill px-3" placeholder="https://..." />
+                                        <button type="button" @onclick="() => StateHasChanged()" class="btn btn-link btn-sm text-orange p-0 mt-1 shadow-none text-decoration-none fw-bold">
+                                            <i class="bi bi-eye-fill me-1"></i> Update Preview
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 bg-light d-flex flex-column align-items-center justify-content-center p-4 text-center">
+                                <h6 class="text-uppercase fw-bold text-muted mb-4 small" style="letter-spacing: 1px;">Live Preview</h6>
+
+                                <div class="preview-container shadow-lg mb-3">
+                                    @if (!string.IsNullOrEmpty(Book.BookCoverPath))
+                                    {
+                                        <img src="@Book.BookCoverPath" class="img-fluid rounded" alt="Cover Preview"
+                                             onerror="this.src='https://via.placeholder.com/250x380?text=Invalid+URL';">
+                                    }
+                                    else
+                                    {
+                                        <div class="placeholder-box d-flex flex-column align-items-center justify-content-center text-muted">
+                                            <i class="bi bi-image fs-1"></i>
+                                            <span class="small mt-2">Waiting for URL...</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="px-2 w-100">
+                                    <h6 class="fw-bold text-brown mb-1 text-truncate">@(string.IsNullOrEmpty(Book.BookTitle) ? "Book Title" : Book.BookTitle)</h6>
+                                    <p class="small text-muted mb-1 text-truncate">@(string.IsNullOrEmpty(Book.BookAuthor) ? "Author" : Book.BookAuthor)</p>
+                                    <div class="badge bg-warning text-dark rounded-pill">
+                                        @(Book.BookPrice?.ToString("C2") ?? "0.00 RON")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-white border-top text-center">
+                            <button type="submit" class="btn btn-warning px-5 py-2 rounded-pill fw-bold shadow-sm me-3 text-white">
+                                <i class="bi bi-cloud-check-fill me-2"></i>Add to Library
+                            </button>
+                            <a href="/" class="btn btn-outline-secondary px-4 py-2 rounded-pill">Cancel</a>
+                        </div>
+                    </EditForm>
                 </div>
-            </div>
-
-            <div class="text-center mt-4">
-                <button type="submit" class="btn btn-warning px-4">💾 Add Book</button>
-                <a href="/" class="btn btn-outline-secondary">Back to the list</a>
-
-            </div>
-        </EditForm>
     </div>
 </div>
 
 <style>
-    html, body {
+    :root {
+        --brown-primary: #5a3e2b;
+        --orange-accent: #f0a500;
+        --bg-soft: #fdf6ee;
+    }
+
+    body {
+        background-color: var(--bg-soft);
+    }
+
+    .glass-card {
+        border-radius: 1.5rem;
+    }
+
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .text-orange {
+        color: var(--orange-accent);
+    }
+
+    .form-control:focus {
+        border-color: var(--orange-accent);
+        box-shadow: 0 0 0 0.25rem rgba(240, 165, 0, 0.25);
+    }
+
+    .btn-warning {
+        background-color: var(--orange-accent);
+        border: none;
+    }
+
+        .btn-warning:hover {
+            background-color: #d69400;
+            transform: translateY(-2px);
+        }
+
+    .preview-container {
+        width: 100%;
+        max-width: 210px;
+        aspect-ratio: 2/3;
+        background: #fff;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 2px dashed #dee2e6;
+    }
+
+        .preview-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .placeholder-box {
         height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        width: 100%;
+        background-color: #f8f9fa;
+    }
+
+    .text-truncate {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
 </style>
 
 @code {
-    [SupplyParameterFromForm]
     private Book Book { get; set; } = new();
 
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    protected override void OnInitialized()
+    {
+        // Setăm un an default pentru a evita eroarea de validare la încărcare
+        Book.BookYear = DateTime.Now.Year;
+    }
+
     private async Task AddBook()
     {
         using var context = DbFactory.CreateDbContext();

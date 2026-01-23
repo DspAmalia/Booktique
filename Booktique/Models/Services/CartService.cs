@@ -51,6 +51,37 @@ namespace Booktique.Models.Services
             NotifyDataChanged();
         }
 
+        public async Task DecreaseQuantity(int bookId)
+        {
+            var item = Items.FirstOrDefault(i => i.BookId == bookId);
+            if (item != null)
+            {
+                if (item.Quantity > 1)
+                {
+                    item.Quantity--;
+                }
+                else
+                {
+                    Items.Remove(item);
+                }
+
+                await SaveCartAsync(); // Salvează modificarea în localStorage
+                NotifyDataChanged();
+            }
+        }
+
+        public async Task IncreaseQuantity(int bookId)
+        {
+            var item = Items.FirstOrDefault(i => i.BookId == bookId);
+            if (item != null)
+            {
+                item.Quantity++;
+
+                await SaveCartAsync(); // Salvează modificarea în localStorage
+                NotifyDataChanged();
+            }
+        }
+
         public async Task RemoveFromCart(int bookId)
         {
             Items.RemoveAll(i => i.BookId == bookId);

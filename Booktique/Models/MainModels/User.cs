@@ -28,6 +28,8 @@ namespace Booktique.Models.MainModels
         [MaxLength(20)]
         public string? Role { get; set; }
 
+        public string? ProfilePicture { get; set; }
+
         public bool IsSubscribed { get; set; } = false;
     }
 }

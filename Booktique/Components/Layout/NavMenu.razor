@@ -7,6 +7,7 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 
+@implements IDisposable
 @rendermode InteractiveServer
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -18,19 +19,18 @@
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
 <div class="nav-scrollable d-flex flex-column" onclick="document.querySelector('.navbar-toggler').click()">
-    <!-- Meniul principal -->
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link d-flex align-items-center" href="" Match="NavLinkMatch.All">
-                 <span class="nav-menu-icon-container me-2">
+                <span class="nav-menu-icon-container me-2">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M12.6971 4.24037C12.2379 4.13952 11.7622 4.13952 11.303 4.24037C10.8123 4.34812 10.3355 4.62332 9.09314 5.36876L6.24314 7.07876C5.06758 7.78409 4.62545 8.0592 4.30938 8.41865C4.01349 8.75515 3.79039 9.14919 3.65408 9.57604C3.50846 10.032 3.50004 10.5527 3.50004 11.9236V14.85C3.50004 15.9825 3.50062 16.7867 3.55204 17.4161C3.60275 18.0367 3.69913 18.421 3.85427 18.7254C4.16586 19.337 4.66304 19.8342 5.27457 20.1457C5.57904 20.3009 5.96329 20.3973 6.58392 20.448C6.91632 20.4751 7.2975 20.4881 7.75004 20.4943V17.4195C7.75003 16.8854 7.75002 16.4395 7.77978 16.0753C7.81082 15.6954 7.87793 15.3388 8.04977 15.0015C8.31342 14.4841 8.73412 14.0634 9.25156 13.7997C9.58883 13.6279 9.94548 13.5607 10.3254 13.5297C10.6896 13.5 11.1354 13.5 11.6696 13.5H12.3305C12.8646 13.5 13.3105 13.5 13.6747 13.5297C14.0546 13.5607 14.4112 13.6279 14.7485 13.7997C15.266 14.0634 15.6867 14.4841 15.9503 15.0015C16.1221 15.3388 16.1893 15.6954 16.2203 16.0753C16.2501 16.4395 16.25 16.8854 16.25 17.4195V20.4943C16.7026 20.4881 17.0838 20.4751 17.4162 20.448C18.0368 20.3973 18.421 20.3009 18.7255 20.1457C19.337 19.8342 19.8342 19.337 20.1458 18.7254C20.3009 18.421 20.3973 18.0367 20.448 17.4161C20.4995 16.7867 20.5 15.9825 20.5 14.85V11.9236C20.5 10.5527 20.4916 10.032 20.346 9.57604C20.2097 9.14919 19.9866 8.75515 19.6907 8.41865C19.3746 8.0592 18.9325 7.78409 17.7569 7.07876L14.9069 5.36876C13.6646 4.62332 13.1878 4.34812 12.6971 4.24037ZM15.5274 21.9995C16.3234 21.9976 16.9839 21.9883 17.5383 21.943C18.2517 21.8847 18.8553 21.7631 19.4065 21.4823C20.3003 21.0269 21.0269 20.3002 21.4823 19.4064C21.7632 18.8553 21.8848 18.2516 21.9431 17.5382C22 16.8406 22 15.9751 22 14.883V11.9236C22 11.8803 22 11.8375 22.0001 11.7952C22.0003 10.5973 22.0005 9.82616 21.7749 9.11972C21.5757 8.49587 21.2496 7.91995 20.8172 7.42815C20.3275 6.87123 19.6661 6.47463 18.6388 5.85853C18.6025 5.83681 18.5658 5.81481 18.5287 5.79252L15.6787 4.08252C15.6393 4.05887 15.6004 4.03551 15.5619 4.01245C14.4773 3.3613 13.7793 2.94227 13.0189 2.77528C12.3476 2.62788 11.6524 2.62788 10.9812 2.77528C10.2208 2.94227 9.52278 3.3613 8.43813 4.01245C8.39971 4.03551 8.3608 4.05887 8.32139 4.08252L5.47139 5.79252C5.43424 5.81481 5.39755 5.83681 5.36132 5.85854C4.33396 6.47463 3.67262 6.87123 3.18292 7.42815C2.75047 7.91995 2.4244 8.49587 2.22517 9.11972C1.99957 9.82616 1.99974 10.5973 2.00002 11.7952C2.00003 11.8375 2.00004 11.8803 2.00004 11.9236L2.00004 14.883C2.00003 15.9751 2.00003 16.8406 2.05703 17.5382C2.11531 18.2516 2.23692 18.8553 2.51776 19.4064C2.97316 20.3002 3.69981 21.0269 4.59358 21.4823C5.14476 21.7631 5.74838 21.8847 6.46177 21.943C7.01621 21.9883 7.67668 21.9976 8.47268 21.9995C8.48176 21.9998 8.49088 22 8.50004 22H9.06053C9.07929 22 9.09812 22 9.11702 22H14.8831C14.902 22 14.9208 22 14.9396 22H15.5C15.5092 22 15.5183 21.9998 15.5274 21.9995ZM14.75 20.5V17.45C14.75 16.8775 14.7495 16.4933 14.7253 16.1975C14.7018 15.9103 14.6599 15.773 14.6138 15.6825C14.494 15.4473 14.3027 15.2561 14.0675 15.1362C13.977 15.0901 13.8397 15.0482 13.5526 15.0247C13.2567 15.0006 12.8725 15 12.3 15H11.7C11.1276 15 10.7434 15.0006 10.4475 15.0247C10.1604 15.0482 10.0231 15.0901 9.93255 15.1362C9.69735 15.2561 9.50612 15.4473 9.38628 15.6825C9.34014 15.773 9.29825 15.9103 9.2748 16.1974C9.25062 16.4933 9.25004 16.8775 9.25004 17.45V20.5H14.75Z" fill="white" />
                     </svg>
-                 </span>
-                    Home
+                </span>
+                Home
             </NavLink>
         </div>
-     
+
         <div class="nav-item px-3">
             <NavLink class="nav-link d-flex align-items-center" href="/favorites">
                 <span class="nav-menu-icon-container me-2">
@@ -41,7 +41,7 @@
                 Favorites
             </NavLink>
         </div>
-        
+
         <div class="nav-item px-3">
             <NavLink class="nav-link d-flex align-items-center" href="/ask-ai">
                 <span class="nav-menu-icon-container me-2">
@@ -53,7 +53,7 @@
             </NavLink>
         </div>
 
-         <AuthorizeView >
+        <AuthorizeView Roles="User, Administrator">
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="/subscriptions">
@@ -83,7 +83,6 @@
         }
     </nav>
 
-    <!-- Filtre în navbar -->
     <div class="filters-navbar px-3 py-2">
         <button class="btn btn-link text-light p-0 d-flex align-items-center text-decoration-none shadow-none"
                 @onclick="ToggleFilters"
@@ -153,12 +152,24 @@
     private bool isSubscribed = false;
     private bool showFilters = false;
 
-    private void ToggleFilters()
-    {
-        showFilters = !showFilters;
-    }
+    private void ToggleFilters() => showFilters = !showFilters;
 
     protected override async Task OnInitializedAsync()
+    {
+        AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        await RefreshSidebarData();
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        await InvokeAsync(async () =>
+        {
+            await RefreshSidebarData();
+        });
+    }
+
+    private async Task RefreshSidebarData()
     {
         using var ctx = DbFactory.CreateDbContext();
 
@@ -179,8 +190,13 @@
 
         if (query.TryGetValue("category", out var cat))
             selectedCategory = cat;
+        else
+            selectedCategory = string.Empty;
+
         if (query.TryGetValue("year", out var yr))
             selectedYear = yr;
+        else
+            selectedYear = string.Empty;
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -197,26 +213,24 @@
                 isSubscribed = dbUser?.IsSubscribed ?? false;
             }
         }
+        else
+        {
+            isSubscribed = false;
+        }
+
+        StateHasChanged();
     }
 
     private string SelectedCategory
     {
         get => selectedCategory;
-        set
-        {
-            selectedCategory = value;
-            NavigateWithFilters();
-        }
+        set { selectedCategory = value; NavigateWithFilters(); }
     }
 
     private string SelectedYear
     {
         get => selectedYear;
-        set
-        {
-            selectedYear = value;
-            NavigateWithFilters();
-        }
+        set { selectedYear = value; NavigateWithFilters(); }
     }
 
     private void NavigateWithFilters()
@@ -228,7 +242,6 @@
             query.Add($"year={Uri.EscapeDataString(selectedYear)}");
 
         var url = query.Any() ? $"/?{string.Join("&", query)}" : "/";
-
         NavigationManager.NavigateTo(url, forceLoad: true);
     }
 
@@ -236,7 +249,11 @@
     {
         selectedCategory = string.Empty;
         selectedYear = string.Empty;
-        NavigationManager.NavigateTo("/",forceLoad: true);
+        NavigationManager.NavigateTo("/", forceLoad: true);
     }
 
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+    }
 }

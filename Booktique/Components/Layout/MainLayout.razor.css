@@ -12,7 +12,6 @@ main {
     flex: 1;
 }
 
-/* Sidebar cu gradient maro vertical */
 .hover-dark-text:hover {
     color: black !important;
 }

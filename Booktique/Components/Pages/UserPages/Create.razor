@@ -1,5 +1,4 @@
 ﻿@page "/users/create"
-
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.EntityFrameworkCore
@@ -12,51 +11,80 @@
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Create User</PageTitle>
+<PageTitle>Create Account | Booktique</PageTitle>
 
-<div class="container-fluid create-page d-flex align-items-center justify-content-center">
-    <div class="create-card shadow p-4 rounded-4 w-100" style="max-width: 400px;">
-        <div class="text-center mb-4">
-            <i class="bi bi-person-plus fs-1 text-warning"></i>
-            <h2 class="fw-bold text-brown">Create Account</h2>
-            <p class="text-muted">Fill in your details to register.</p>
+<div class="register-page-wrapper d-flex justify-content-center">
+    <div class="register-container mt-5">
+        <div class="register-card shadow-lg border-0">
+
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="gif-wrapper mb-3">
+                        <img src="https://usagif.com/wp-content/uploads/gifs/book-90.gif" alt="Book opening" class="book-gif" />
+                    </div>
+                    <h3 class="fw-bold text-brown mb-1">Join Booktique</h3>
+                    <p class="text-muted small">Create an account to start your journey</p>
+                </div>
+
+                <EditForm Model="@NewUser" OnValidSubmit="AddUser" FormName="createForm">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-person text-brown"></i></span>
+                            <InputText id="username" @bind-Value="NewUser.UserName" class="form-control border-start-0 ps-0" placeholder="Username" />
+                        </div>
+                        <ValidationMessage For="() => NewUser.UserName" class="text-danger small" />
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-envelope text-brown"></i></span>
+                            <InputText id="email" @bind-Value="NewUser.UserEmail" class="form-control border-start-0 ps-0" placeholder="Email" />
+                        </div>
+                        <ValidationMessage For="() => NewUser.UserEmail" class="text-danger small" />
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-lock text-brown"></i></span>
+                            <InputText id="password" @bind-Value="NewUser.Password" type="password" class="form-control border-start-0 ps-0" placeholder="Password" />
+                        </div>
+                        <ValidationMessage For="() => NewUser.Password" class="text-danger small" />
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-shield-check text-brown"></i></span>
+                            <InputText id="confirm-password" @bind-Value="NewUser.ConfirmPassword" type="password" class="form-control border-start-0 ps-0" placeholder="Confirm Password" />
+                        </div>
+                        <ValidationMessage For="() => NewUser.ConfirmPassword" class="text-danger small" />
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning py-2 fw-bold rounded-pill text-white">CREATE ACCOUNT</button>
+                    </div>
+                </EditForm>
+
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="alert alert-danger py-2 mt-3 mb-0 small text-center">
+                        @ErrorMessage
+                    </div>
+                }
+
+                <div class="mt-4 text-center">
+                    <p class="small mb-0">
+                        Already have an account?
+                        <NavLink href="/login" class="text-brown fw-bold text-decoration-none">Log in</NavLink>
+                    </p>
+                </div>
+            </div>
+
+            <div class="py-3 text-center border-top bg-light">
+                <p class="quote-mini mb-0">“Books are a uniquely portable magic.”</p>
+            </div>
         </div>
-
-        <EditForm Model="@NewUser" OnValidSubmit="AddUser" FormName="create">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-
-            <div class="mb-3">
-                <label for="username" class="form-label">User Name:</label>
-                <InputText id="username" @bind-Value="NewUser.UserName" class="form-control rounded-pill" />
-                <ValidationMessage For="() => NewUser.UserName" class="text-danger" />
-            </div>
-
-            <div class="mb-3">
-                <label for="email" class="form-label">Email:</label>
-                <InputText id="email" @bind-Value="NewUser.UserEmail" class="form-control rounded-pill" />
-                <ValidationMessage For="() => NewUser.UserEmail" class="text-danger" />
-            </div>
-
-            <div class="mb-3">
-                <label for="password" class="form-label">Password:</label>
-                <InputText id="password" @bind-Value="NewUser.Password" type="password" class="form-control rounded-pill" />
-                <ValidationMessage For="() => NewUser.Password" class="text-danger" />
-            </div>
-
-            <div class="mb-3">
-                <label for="confirm-password" class="form-label">Confirm Password:</label>
-                <InputText id="confirm-password" @bind-Value="NewUser.ConfirmPassword" type="password" class="form-control rounded-pill" />
-                <ValidationMessage For="() => NewUser.ConfirmPassword" class="text-danger" />
-            </div>
-
-            <button type="submit" class="btn btn-warning w-100 rounded-pill">Create Account</button>
-        </EditForm>
-
-        <p class="mt-3 text-center">
-            Already have an account?
-            <NavLink href="/login" class="link-warning fw-bold">Log in</NavLink>
-        </p>
     </div>
 </div>
 
@@ -64,25 +92,37 @@
     html, body {
         height: 100%;
         margin: 0;
-        background: #fdf6ee;
+        padding: 0;
+        background-color: #fdf6ee;
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
 
-    .create-page {
-        min-height: 100vh;
-        background: #fdf6ee;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
+    :root {
+        --brown-primary: #5a3e2b;
+        --cream-bg: #fdf6ee;
     }
 
-    .create-card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    .register-page-wrapper {
+        min-height: 100vh;
+        background-color: var(--cream-bg);
+    }
+
+    .register-container {
         width: 100%;
         max-width: 400px;
+    }
+
+    .register-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .gif-container {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto;
+        overflow: hidden;
     }
 
     .book-gif {
@@ -94,23 +134,44 @@
     }
 
     .text-brown {
-        color: #5a3e2b;
+        color: var(--brown-primary);
     }
 
     .btn-warning {
         background-color: #f4d03f;
         border: none;
-        font-weight: bold;
     }
 
-    .link-warning {
-        color: #f4d03f;
-    }
-
-        .link-warning:hover {
-            text-decoration: underline;
+        .btn-warning:hover {
+            background-color: #e2c035;
         }
 
+    .form-control:focus {
+        border-color: var(--brown-primary);
+        box-shadow: none;
+    }
+
+    .input-group-text {
+        border-color: #ced4da;
+    }
+
+    .quote-mini {
+        font-size: 0.75rem;
+        color: #888;
+        font-style: italic;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
 
 @code {
