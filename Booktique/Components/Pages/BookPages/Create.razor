@@ -91,7 +91,7 @@
 
                                     <div class="col-md-3">
                                         <label class="form-label fw-bold small">Stock</label>
-                                        <InputNumber @bind-Value="Book.BookStock" class="form-control rounded-pill px-3" />
+                                        <InputNumber @bind-Value="Book.BookStock" class="form-control rounded-pill px-3" min="0" />
                                         <ValidationMessage For="() => Book.BookStock" class="text-danger small" />
                                     </div>
 
@@ -231,6 +231,11 @@
 
     private async Task AddBook()
     {
+        if (Book.BookStock < 0)
+        {
+            Book.BookStock = 0;
+        }
+
         using var context = DbFactory.CreateDbContext();
         context.Book.Add(Book);
         await context.SaveChangesAsync();

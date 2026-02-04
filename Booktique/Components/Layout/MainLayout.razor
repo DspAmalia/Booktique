@@ -12,16 +12,12 @@
         <div class="top-row px-4 d-flex justify-content-end">
             <AuthorizeView Roles="Administrator">
                 <div class="nav-item px-3">
-                    <a class="btn btn-outline-light hover-dark-text" href="/users">
-                        <span class="bi bi-list-nested-nav-menu"></span> Users
-                    </a>
-                
-                    <a class="btn btn-outline-light hover-dark-text" href="/books/create">
-                        <span class="bi bi-list-nested-nav-menu"></span> Add Book
+                    <a class="btn btn-outline-light hover-dark-text" href="/admin/dashboard">
+                        <span class="bi bi-list-nested-nav-menu"></span> Dashboard
                     </a>
                 </div>
             </AuthorizeView>
-            <AuthorizeView>
+            <AuthorizeView Roles="User">
                 <Authorized>
                     <a class="btn btn-outline-light hover-dark-text" href="/cart">
                         <span class="bi bi-cart3"></span> Cart
@@ -30,7 +26,11 @@
                             <span class="badge bg-danger rounded-pill">@cartService.Items.Sum(i => i.Quantity)</span>
                         }
                     </a>
+                </Authorized>
+            </AuthorizeView>
 
+            <AuthorizeView>
+                <Authorized>
                     <div class="dropdown">
                         <button class="btn btn-outline-light dropdown-toggle text-brown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             @context.User.Identity?.Name

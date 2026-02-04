@@ -44,19 +44,24 @@
     <div class="books-grid">
         @foreach (var book in SearchedBooks)
         {
-            <div class="book-card-wrapper">
-                <a class="book-card" href="@($"/books/details?bookid={book.BookId}")">
+            <div class="book-card-wrapper position-relative">
+                @if (book.BookStock == 0)
+                {
+                    <span class="sold-out-badge bg-danger">SOLD OUT</span>
+                }
+                <a class="book-card @(book.BookStock == 0 ? "out-of-stock" : "")"
+                   href="@($"/books/details?bookid={book.BookId}")">
+
                     <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img" />
                     <div class="book-info">
                         <h5 class="book-title">@book.BookTitle</h5>
                         <p class="book-author-year">
-                             @book.BookAuthor <br />
-                             @book.BookYear   <br />
+                            @book.BookAuthor <br />
+                            @book.BookYear   <br />
                         </p>
                         <p class="book-price"><strong> @book.BookPrice lei</strong></p>
                     </div>
                 </a>
-                
             </div>
         }
     </div>
@@ -93,6 +98,25 @@
             border-left: none;
         }
 
+    .out-of-stock {
+        filter: grayscale(100%);
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none; 
+    }
+
+    .sold-out-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #dc3545;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        z-index: 2;
+    }
 
     .books-content {
         padding: 1rem;
@@ -170,14 +194,15 @@
     private string selectedPublisher = string.Empty;
 
     private IEnumerable<Book> SearchedBooks =>
-        books.Where(b =>
-            (string.IsNullOrEmpty(searchText) ||
-             b.BookTitle!.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-             b.BookAuthor!.Contains(searchText, StringComparison.OrdinalIgnoreCase)) &&
-            (string.IsNullOrEmpty(selectedGenre) || b.BookCategory == selectedGenre) &&
-            (string.IsNullOrEmpty(selectedYear) || b.BookYear.ToString() == selectedYear) &&
-            (string.IsNullOrEmpty(selectedPublisher) || b.BookPublishingHouse == selectedPublisher)
-        );
+    books.Where(b =>
+        (string.IsNullOrEmpty(searchText) ||
+         b.BookTitle!.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+         b.BookAuthor!.Contains(searchText, StringComparison.OrdinalIgnoreCase)) &&
+        (string.IsNullOrEmpty(selectedGenre) || b.BookCategory == selectedGenre) &&
+        (string.IsNullOrEmpty(selectedYear) || b.BookYear.ToString() == selectedYear) &&
+        (string.IsNullOrEmpty(selectedPublisher) || b.BookPublishingHouse == selectedPublisher)
+    )
+    .OrderByDescending(b => b.BookStock > 0); // Cartile disponibile raman sus
 
     private List<string> genres = new();
     private List<string> years = new();

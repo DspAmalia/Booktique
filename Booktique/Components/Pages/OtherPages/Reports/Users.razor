@@ -1,0 +1,154 @@
+﻿@page "/admin/reports/users"
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject BooktiqueContext DbContext
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrator")]
+
+<div class="container py-4 no-print text-end">
+    <a href="/admin/dashboard" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
+    <button class="btn btn-warning px-4 fw-bold shadow-sm" onclick="window.print()">
+        <i class="bi bi-printer me-2"></i> PRINT USER LIST
+    </button>
+</div>
+
+<div class="invoice-container p-5 bg-white mx-auto border shadow-sm">
+    <div class="row mb-5 border-bottom-gold pb-4">
+        <div class="col-7 d-flex align-items-center">
+            <img src="/images/logo.png" alt="Booktique Logo" style="height: 80px; width: auto;" class="me-3" />
+            <div>
+                <h1 class="text-blue fw-bold mb-0" style="font-size: 2.5rem;">BOOKTIQUE</h1>
+                <p class="text-muted small mb-0 uppercase tracking-1">Financial Division</p>
+            </div>
+        </div>
+
+        <div class="col-5 text-end">
+            <h2 class="invoice-title">USER AUDIT</h2>
+            <div class="invoice-meta mt-3">
+                <p><strong>TOTAL USERS:</strong> @usersList.Count</p>
+                <p><strong>DATE:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-hover mt-4">
+        <thead class="bg-invoice-blue text-white">
+            <tr>
+                <th class="p-3 border-0">USER ID</th>
+                <th class="p-3 border-0">USERNAME</th>
+                <th class="p-3 border-0 text-end">STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in usersList)
+            {
+                <tr>
+                    <td class="p-3 fw-bold">#@user.UserId</td>
+                    <td class="p-3">@user.UserName</td>
+                    <td class="p-3 text-end fw-bold text-success">ACTIVE</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="row mt-5 pt-5">
+        <div class="col-6">
+            <p class="mb-1 small text-muted">System Administrator</p>
+            <div class="border-bottom border-dark my-4" style="height:40px; width: 250px;"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    :root {
+        --invoice-blue: #1a2a40;
+        --invoice-gold: #c5a059;
+    }
+
+    .btn-warning {
+        color: white;
+        border-radius: 50px; 
+        transition: all 0.3s;
+    }
+
+        .btn-warning:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+    .btn-outline-secondary {
+        border-radius: 50px;
+    }
+
+    .invoice-container {
+        max-width: 1000px;
+        min-height: 297mm;
+        background: white;
+        border-radius: 20px;
+        border: none !important;
+    }
+
+    .invoice-logo {
+        color: var(--invoice-blue);
+        font-weight: 800;
+    }
+
+    .invoice-title {
+        color: var(--invoice-gold);
+        letter-spacing: 4px;
+    }
+
+    .bg-invoice-blue {
+        background-color: var(--invoice-blue) !important;
+    }
+
+    .btn-invoice-blue {
+        background-color: var(--invoice-blue);
+        color: white;
+    }
+
+    .border-bottom-gold {
+        border-bottom: 3px solid var(--invoice-gold) !important;
+    }
+
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .invoice-container, .invoice-container * {
+            visibility: visible;
+        }
+
+        .invoice-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100% !important;
+            margin: 0 !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .bg-invoice-blue {
+            -webkit-print-color-adjust: exact !important;
+            background-color: #1a2a40 !important;
+            color: white !important;
+        }
+    }
+</style>
+
+@code {
+    private List<User> usersList = new List<User>();
+    protected override async Task OnInitializedAsync() =>
+        usersList = await DbContext.User.OrderBy(u => u.UserName).ToListAsync();
+}

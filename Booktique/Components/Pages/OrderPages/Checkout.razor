@@ -156,7 +156,6 @@
     private string shippingAddress = "";
     private string? paymentMethod = null;
 
-    // Proprietate de validare care controlează butonul
     private bool IsFormValid =>
         !string.IsNullOrWhiteSpace(fullName) &&
         !string.IsNullOrWhiteSpace(phoneNumber) &&
@@ -181,34 +180,63 @@
 
         try
         {
-            using var ctx = DbFactory.CreateDbContext();
+            using var ctx = await DbFactory.CreateDbContextAsync();
+            using var transaction = await ctx.Database.BeginTransactionAsync();
 
-            var order = new Order
-                {
-                    UserId = userIdInt,
-                    OrderDate = DateTime.Now,
-                    TotalAmount = cartService.Items.Sum(i => i.Price * i.Quantity),
-                    ShippingAddress = $"{fullName} - {shippingAddress}",
-                    City = city,
-                    PhoneNumber = phoneNumber,
-                    PaymentMethod = paymentMethod!,
-                    OrderItems = cartService.Items.Select(i => new OrderItem
+            try
+            {
+                var order = new Order
                     {
-                        BookId = i.BookId,
-                        Quantity = i.Quantity,
-                        UnitPrice = i.Price
-                    }).ToList()
-                };
+                        UserId = userIdInt,
+                        OrderDate = DateTime.Now,
+                        TotalAmount = cartService.Items.Sum(i => i.Price * i.Quantity),
+                        ShippingAddress = $"{fullName} - {shippingAddress}",
+                        City = city,
+                        PhoneNumber = phoneNumber,
+                        PaymentMethod = paymentMethod!,
+                        OrderItems = new List<OrderItem>()
+                    };
 
-            ctx.Order.Add(order);
-            await ctx.SaveChangesAsync();
+                foreach (var item in cartService.Items)
+                {
+                    var dbBook = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == item.BookId);
 
-            await cartService.ClearCart();
-            Nav.NavigateTo("/order-success");
+                    if (dbBook != null)
+                    {
+                        if (dbBook.BookStock >= item.Quantity)
+                        {
+                            dbBook.BookStock -= item.Quantity;
+
+                            order.OrderItems.Add(new OrderItem
+                                {
+                                    BookId = item.BookId,
+                                    Quantity = item.Quantity,
+                                    UnitPrice = item.Price
+                                });
+                        }
+                        else
+                        {
+                            throw new Exception($"Stock insufficient for: {dbBook.BookTitle}");
+                        }
+                    }
+                }
+
+                ctx.Order.Add(order);
+
+                await ctx.SaveChangesAsync();
+                await transaction.CommitAsync();
+                await cartService.ClearCart();
+                Nav.NavigateTo("/order-success");
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw; 
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"DB Error: {ex.Message}");
+            Console.WriteLine($"Order Finalization Error: {ex.Message}");
         }
     }
 }

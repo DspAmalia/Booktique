@@ -1,8 +1,9 @@
 ﻿@page "/subscriptions"
 @using System.Text.Json
+@using Microsoft.AspNetCore.Authorization
 @inject HttpClient Http
 @inject NavigationManager NavManager
-
+@attribute [Authorize]
 
 <PageTitle>Subscriptions</PageTitle>
 

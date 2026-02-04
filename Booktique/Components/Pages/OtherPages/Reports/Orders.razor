@@ -1,0 +1,158 @@
+﻿@page "/admin/reports/orders"
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject BooktiqueContext DbContext
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrator")]
+@rendermode InteractiveServer
+
+<div class="container py-4 no-print text-end">
+    <a href="/admin/dashboard" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
+    <button class="btn btn-warning px-4 fw-bold shadow-sm" onclick="window.print()">
+        <i class="bi bi-printer me-2"></i> PRINT USER LIST
+    </button>
+</div>
+
+<div class="invoice-container p-5 bg-white mx-auto border shadow-sm" id="printable-area">
+    <div class="row mb-5 border-bottom-gold pb-4">
+        <div class="col-7 d-flex align-items-center">
+            <img src="/images/logo.png" alt="Booktique Logo" style="height: 80px; width: auto;" class="me-3" />
+            <div>
+                <h1 class="text-blue fw-bold mb-0" style="font-size: 2.5rem;">BOOKTIQUE</h1>
+                <p class="text-muted small mt-2 uppercase tracking-1">Sales & Logistics Division</p>
+            </div>
+        </div>
+
+        <div class="col-5 text-end">
+            <h2 class="invoice-title">ORDER REPORT</h2>
+            <div class="invoice-meta mt-3">
+                <p><strong>REPORT NO:</strong> #ORD-@reportYear-@lunaRaport</p>
+                <p><strong>PERIOD:</strong> @monthName @reportYear</p>
+                <p><strong>GEN. DATE:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-hover mt-4">
+        <thead class="bg-invoice-blue text-white">
+            <tr>
+                <th class="p-3 border-0">ORDER ID</th>
+                <th class="p-3 border-0">DATE</th>
+                <th class="p-3 border-0">CUSTOMER</th>
+                <th class="p-3 border-0 text-center">ITEMS</th>
+                <th class="p-3 border-0 text-end">TOTAL AMOUNT</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in ordersList)
+            {
+                var orderTotal = order.OrderItems.Sum(oi => (decimal)(oi.Quantity * (oi.UnitPrice )));
+                <tr>
+                    <td class="p-3 fw-bold">#@order.OrderId</td>
+                    <td class="p-3">@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                    <td class="p-3 text-muted small">User ID: @order.UserId</td>
+                    <td class="p-3 text-center">@order.OrderItems.Sum(oi => oi.Quantity)</td>
+                    <td class="p-3 text-end fw-bold">@orderTotal.ToString("N2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="row mt-5 pt-5">
+        <div class="col-6">
+            <p class="mb-1 small text-muted">Operations Manager Signature</p>
+            <div class="border-bottom border-dark my-4" style="height:40px; width: 250px;"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    :root { --invoice-blue: #1a2a40; --invoice-gold: #c5a059; }
+    
+    .invoice-container { max-width: 1000px; min-height: 297mm; background: white; }
+    .invoice-logo { color: var(--invoice-blue); font-weight: 800; }
+    .invoice-title { color: var(--invoice-gold); letter-spacing: 4px; }
+    .bg-invoice-blue { background-color: var(--invoice-blue) !important; }
+    .btn-invoice-blue { background-color: var(--invoice-blue); color: white; }
+    .border-bottom-gold { border-bottom: 3px solid var(--invoice-gold) !important; }
+
+    .btn-warning {
+        color: white;
+        border-radius: 50px;
+        transition: all 0.3s;
+    }
+
+        .btn-warning:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+    .btn-outline-secondary {
+        border-radius: 50px;
+    }
+
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .invoice-container, .invoice-container * {
+            visibility: visible;
+        }
+
+        .invoice-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .bg-invoice-blue {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            background-color: #1a2a40 !important;
+            color: white !important;
+        }
+    }
+</style>
+
+@code {
+    private List<Order> ordersList = new List<Order>();
+    private decimal totalMonth;
+    private string monthName = "";
+    private int reportYear;
+    private int lunaRaport;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var dataRef = DateTime.Now.AddMonths(-1);
+        var start = new DateTime(dataRef.Year, dataRef.Month, 1);
+        var end = start.AddMonths(1).AddSeconds(-1);
+        
+        monthName = dataRef.ToString("MMMM", new System.Globalization.CultureInfo("en-US"));
+        reportYear = dataRef.Year;
+        lunaRaport = dataRef.Month;
+
+        ordersList = await DbContext.Order
+            .Where(o => o.OrderDate >= start && o.OrderDate <= end)
+            .Include(o => o.OrderItems)
+            .OrderByDescending(o => o.OrderDate).ToListAsync();
+
+        totalMonth = ordersList.Sum(o => o.OrderItems.Sum(oi => (decimal)(oi.Quantity * (oi.UnitPrice ))));
+    }
+}

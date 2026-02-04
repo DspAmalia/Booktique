@@ -1,0 +1,181 @@
+﻿@page "/admin/reports/sales"
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject BooktiqueContext DbContext
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrator")]
+@rendermode InteractiveServer
+
+<div class="container py-4 no-print text-end">
+    <a href="/admin/dashboard" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
+    <button class="btn btn-warning px-4 fw-bold shadow-sm" onclick="window.print()">
+        <i class="bi bi-printer me-2"></i> PRINT USER LIST
+    </button>
+</div>
+
+<div class="invoice-container p-5 bg-white mx-auto border shadow-sm">
+    <div class="row mb-5 border-bottom-gold pb-4">
+        <div class="col-7 d-flex align-items-center">
+            <img src="/images/logo.png" alt="Booktique Logo" style="height: 80px; width: auto;" class="me-3" />
+            <div>
+                <h1 class="text-blue fw-bold mb-0" style="font-size: 2.5rem;">BOOKTIQUE</h1>
+                <p class="text-muted small mt-2 uppercase tracking-1">Financial Division</p>
+            </div>
+        </div>
+
+        <div class="col-5 text-end">
+            <h2 class="invoice-title">SALES REPORT</h2>
+            <div class="invoice-meta mt-3">
+                <p><strong>PERIOD:</strong> @monthName @reportYear</p>
+                <p><strong>GEN. DATE:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-hover mt-4">
+        <thead class="bg-invoice-blue text-white">
+            <tr>
+                <th class="p-3 border-0">PRODUCT DESCRIPTION</th>
+                <th class="p-3 border-0 text-center">QTY SOLD</th>
+                <th class="p-3 border-0 text-end">TOTAL REVENUE</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in salesDetails)
+            {
+                <tr>
+                    <td class="p-3">@item.Title</td>
+                    <td class="p-3 text-center">@item.Qty</td>
+                    <td class="p-3 text-end fw-bold">@item.Total.ToString("N2")</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr class="border-top border-dark">
+                <td colspan="2" class="p-3 text-end fw-bold uppercase">Gross Revenue:</td>
+                <td class="p-3 text-end fw-bold text-blue fs-5">@revenue.ToString("N2") RON</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="row mt-5 pt-5">
+        <div class="col-6">
+            <p class="mb-1 small text-muted">Authorized Financial Manager</p>
+            <div class="border-bottom border-dark my-4" style="height:40px; width: 250px;"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    :root {
+        --invoice-blue: #1a2a40;
+        --invoice-gold: #c5a059;
+    }
+
+    .btn-warning {
+        color: white;
+        border-radius: 50px;
+        transition: all 0.3s;
+    }
+
+        .btn-warning:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+    .btn-outline-secondary {
+        border-radius: 50px;
+    }
+
+    .invoice-container {
+        max-width: 1000px;
+        min-height: 297mm;
+        background: white;
+    }
+
+    .invoice-logo {
+        color: var(--invoice-blue);
+        font-weight: 800;
+    }
+
+    .invoice-title {
+        color: var(--invoice-gold);
+        letter-spacing: 4px;
+    }
+
+    .bg-invoice-blue {
+        background-color: var(--invoice-blue) !important;
+    }
+
+    .border-bottom-gold {
+        border-bottom: 3px solid var(--invoice-gold) !important;
+    }
+
+    .text-blue {
+        color: var(--invoice-blue);
+    }
+
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .invoice-container, .invoice-container * {
+            visibility: visible;
+        }
+
+        .invoice-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .bg-invoice-blue {
+            -webkit-print-color-adjust: exact !important;
+            background-color: #1a2a40 !important;
+            color: white !important;
+        }
+    }
+</style>
+
+@code {
+    private decimal revenue;
+    private string monthName = "";
+    private int reportYear;
+    private List<SalesRow> salesDetails = new List<SalesRow>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var dataRef = DateTime.Now.AddMonths(-1);
+        var start = new DateTime(dataRef.Year, dataRef.Month, 1);
+        var end = start.AddMonths(1).AddSeconds(-1);
+        monthName = dataRef.ToString("MMMM", new System.Globalization.CultureInfo("en-US"));
+        reportYear = dataRef.Year;
+
+        var orders = await DbContext.Order.Where(o => o.OrderDate >= start && o.OrderDate <= end)
+            .Include(o => o.OrderItems).ThenInclude(oi => oi.Book).ToListAsync();
+
+        var allItems = orders.SelectMany(o => o.OrderItems).ToList();
+        revenue = allItems.Sum(oi => (decimal)(oi.Quantity * (oi.UnitPrice)));
+
+        salesDetails = allItems.GroupBy(oi => oi.Book?.BookTitle ?? "Unknown")
+            .Select(g => new SalesRow { Title = g.Key, Qty = g.Sum(i => i.Quantity), Total = g.Sum(i => (decimal)(i.Quantity * (i.UnitPrice))) })
+            .OrderByDescending(x => x.Total).ToList();
+    }
+    public class SalesRow { public string Title { get; set; } = ""; public int Qty { get; set; } public decimal Total { get; set; } }
+}
