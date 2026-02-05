@@ -1,257 +1,706 @@
 ﻿@page "/"
-
 @using Booktique.Models.Services
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.WebUtilities
 @using Booktique.Models.MainModels
-
+@using Microsoft.AspNetCore.Components.Authorization
 @implements IAsyncDisposable
-
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject CartService cartService
-
 @rendermode InteractiveServer
 
-<PageTitle>Booktique</PageTitle>
+<PageTitle>Booktique | Home</PageTitle>
 
-@* <div class="card shadow p-4 text-center" style=" width: 100%; background-color:lightgoldenrodyellow">
-    <span class="text-brown fw-bold fs-5">The books are only available for purchase in physical stores.</span>
-</div> *@
+@* --- HERO SECTION REIMAGINED --- *@
+<div class="container mt-4 mb-5">
+    <div class="hero-wrapper hero-card-shadow">
+        <div class="row align-items-center g-0">
+            <div class="col-lg-7 p-5">
+                <div class="hero-content text-start">
+                    <span class="badge rounded-pill bg-accent-soft text-brown mb-3 px-3 py-2">
+                        <i class="bi bi-stars me-2"></i>Curated for Book Lovers
+                    </span>
+                    <h1 class="display-3 fw-bold mb-3 text-brown-dark">
+                        Your Next <span class="text-accent-yellow">Adventure</span> <br /> Awaits
+                    </h1>
+                    <p class="lead mb-5 text-muted-brown">
+                        Explore our handpicked collection of stories, from timeless classics to modern masterpieces.
+                        Find the book that speaks to your soul.
+                    </p>
 
-<div class="row mb-3">
-    <div class="col-12 mt-3">
-        <h2>Welcome to <span class="text-brown fw-bold">Booktique</span></h2>
+                    <div class="search-container-modern shadow-lg">
+                        <i class="bi bi-search ms-3 text-muted"></i>
+                        <input type="text" @bind="searchText" @bind:event="oninput"
+                               placeholder="Search by title or author..."
+                               class="search-input-modern" />
+                        @if (!string.IsNullOrEmpty(searchText))
+                        {
+                            <button class="btn btn-link text-muted me-2" @onclick='() => searchText = ""'>
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        }
+                        <button class="btn btn-search-go me-2">Explore</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 d-none d-lg-block position-relative">
+                <div class="hero-image-container">
+                    <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=1000&auto=format&fit=crop"
+                         alt="Bookshelf Illustration" class="img-fluid hero-img-styled" />
+
+                    <div class="floating-badge shadow-lg">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle me-2"><i class="bi bi-book"></i></div>
+                            <div>
+                                <div class="fw-bold">10k+</div>
+                                <div class="very-small">Books</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<hr />
-
-<main class="books-content">
-    <div class="search-bar mb-3 input-group">
-        <span class="input-group-text">
-            <img src="https://cdn-icons-png.flaticon.com/512/622/622669.png"
-                 alt="Search"
-                 style="width: 16px; height: 16px;" />
-        </span>
-        <input type="text"
-               @bind="searchText"
-               @bind:event="oninput"
-               placeholder="Search books by title or author..."
-               class="form-control" />
-    </div>
-
-    <div class="books-grid">
-        @foreach (var book in SearchedBooks)
-        {
-            <div class="book-card-wrapper position-relative">
-                @if (book.BookStock == 0)
-                {
-                    <span class="sold-out-badge bg-danger">SOLD OUT</span>
-                }
-                <a class="book-card @(book.BookStock == 0 ? "out-of-stock" : "")"
-                   href="@($"/books/details?bookid={book.BookId}")">
-
-                    <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img" />
-                    <div class="book-info">
-                        <h5 class="book-title">@book.BookTitle</h5>
-                        <p class="book-author-year">
-                            @book.BookAuthor <br />
-                            @book.BookYear   <br />
-                        </p>
-                        <p class="book-price"><strong> @book.BookPrice lei</strong></p>
-                    </div>
-                </a>
+@* --- BEST SELLERS (SCROLL ORIZONTAL ACTIVAT) --- *@
+@if (string.IsNullOrEmpty(searchText) && topSellingBooks?.Any() == true)
+{
+    <div class="container mb-5">
+        <div class="top-sales-wrapper p-5 shadow-sm border-0">
+            <div class="d-flex justify-content-between align-items-center mb-5 px-4">
+                <div class="text-start">
+                    <h2 class="section-title mb-1">Best <span class="fw-light text-muted">Sellers</span></h2>
+                    <p class="text-muted small mb-0">The community's most loved picks this month</p>
+                </div>
+                <div class="icon-badge-large">
+                    <i class="bi bi-trophy-fill text-white"></i>
+                </div>
             </div>
-        }
+
+            @* Containerul care permite scroll-ul *@
+            <div class="top-books-scroll-container">
+                <div class="top-books-scroll">
+                    @for (int i = 0; i < topSellingBooks.Count; i++)
+                    {
+                        var book = topSellingBooks[i];
+                        var rank = i + 1;
+                        <div class="top-book-item">
+                            <div class="rank-number">@rank</div>
+                            <div class="top-book-card shadow-lg" @onclick="() => NavigateToDetails(book.BookId)">
+                                <div class="top-book-img-wrapper">
+                                    <img src="@book.BookCoverPath" alt="@book.BookTitle" class="top-book-img" />
+                                </div>
+                                <div class="top-book-info-overlay">
+                                    <h6 class="fw-bold text-white mb-0 text-truncate">@book.BookTitle</h6>
+                                    <p class="small text-white-50 mb-0">@book.BookAuthor</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
-</main>
+}
+
+@* --- MAIN CONTENT AREA --- *@
+<div class="container-fluid px-lg-5 mb-5 mt-4">
+    <div class="d-flex justify-content-between align-items-end mb-4 px-2">
+        <div>
+            <h2 class="section-title mb-0">
+                @if (string.IsNullOrEmpty(searchText))
+                {
+                    <span>Explore <span class="fw-light text-muted">Books</span></span>
+                }
+                else
+                {
+                    <span>Search <span class="fw-light text-muted">Results</span></span>
+                }
+            </h2>
+            <small class="text-muted">Showing @PaginatedBooks.Count() of @FilteredCount books</small>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-brown btn-sm rounded-circle shadow-sm" @onclick="PrevPage" disabled="@(currentPage == 1)">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="align-self-center mx-2 fw-bold">@currentPage</span>
+            <button class="btn btn-outline-brown btn-sm rounded-circle shadow-sm" @onclick="NextPage" disabled="@(currentPage >= Math.Ceiling((double)FilteredCount / pageSize))">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        @* --- SIDEBAR FILTRE --- *@
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="filters-sidebar p-4 shadow-sm">
+                <div class="d-flex align-items-center mb-4">
+                    <h5 class="fw-bold mb-0" style="color: #5a3e2b;">Filters</h5>
+                </div>
+
+                <div class="filter-group mb-4">
+                    <label class="filter-label"><i class="bi bi-tag me-2"></i>Category</label>
+                    <select class="form-select custom-sidebar-select" @bind="SelectedCategory">
+                        <option value="">All categories</option>
+                        @foreach (var cat in categories)
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-group mb-4">
+                    <label class="filter-label"><i class="bi bi-calendar3 me-2"></i>Published Year</label>
+                    <select class="form-select custom-sidebar-select" @bind="SelectedYear">
+                        <option value="">All years</option>
+                        @foreach (var y in years)
+                        {
+                            <option value="@y">@y</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-group mb-4">
+                    <label class="filter-label"><i class="bi bi-sort-down me-2"></i>Price Sort Order</label>
+                    <select class="form-select custom-sidebar-select" @bind="PriceSortOrder">
+                        <option value="none">Implicit</option>
+                        <option value="asc">The cheapest</option>
+                        <option value="desc">The most expensive</option>
+                    </select>
+                </div>
+
+                <div class="filter-group mb-4">
+                    <div class="form-check form-switch custom-switch">
+                        <input class="form-check-input" type="checkbox" id="stockSwitch" @bind="OnlyInStock">
+                        <label class="form-check-label small fw-bold text-muted" for="stockSwitch">Only in Stock</label>
+                    </div>
+                </div>
+
+                <button class="btn btn-reset-filters w-100 mt-2" @onclick="ResetFilters">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Filters
+                </button>
+            </div>
+        </div>
+
+        @* --- BOOKS GRID --- *@
+        <div class="col-lg-9 col-md-8">
+            <div class="books-grid">
+                @foreach (var book in PaginatedBooks)
+                {
+                    <div class="book-card-wrapper position-relative">
+                        @if (book.BookStock == 0)
+                        {
+                            <div class="sold-out-badge">
+                                <span class="badge bg-danger shadow">SOLD OUT</span>
+                            </div>
+                        }
+                        <div class="book-card shadow-sm @(book.BookStock == 0 ? "is-sold-out" : "")">
+                            <div class="book-img-container">
+                                <a href="@($"/books/details?bookid={book.BookId}")" class="d-block w-100 h-100 text-center p-3">
+                                    <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img" />
+                                </a>
+                                <button type="button" class="wishlist-btn" @onclick:stopPropagation="true" @onclick="() => ToggleFavorite(book)">
+                                    <i class="bi @(favoriteBookIds.Contains(book.BookId) ? "bi-heart-fill text-danger" : "bi-heart")"></i>
+                                </button>
+                            </div>
+
+                            <a class="text-decoration-none text-dark" href="@($"/books/details?bookid={book.BookId}")">
+                                <div class="book-info p-3 d-flex flex-column align-items-center">
+                                    <h6 class="book-title text-truncate text-center w-100 mb-1">
+                                        <strong>@book.BookTitle</strong>
+                                    </h6>
+                                    <p class="book-author text-muted small mb-2 text-center w-100">@book.BookAuthor</p>
+                                    <div class="mt-1">
+                                        <span class="book-price fw-bold text-accent-yellow">@book.BookPrice LEI</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    :root {
+        --brown-dark: #5a3e2b;
+        --brown-muted: #7d6352;
+        --accent: #f0a500;
+        --accent-soft: rgba(240, 165, 0, 0.15);
+        --bg-soft: #fdf6ee; 
+        --hero-container-bg: #eaddcf;
+        --hero-container-accent: #decbb7;
     }
 
-    .search-bar {
-        max-width: 600px;
-        width: 100%;
-        margin-bottom: 1rem;
+    body {
+        background-color: var(--bg-soft);
     }
 
-        .search-bar .input-group {
-            width: 100%;
-        }
-
-        .search-bar .input-group-text {
-            background-color: #fff;
-            border-right: none;
-            padding: 0.5rem 0.75rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-bar .form-control {
-            border-left: none;
-        }
-
-    .out-of-stock {
-        filter: grayscale(100%);
-        opacity: 0.6;
-        cursor: not-allowed;
-        pointer-events: none; 
+    .hero-wrapper {
+        background: linear-gradient(135deg, var(--hero-container-bg) 0%, var(--hero-container-accent) 100%);
+        border-radius: 40px;
+        overflow: hidden;
+        border: 1px solid rgba(90, 62, 43, 0.12);
+        box-shadow: 0 25px 50px -12px rgba(90, 62, 43, 0.15);
     }
 
-    .sold-out-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background-color: #dc3545;
-        color: white;
-        padding: 5px 10px;
+    .bg-accent-soft {
+        background-color: var(--accent-soft) !important;
+    }
+    .text-brown { color: var(--brown-dark); }
+    .text-muted-brown { color: var(--brown-muted); font-size: 1.1rem; }
+
+    .search-container-modern {
+        background: white;
         border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        z-index: 2;
+        display: flex;
+        align-items: center;
+        padding: 6px;
+        max-width: 600px;
+        border: 1px solid rgba(90, 62, 43, 0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .books-content {
-        padding: 1rem;
-        background-color: #fdf6ee;
+    .search-container-modern:focus-within {
+        transform: scale(1.02);
+        box-shadow: 0 15px 30px rgba(90, 62, 43, 0.1) !important;
+        border-color: var(--accent);
+    }
+
+    .search-input-modern {
+        border: none;
+        outline: none;
+        width: 100%;
+        padding: 12px 15px;
+        font-size: 1rem;
+        color: var(--brown-dark);
+    }
+
+    .btn-search-go {
+        background: var(--brown-dark);
+        color: white;
+        border-radius: 15px;
+        padding: 10px 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-search-go:hover {
+        background: var(--accent);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .hero-image-container {
+        padding: 30px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .hero-img-styled {
+        border-radius: 30px;
+        box-shadow: 20px 20px 60px rgba(0,0,0,0.1);
+        transform: rotate(2deg);
+        transition: all 0.5s ease;
+        object-fit: cover;
+        height: 400px;
+        width: 100%;
+    }
+
+    .hero-wrapper:hover .hero-img-styled {
+        transform: rotate(0deg) scale(1.05);
+    }
+
+    .floating-badge {
+        position: absolute;
+        bottom: 50px;
+        left: 10px;
+        background: white;
+        padding: 15px 20px;
+        border-radius: 20px;
+        z-index: 10;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .icon-circle {
+        background: var(--accent);
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .very-small { font-size: 0.75rem; color: #888; }
+
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .top-sales-wrapper {
+        background: #fff;
+        border-radius: 30px;
+        border: 2px solid var(--accent) !important;
+        box-shadow: 0 10px 30px rgba(240, 165, 0, 0.1) !important;
+    }
+
+    .icon-badge-large {
+        background: var(--accent);
+        width: 60px;
+        height: 60px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 10px 20px rgba(240, 165, 0, 0.3);
+    }
+
+    /* --- MODIFICARE PENTRU SCROLL ORIZONTAL --- */
+    .top-books-scroll-container {
+        width: 100%;
+        overflow-x: auto; /* Permite scroll-ul */
+        padding-bottom: 20px;
+        scrollbar-width: thin; /* Pentru Firefox */
+        scrollbar-color: var(--accent) transparent;
+    }
+
+    /* Stil scrollbar pentru Chrome/Safari */
+    .top-books-scroll-container::-webkit-scrollbar {
+        height: 6px;
+    }
+    .top-books-scroll-container::-webkit-scrollbar-thumb {
+        background: var(--accent);
+        border-radius: 10px;
+    }
+
+    .top-books-scroll {
+        display: flex;
+        gap: 5rem;
+        padding: 30px 40px 40px 100px;
+        min-width: max-content; /* Esențial pentru a forța scroll-ul */
+    }
+
+    .top-book-item {
+        position: relative;
+        flex: 0 0 auto; /* Previne comprimarea cardurilor */
+    }
+
+    .rank-number {
+        position: absolute;
+        left: -80px;
+        bottom: -20px;
+        font-size: 10rem;
+        font-weight: 900;
+        color: rgba(90, 62, 43, 0.08);
+        z-index: 1;
+        font-family: 'Impact', sans-serif;
+        line-height: 0.8;
+    }
+
+    .top-book-card {
+        position: relative;
+        width: 190px;
+        height: 280px; 
+        border-radius: 15px;
+        overflow: hidden;
+        cursor: pointer;
+        z-index: 2;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: #fff;
+    }
+
+    .top-book-card:hover {
+        transform: translateY(-15px) rotate(2deg);
+    }
+
+    .top-book-img-wrapper {
+        width: 100%;
+        height: 100%;
+        padding: 10px;
+    }
+
+    .top-book-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .top-book-info-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        padding: 20px 15px 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .top-book-card:hover .top-book-info-overlay {
+        opacity: 1;
+    }
+
+    .filters-sidebar {
+        background: #ffffff;
+        border-radius: 24px;
+        border: 1px solid rgba(90, 62, 43, 0.08);
+        position: sticky;
+        top: 20px;
+    }
+
+    .filter-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: #8b7355;
+        font-weight: 800;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .custom-sidebar-select {
+        background-color: #fdfaf7 !important;
+        border: 1.5px solid rgba(90, 62, 43, 0.1) !important;
+        border-radius: 12px !important;
+        padding: 0.6rem 0.8rem !important;
+        font-size: 0.9rem !important;
+        color: #5a3e2b !important;
+    }
+
+    .btn-reset-filters {
+        background: transparent;
+        color: #8b7355;
+        border: 1px dashed #8b7355;
+        border-radius: 12px;
+        padding: 10px;
+        font-size: 0.85rem;
+        transition: all 0.3s;
     }
 
     .books-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1.5rem;
+        padding-bottom: 50px;
     }
 
     .book-card {
-        background: white;
-        border-radius: 8px;
-        padding: 1rem;
-        box-shadow: 0 0 6px rgba(0,0,0,0.1);
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        color: #5a3e2b;
-        text-decoration: none;
-        transition: transform 0.2s ease;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden; 
+        transition: all 0.4s ease;
+        height: 100%;
+        position: relative;
+        border: 1px solid transparent;
     }
 
-        .book-card:hover {
-            transform: scale(1.02);
-            cursor: pointer;
-        }
+    .book-card-wrapper {
+        transition: transform 0.3s ease;
+    }
+
+    .book-card-wrapper:hover {
+        transform: translateY(-10px);
+    }
+
+    .book-img-container {
+        position: relative;
+        height: 300px;
+        background: #fff;
+    }
 
     .book-img {
-        width: 100%;
-        max-height: 250px;
-        object-fit: cover;
-        border-radius: 4px;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+        margin: auto;
     }
 
-    .book-title {
-        font-size: 1.1rem;
-        font-weight: bold;
-        margin: 0.5rem 0;
-    }
-
-    .book-author-year {
-        font-size: 0.95rem;
-    }
-
-    .book-price {
-        color: #f0a500;
-        font-size: 1.1rem;
-    }
-
-    .btn-warning {
-        background-color: #f0a500;
+    .wishlist-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
         border: none;
-        color: white;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        z-index: 11;
     }
 
-        .btn-warning:hover {
-            background-color: #d49200;
-            color: white;
-        }
+    .is-sold-out {
+        filter: grayscale(1);
+        opacity: 0.6;
+    }
+
+    .sold-out-badge {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 20;
+    }
+
+    @@media (max-width: 1200px) {
+        .books-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @@media (max-width: 992px) {
+        .books-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @@media (max-width: 768px) {
+        .books-grid { grid-template-columns: repeat(2, 1fr); }
+    }
 </style>
 
 @code {
     private BooktiqueContext context = default!;
     private List<Book> books = new();
-    private List<Book> filteredBooks = new();
+    private HashSet<int> favoriteBookIds = new();
+    private List<Book> topSellingBooks = new();
+
+    private List<string> categories = new();
+    private List<string> years = new();
 
     private string searchText = string.Empty;
-    private string selectedGenre = string.Empty;
+    private string selectedCategory = string.Empty;
     private string selectedYear = string.Empty;
-    private string selectedPublisher = string.Empty;
+    private string priceSortOrder = "none";
+    private bool onlyInStock = false;
+    private int currentPage = 1;
+    private int pageSize = 15;
 
-    private IEnumerable<Book> SearchedBooks =>
-    books.Where(b =>
-        (string.IsNullOrEmpty(searchText) ||
-         b.BookTitle!.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-         b.BookAuthor!.Contains(searchText, StringComparison.OrdinalIgnoreCase)) &&
-        (string.IsNullOrEmpty(selectedGenre) || b.BookCategory == selectedGenre) &&
-        (string.IsNullOrEmpty(selectedYear) || b.BookYear.ToString() == selectedYear) &&
-        (string.IsNullOrEmpty(selectedPublisher) || b.BookPublishingHouse == selectedPublisher)
-    )
-    .OrderByDescending(b => b.BookStock > 0); // Cartile disponibile raman sus
+    private string SelectedCategory { get => selectedCategory; set { selectedCategory = value; currentPage = 1; } }
+    private string SelectedYear { get => selectedYear; set { selectedYear = value; currentPage = 1; } }
+    private string PriceSortOrder { get => priceSortOrder; set { priceSortOrder = value; } }
+    private bool OnlyInStock { get => onlyInStock; set { onlyInStock = value; currentPage = 1; } }
 
-    private List<string> genres = new();
-    private List<string> years = new();
-    private List<string> publishers = new();
+    private IEnumerable<Book> FilteredBooks
+    {
+        get
+        {
+            var query = books.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+                query = query.Where(b => b.BookTitle.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                                         b.BookAuthor.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrEmpty(selectedCategory))
+                query = query.Where(b => b.BookCategory == selectedCategory);
+
+            if (!string.IsNullOrEmpty(selectedYear))
+                query = query.Where(b => b.BookYear.ToString() == selectedYear);
+
+            if (onlyInStock)
+                query = query.Where(b => b.BookStock > 0);
+
+            if (priceSortOrder == "asc") query = query.OrderBy(b => b.BookPrice);
+            else if (priceSortOrder == "desc") query = query.OrderByDescending(b => b.BookPrice);
+
+            return query;
+        }
+    }
+
+    private int FilteredCount => FilteredBooks.Count();
+    private IEnumerable<Book> PaginatedBooks => FilteredBooks.Skip((currentPage - 1) * pageSize).Take(pageSize);
 
     protected override async Task OnInitializedAsync()
     {
         context = DbFactory.CreateDbContext();
-        books = Shuffle(await context.Book.ToListAsync());
+        var allBooks = await context.Book.ToListAsync();
+        books = Shuffle(allBooks);
 
-        genres = books.Select(b => b.BookCategory).Distinct().OrderBy(g => g).ToList();
-        years = books.Select(b => b.BookYear.ToString()).Distinct().OrderByDescending(y => y).ToList();
-        publishers = books.Select(b => b.BookPublishingHouse).Distinct().OrderBy(p => p).ToList();
+        categories = allBooks.Select(b => b.BookCategory).Distinct().OrderBy(c => c).ToList();
+        years = allBooks.Select(b => b.BookYear.ToString()).Distinct().OrderByDescending(y => y).ToList();
+
+        var topIds = await context.OrderItem
+        .GroupBy(oi => oi.BookId)
+        .Select(group => new { BookId = group.Key, TotalSold = group.Sum(oi => oi.Quantity) })
+        .OrderByDescending(x => x.TotalSold)
+        .Take(5) 
+        .Select(x => x.BookId)
+        .ToListAsync();
+
+        topSellingBooks = allBooks.Where(b => topIds.Contains(b.BookId))
+                                  .OrderBy(b => topIds.IndexOf(b.BookId))
+                                  .ToList();
+        await LoadFavorites();
     }
 
-    // private void AdaugaInCos(Book book)
-    // {
-    //     cartService.AddToCart(book);
-    //     StateHasChanged();
-    // }
-
-    protected override void OnParametersSet()
+    private void ResetFilters()
     {
-        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var query = QueryHelpers.ParseQuery(uri.Query);
-
-        selectedGenre = query.TryGetValue("category", out var cat) ? cat.ToString() : string.Empty;
-        selectedYear = query.TryGetValue("year", out var yr) ? yr.ToString() : string.Empty;
-        selectedPublisher = query.TryGetValue("publisher", out var pub) ? pub.ToString() : string.Empty;
-
-        filteredBooks = books
-                    .Where(b =>
-                        (string.IsNullOrEmpty(selectedGenre) || b.BookCategory == selectedGenre) &&
-                        (string.IsNullOrEmpty(selectedYear) || b.BookYear.ToString() == selectedYear) &&
-                        (string.IsNullOrEmpty(selectedPublisher) || b.BookPublishingHouse == selectedPublisher)
-                    )
-                    .ToList();
+        selectedCategory = string.Empty;
+        selectedYear = string.Empty;
+        priceSortOrder = "none";
+        onlyInStock = false;
+        searchText = string.Empty;
+        currentPage = 1;
     }
 
-    public async ValueTask DisposeAsync()
+    private void NavigateToDetails(int bookId) => NavigationManager.NavigateTo($"/books/details?bookid={bookId}");
+
+    private async Task LoadFavorites()
     {
-        if (context is not null)
-            await context.DisposeAsync();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.Identity?.Name;
+        if (string.IsNullOrEmpty(userName)) return;
+
+        using var db = DbFactory.CreateDbContext();
+        var user = await db.User.FirstOrDefaultAsync(u => u.UserName == userName);
+        if (user != null)
+        {
+            var favs = await db.Favorite.Where(f => f.UserId == user.UserId).Select(f => f.BookId).ToListAsync();
+            favoriteBookIds = new HashSet<int>(favs);
+        }
     }
+
+    private async Task ToggleFavorite(Book book)
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.Identity?.Name;
+        if (string.IsNullOrEmpty(userName)) return;
+
+        using var db = DbFactory.CreateDbContext();
+        var user = await db.User.FirstOrDefaultAsync(u => u.UserName == userName);
+        if (user == null) return;
+
+        var favorite = await db.Favorite.FirstOrDefaultAsync(f => f.UserId == user.UserId && f.BookId == book.BookId);
+        if (favorite == null)
+        {
+            db.Favorite.Add(new Favorite { UserId = user.UserId, BookId = book.BookId });
+            favoriteBookIds.Add(book.BookId);
+        }
+        else
+        {
+            db.Favorite.Remove(favorite);
+            favoriteBookIds.Remove(book.BookId);
+        }
+        await db.SaveChangesAsync();
+    }
+
+    private void NextPage() { if (currentPage * pageSize < FilteredCount) currentPage++; }
+    private void PrevPage() { if (currentPage > 1) currentPage--; }
 
     private static List<T> Shuffle<T>(List<T> list)
     {
-        var rng = new Random(Guid.NewGuid().GetHashCode());
+        var rng = new Random();
         return list.OrderBy(_ => rng.Next()).ToList();
     }
 
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }

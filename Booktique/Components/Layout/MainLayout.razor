@@ -2,49 +2,75 @@
 @using Booktique.Components.Pages
 @using Booktique.Models.Services
 @inject CartService cartService
+@implements IDisposable
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
     <main>
-        <div class="top-row px-4 d-flex justify-content-end">
-            <AuthorizeView Roles="Administrator">
-                <div class="nav-item px-3">
-                    <a class="btn btn-outline-light hover-dark-text" href="/admin/dashboard">
-                        <span class="bi bi-list-nested-nav-menu"></span> Dashboard
-                    </a>
-                </div>
-            </AuthorizeView>
-            <AuthorizeView Roles="User">
-                <Authorized>
-                    <a class="btn btn-outline-light hover-dark-text" href="/cart">
-                        <span class="bi bi-cart3"></span> Cart
-                        @if (cartService.Items.Any())
-                        {
-                            <span class="badge bg-danger rounded-pill">@cartService.Items.Sum(i => i.Quantity)</span>
-                        }
-                    </a>
-                </Authorized>
-            </AuthorizeView>
+        <div class="top-row px-4 shadow-sm d-flex align-items-center justify-content-between">
 
-            <AuthorizeView>
-                <Authorized>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-light dropdown-toggle text-brown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            @context.User.Identity?.Name
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item hover-dark-text" href="/profile">Profile</a></li>
-                            <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
-                        </ul>
-                    </div>
-                </Authorized>
-                <NotAuthorized>
-                    <a href="/login" class="btn btn-outline-light hover-dark-text">Login</a>
-                </NotAuthorized>
-            </AuthorizeView>
+            <div class="d-flex align-items-center gap-3">
+                <a class="navbar-brand me-4" href="">
+                    <strong style="color: #2d3436; font-size: 1.4rem;">Booktique</strong>
+                </a>
+
+                <nav class="d-none d-md-flex align-items-center gap-2">
+                    <NavLink class="nav-horizontal-link" href="" Match="NavLinkMatch.All">
+                        <i class="bi bi-house-door"></i> Home
+                    </NavLink>
+                    <NavLink class="nav-horizontal-link" href="/favorites">
+                        <i class="bi bi-heart"></i> Favorites
+                    </NavLink>
+                    <NavLink class="nav-horizontal-link" href="/ask-ai">
+                        <i class="bi bi-magic"></i> AI Assistant
+                    </NavLink>
+
+                    <AuthorizeView Roles="User, Administrator">
+                        <NavLink class="nav-horizontal-link" href="/subscriptions">
+                            <i class="bi bi-star"></i> Subscriptions
+                        </NavLink>
+                    </AuthorizeView>
+                </nav>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+
+                <AuthorizeView Roles="Administrator">
+                    <a class="nav-icon-btn admin-theme" href="/admin/dashboard" title="Dashboard">
+                        <i class="bi bi-speedometer2"></i>
+                    </a>
+                </AuthorizeView>
+
+                <AuthorizeView Roles="User">
+                    <Authorized>
+                        <a class="nav-icon-btn position-relative" href="/cart" title="Cart">
+                            <i class="bi bi-cart3"></i>
+                            @if (cartService.Items.Any())
+                            {
+                                <span class="cart-badge">@cartService.Items.Sum(i => i.Quantity)</span>
+                            }
+                        </a>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="dropdown ms-2">
+                            <button class="user-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="user-initial">@context.User.Identity?.Name?[0].ToString().ToUpper()</span>
+                                <span class="d-none d-sm-inline ms-1">@context.User.Identity?.Name</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 animate-slide-up">
+                                <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login" class="login-pill">Login</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
         </div>
 
         <article class="content px-4">
@@ -53,20 +79,171 @@
     </main>
 </div>
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+<style>
+    .top-row {
+        height: 4.5rem;
+        background-color: #ceb9a6 !important;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 2000 !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .dropdown-menu {
+        display: block; 
+        visibility: hidden;
+        opacity: 0;
+        transform: translateY(15px); 
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1); 
+        pointer-events: none; 
+        border: none;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+        border-radius: 12px;
+        margin-top: 10px !important;
+    }
+
+        .dropdown-menu.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+    .dropdown-item {
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        margin: 0 4px;
+        width: calc(100% - 8px);
+        transition: background-color 0.2s;
+    }
+
+        .dropdown-item:hover {
+            background-color: #f1f3f5;
+            color: #000;
+        }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+
+    .nav-horizontal-link {
+        color: #636e72;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .nav-horizontal-link:hover {
+            color: #000;
+            background-color: #f8f9fa;
+        }
+
+        .nav-horizontal-link.active {
+            color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.08);
+        }
+
+    .nav-icon-btn {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        color: #4b4b4b;
+        text-decoration: none;
+        transition: 0.2s;
+        font-size: 1.2rem;
+    }
+
+        .nav-icon-btn:hover {
+            background-color: #f1f3f5;
+            color: #000;
+        }
+
+    .admin-theme {
+        color: #6c5ce7;
+    }
+
+    .cart-badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: #ff4757;
+        color: white;
+        font-size: 0.65rem;
+        padding: 2px 5px;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .user-pill {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        padding: 4px 12px 4px 6px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.2s;
+    }
+
+        .user-pill:hover {
+            background: #e9ecef;
+        }
+
+    .user-initial {
+        width: 30px;
+        height: 30px;
+        background: #fdcb6e;
+        color: #000;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    .login-pill {
+        background: #2d3436;
+        color: white !important;
+        padding: 8px 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.2s ease-out;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 
 @code {
-    private bool _isInitialized = false;
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _isInitialized = true;
             await cartService.LoadCartAsync();
             StateHasChanged();
         }
