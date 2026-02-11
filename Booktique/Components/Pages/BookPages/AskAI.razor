@@ -1,5 +1,4 @@
 ﻿@page "/ask-ai"
-
 @using Booktique.Models.Services
 @using Booktique.Models.MainModels
 @using Microsoft.AspNetCore.Components.Web
@@ -9,111 +8,236 @@
 @inject BooktiqueContext Db
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JS
-
 @rendermode InteractiveServer
 
-<PageTitle>Booktique AI</PageTitle>
+<PageTitle>Booktique AI Assistant</PageTitle>
 
-<h2 class="mt-4 mb-3 text-center">Ask <strong>Booktique AI</strong></h2>
+<div class="main-wrapper py-4">
+    <div class="container">
+        <div class="glass-card ai-main-container shadow-lg border-0">
+            <div class="p-3 border-bottom bg-brown text-white rounded-top d-flex align-items-center">
+                <div class="ai-avatar me-3">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">Booktique AI</h5>
+                    <small class="opacity-75">Your personal librarian</small>
+                </div>
+            </div>
 
-<div class="chat-box border rounded p-3 mb-4" style="max-height: 500px; overflow-y: auto;" @ref="chatBoxRef">
-    <div class="text-start">
-        <div class="d-inline-block bg-light border px-3 py-2 rounded">
-            <p>Hi! I am your Booktique guidance. I can suggest interesting books for you, exactly according to your own wishes. What do you want to read?</p>
-        </div>
-    </div>
-
-    @if (!string.IsNullOrEmpty(lastInteractionDate))
-    {
-        <div class="text-center mb-3">
-            <span class="badge bg-secondary">@lastInteractionDate</span>
-        </div>
-    }
-
-    @foreach (var message in messages)
-    {
-        <div class="mb-2">
-            @if (message.Sender == "user")
-            {
-                <div class="text-end">
-                    <div class="d-inline-block text-white px-3 py-2 rounded" style="background-color: #8d6e63">
-                        <small>@message.Text</small>
+            <div class="chat-window p-4" @ref="chatBoxRef">
+                <div class="message-container message-left">
+                    <div class="message-bubble bubble-other shadow-sm">
+                        <span class="message-user">AI Assistant</span>
+                        <div class="message-text">Hi! I am your Booktique guidance. I can suggest interesting books for you, exactly according to your wishes. What do you want to read?</div>
                     </div>
                 </div>
-            }
-            else
-            {
-                <div class="text-start">
-                    <div class="d-inline-block bg-light border px-3 py-2 rounded">
-                        <small>@((MarkupString)message.Text)</small>
-                    </div>
-                </div>
-            }
-        </div>
-    }
 
-    @if (isTyping)
-    {
-        <div class="text-start">
-            <div class="d-inline-block bg-light border px-3 py-2 rounded text-muted typing-animation">
-                <em>AI is typing<span>@typingDots</span></em>
+                @if (!string.IsNullOrEmpty(lastInteractionDate))
+                {
+                    <div class="text-center my-3">
+                        <span class="badge bg-light text-muted border">@lastInteractionDate</span>
+                    </div>
+                }
+
+                @foreach (var message in messages)
+                {
+                    <div class="message-container @(message.Sender == "user" ? "message-right" : "message-left")">
+                        <div class="message-bubble @(message.Sender == "user" ? "bubble-mine shadow-sm" : "bubble-other shadow-sm")">
+                            @if (message.Sender != "user")
+                            {
+                                <span class="message-user">Booktique AI</span>
+                            }
+                            <div class="message-text">@((MarkupString)message.Text)</div>
+                        </div>
+                    </div>
+                }
+
+                @if (isTyping)
+                {
+                    <div class="message-container message-left">
+                        <div class="message-bubble bubble-other opacity-75 shadow-sm">
+                            <div class="typing-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="p-3 border-top bg-white rounded-bottom">
+                <div class="input-group">
+                    <input @bind="userQuestion" 
+                           @onkeyup="HandleKeyUp" 
+                           class="form-control rounded-pill-start border-2 border-end-0 border-light px-4" 
+                           placeholder="Type your bookish question here..." />
+                    <button class="btn btn-orange rounded-pill-end px-4" @onclick="SubmitQuestion">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    }
-</div>
-
-<div class="input-group">
-    <InputText @bind-Value="userQuestion" @onkeyup="HandleKeyUp"  class="form-control" placeholder="Ask about books..." />
-    <button type="submit" class="btn btn-warning" @onclick="SubmitQuestion">Send</button>
+    </div>
 </div>
 
 <style>
-    html, body {
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    :root {
+        --brown-primary: #5a3e2b;
+        --orange-accent: #f0a500;
+        --chat-bg: #fdf6ee;
     }
 
-    .chat-box {
-        background-color: #f9f9f9;
+    body {
+        background-color: var(--chat-bg);
+    }
+
+    .ai-main-container {
+        height: 75vh;
+        min-height: 600px;
+        background: white;
+        border-radius: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .bg-brown { background-color: var(--brown-primary) !important; }
+    .btn-orange { 
+        background-color: var(--orange-accent); 
+        color: white; 
+        border: none;
+        transition: 0.3s;
+    }
+    .btn-orange:hover { background-color: #d49200; color: white; }
+
+    .ai-avatar {
+        width: 45px;
+        height: 45px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .chat-window {
+        flex: 1;
+        overflow-y: auto;
+        background-color: var(--chat-bg);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message-container { display: flex; margin-bottom: 15px; width: 100%; }
+    .message-left { justify-content: flex-start; }
+    .message-right { justify-content: flex-end; }
+
+    .message-bubble {
+        max-width: 80%;
+        padding: 12px 18px;
+        border-radius: 1.2rem;
+        position: relative;
+    }
+
+    .bubble-mine {
+        background-color: var(--brown-primary);
+        color: white;
+        border-bottom-right-radius: 0.2rem;
+    }
+
+    .bubble-other {
+        background-color: white;
+        color: #444;
+        border-bottom-left-radius: 0.2rem;
+        border: 1px solid #eee;
+    }
+
+    .message-user {
+        font-size: 0.7rem;
+        font-weight: bold;
+        color: var(--orange-accent);
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .rounded-pill-start { border-top-left-radius: 50px; border-bottom-left-radius: 50px; }
+    .rounded-pill-end { border-top-right-radius: 50px; border-bottom-right-radius: 50px; }
+
+    .typing-dots span {
+        width: 8px;
+        height: 8px;
+        background: #8d6e63;
+        display: inline-block;
+        border-radius: 50%;
+        margin: 0 2px;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+    @@keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
     }
 
     .book-card-wrapper {
         margin-top: 10px;
+        max-width: 100%;
     }
 
     .book-card {
         display: flex;
-        text-decoration: none;
-        color: inherit;
-        border: 1px solid #ccc;
-        border-radius: 8px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
         overflow: hidden;
-        background-color: #fff;
+        text-decoration: none !important;
+        color: #333 !important;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 150px; 
     }
 
+        .book-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
     .book-img {
-        width: 120px;
-        object-fit: cover;
+        width: 100px; 
+        min-width: 100px; 
+        height: 150px; 
+        object-fit: cover; 
+        border-right: 1px solid #eee;
     }
 
     .book-info {
-        padding: 10px;
-        flex-grow: 1;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
     }
 
     .book-title {
-        margin: 0;
-        font-size: 1.1rem;
+        font-size: 1rem;
+        font-weight: bold;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; /* Taie titlul cu "..." dacă e prea lung */
     }
 
     .book-author-year {
-        font-size: 0.9rem;
-        color: #555;
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 8px;
     }
 
     .book-price {
-        font-size: 1rem;
-        color: #8d6e63;
+        font-weight: bold;
+        color: var(--brown-primary);
+        font-size: 1.1rem;
     }
 </style>
 
@@ -156,9 +280,6 @@
         if (firstRender && !hasLoadedHistory)
         {
             hasLoadedHistory = true;
-
-            // Dacă vrei să încarci mesaje simulate sau din memorie locală, le poți adăuga aici.
-            // În această versiune, nu se încarcă nimic din DB.
 
             await InvokeAsync(StateHasChanged);
             await ScrollToBottom();

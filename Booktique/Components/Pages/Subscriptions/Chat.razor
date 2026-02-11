@@ -3,6 +3,7 @@
 @using Booktique.Models.MainModels
 @using Microsoft.EntityFrameworkCore
 @using System.Security.Claims
+@using static Booktique.Models.MainModels.User
 @implements IAsyncDisposable
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager Navigation
@@ -11,97 +12,206 @@
 
 <PageTitle>Booktique Messenger</PageTitle>
 
-<div class="container mt-4">
-    <div class="card shadow-lg border-0" style="max-width: 800px; margin: auto;">
-        <div class="card-header bg-warning text-white">
-            <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Booktique Messenger</h5>
-        </div>
+<div class="main-wrapper py-4">
+    <div class="container">
+        <div class="glass-card chat-main-container shadow-lg border-0">
+            <div class="row g-0 h-100">
 
-        <div class="card-body bg-light">
-            <div class="mb-3">
-                <label class="form-label fw-bold text-dark">Alege destinatarul:</label>
-                <select class="form-select" @onchange="OnUserSelected">
-                    <option value="">-- Select an user --</option>
-                    @if (users != null)
-                    {
-                        @foreach (var user in users)
+                <div class="col-md-4 border-end chat-sidebar">
+                    <div class="p-3 border-bottom bg-brown text-white rounded-top-start">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>Readers</h5>
+                    </div>
+                    <div class="user-list p-2">
+                        @if (users != null && users.Any())
                         {
-                            <option value="@user.UserId">@user.UserName (@user.UserEmail)</option>
+                            @foreach (var user in users)
+                            {
+                                <div class="user-item @(selectedUserId == user.UserId.ToString() ? "active" : "")"
+                                     @onclick="() => UpdateSelectedUser(user.UserId.ToString())">
+                                    <div class="user-avatar">
+                                        @if (!string.IsNullOrEmpty(user.ProfilePicture))
+                                        {
+                                            <img src="@user.ProfilePicture" alt="@user.UserName" class="rounded-circle shadow-sm" style="width: 100%; height: 100%; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            @user.UserName.Substring(0, 1).ToUpper()
+                                        }
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="fw-bold text-dark">@user.UserName</div>
+                                        <div class="small text-muted text-truncate">Click to start chatting</div>
+                                    </div>
+                                </div>
+                            }
                         }
-                    }
-                </select>
-            </div>
+                        else
+                        {
+                            <div class="text-center p-4 text-muted small">No other subscribers online.</div>
+                        }
+                    </div>
+                </div>
 
-            <div class="chat-window">
-                @{
-                    List<ChatMessage> messagesToDisplay;
-                    lock (_messageLock)
+                <div class="col-md-8 d-flex flex-column chat-content">
+                    @if (string.IsNullOrEmpty(selectedUserId))
                     {
-                        messagesToDisplay = chatMessages.ToList();
+                        <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted p-5 bg-light">
+                            <i class="bi bi-chat-heart display-1 text-orange mb-3 opacity-25"></i>
+                            <h4>Your Booktique Conversations</h4>
+                            <p>Select a fellow reader from the list to start a chat.</p>
+                        </div>
                     }
-                }
-                @if (messagesToDisplay.Count == 0)
-                {
-                    <p class="text-muted text-center my-auto">Select an user and start the conversation.</p>
-                }
-                else
-                {
-                    @foreach (var msg in messagesToDisplay)
+                    else
                     {
-                        <div class="message-container @(msg.IsOwnMessage ? "message-right" : "message-left")">
-                            <div class="message-bubble @(msg.IsOwnMessage ? "bubble-mine" : "bubble-other")">
-                                <span class="message-user">@msg.User</span>
-                                <div>@msg.Text</div>
+                        <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-white shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-2 bg-orange text-white">
+                                    @{
+                                        var selectedUser = users.FirstOrDefault(u => u.UserId.ToString() == selectedUserId);
+                                        if (selectedUser != null && !string.IsNullOrEmpty(selectedUser.ProfilePicture))
+                                        {
+                                            <img src="@selectedUser.ProfilePicture" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            @(selectedUser?.UserName?.Substring(0, 1).ToUpper())
+                                        }
+                                    }
+                                </div>
+                                <h6 class="mb-0 fw-bold text-brown">
+                                    @users.FirstOrDefault(u => u.UserId.ToString() == selectedUserId)?.UserName
+                                </h6>
+                            </div>
+                            <span class="badge @(hubConnection?.State == HubConnectionState.Connected ? "bg-success" : "bg-danger") rounded-pill">
+                                @hubConnection?.State
+                            </span>
+                        </div>
+
+                        <div class="chat-window p-4" id="chatWindow">
+                            @foreach (var msg in chatMessages)
+                            {
+                                <div class="message-container @(msg.IsOwnMessage ? "message-right" : "message-left")">
+                                    <div class="message-bubble @(msg.IsOwnMessage ? "bubble-mine shadow-sm" : "bubble-other shadow-sm")">
+                                        @if (!msg.IsOwnMessage)
+                                        {
+                                            <span class="message-user">@msg.User</span>
+                                        }
+                                        <div class="message-text">@msg.Text</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="p-3 border-top bg-white">
+                            <div class="input-group">
+                                <input @bind="messageInput"
+                                       @bind:event="oninput"
+                                       @onkeyup="HandleKeyUp"
+                                       class="form-control rounded-pill-start border-2 border-end-0 border-light px-4"
+                                       placeholder="Type your message here..." />
+                                <button class="btn btn-orange rounded-pill-end px-4"
+                                        @onclick="Send"
+                                        disabled="@IsButtonDisabled">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
                             </div>
                         </div>
                     }
-                }
-            </div>
-
-            <div class="input-group mt-3">
-                <input @bind="messageInput"
-                       @bind:event="oninput"
-                       @onkeyup="HandleKeyUp"
-                       class="form-control"
-                       placeholder="Write a message..."
-                       disabled="@(string.IsNullOrEmpty(selectedUserId))" />
-                <button class="btn btn-warning"
-                        @onclick="Send"
-                        disabled="@(IsButtonDisabled)">
-                    <i class="bi bi-send"></i> Send
-                </button>
-            </div>
-
-            <div class="mt-2">
-                <small class="text-muted">Status: <span class="badge @(hubConnection?.State == HubConnectionState.Connected ? "bg-success" : "bg-danger")">@hubConnection?.State</span></small>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    :root {
+        --brown-primary: #5a3e2b;
+        --orange-accent: #f0a500;
+        --chat-bg: #fdf6ee;
+    }
+
+    body {
+        background-color: var(--chat-bg);
+    }
+
+    .chat-main-container {
+        height: 75vh;
+        min-height: 500px;
+        background: white;
+        border-radius: 1.5rem;
+        overflow: hidden;
+    }
+
+    .bg-brown {
+        background-color: var(--brown-primary) !important;
+    }
+
+    .btn-orange {
+        background-color: var(--orange-accent);
+        color: white;
+        border: none;
+    }
+
+        .btn-orange:hover {
+            background-color: #d49200;
+            color: white;
+        }
+
+    .text-orange {
+        color: var(--orange-accent);
+    }
+
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .user-list {
+        max-height: calc(75vh - 60px);
+        overflow-y: auto;
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        margin-bottom: 5px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .user-item:hover {
+            background-color: #f8f1e9;
+        }
+
+        .user-item.active {
+            background-color: #f1e6d8;
+        }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: #ceb9a6;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 12px;
     }
 
     .chat-window {
-        height: 400px;
+        flex: 1;
         overflow-y: auto;
+        background-color: var(--chat-bg);
         display: flex;
         flex-direction: column;
-        background-color: #ffffff;
-        border: 1px solid #dee2e6;
-        border-radius: 0.25rem;
-        padding: 1rem;
     }
 
     .message-container {
         display: flex;
-        margin-bottom: 1rem;
+        margin-bottom: 12px;
         width: 100%;
     }
 
@@ -114,30 +224,50 @@
     }
 
     .message-bubble {
-        max-width: 70%;
-        padding: 0.5rem 1rem;
-        border-radius: 1rem;
-        position: relative;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        max-width: 75%;
+        padding: 10px 18px;
+        border-radius: 1.2rem;
+        font-size: 0.95rem;
     }
 
     .bubble-mine {
-        background-color: #8d6e63;
+        background-color: var(--brown-primary);
         color: white;
-        border-bottom-right-radius: 0.1rem;
+        border-bottom-right-radius: 0.2rem;
     }
 
     .bubble-other {
-        background-color: #f1f0f0;
-        color: #333;
-        border-bottom-left-radius: 0.1rem;
+        background-color: white;
+        color: #444;
+        border-bottom-left-radius: 0.2rem;
+        border: 1px solid #eee;
     }
 
     .message-user {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: bold;
-        margin-bottom: 0.2rem;
+        color: var(--orange-accent);
         display: block;
+        margin-bottom: 2px;
+    }
+
+    .rounded-pill-start {
+        border-top-left-radius: 50px;
+        border-bottom-left-radius: 50px;
+    }
+
+    .rounded-pill-end {
+        border-top-right-radius: 50px;
+        border-bottom-right-radius: 50px;
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #ceb9a6;
+        border-radius: 10px;
     }
 </style>
 
@@ -151,6 +281,14 @@
     private string? currentUserId;
     private string? currentUserName;
 
+    [SupplyParameterFromQuery]
+    public string? targetUserId { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? initialMessage { get; set; }
+
+    private bool hasAutoSent = false; 
+
     private bool IsButtonDisabled =>
         hubConnection?.State != HubConnectionState.Connected ||
         string.IsNullOrWhiteSpace(messageInput) ||
@@ -158,18 +296,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // 1. Injectarea AuthStateProvider pentru a popula currentUserId
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                         ?? authState.User.FindFirst("UserId")?.Value;
         currentUserName = authState.User.Identity?.Name ?? "Anonim";
 
-        // 2. Populare listă utilizatori cu FILTRARE
         using var context = DbFactory.CreateDbContext();
-
-        // Aici adăugăm .Where() pentru IsSubscribed și pentru a te exclude pe tine
         users = await context.User
-            .Where(u => u.IsSubscribed == true && u.UserId.ToString() != currentUserId)
+            .Where(u => u.IsSubscribed != SubscriptionLevel.None && u.UserId.ToString() != currentUserId)
             .ToListAsync();
 
         hubConnection = new HubConnectionBuilder()
@@ -179,13 +313,15 @@
 
         hubConnection.On<string, string, string>("ReceiveMessage", (senderId, userName, text) =>
         {
+            if (senderId == currentUserId) return;
+
             lock (_messageLock)
             {
                 chatMessages.Add(new ChatMessage
                     {
                         User = userName,
                         Text = text,
-                        IsOwnMessage = (userName == "Eu")
+                        IsOwnMessage = false
                     });
             }
             InvokeAsync(StateHasChanged);
@@ -197,19 +333,54 @@
         {
             await hubConnection.InvokeAsync("RegisterUser", currentUserId);
         }
+
+        if (!string.IsNullOrEmpty(targetUserId) && !string.IsNullOrEmpty(initialMessage) && !hasAutoSent)
+        {
+            selectedUserId = targetUserId;
+            messageInput = initialMessage;
+
+            await Task.Delay(500);
+
+            await Send();
+            hasAutoSent = true;
+
+            Navigation.NavigateTo("/chat", replace: true);
+        }
+    }
+
+    private async Task UpdateSelectedUser(string userId)
+    {
+        selectedUserId = userId;
+        lock (_messageLock)
+        {
+            chatMessages.Clear();
+        }
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task Send()
     {
-        if (hubConnection is not null && !string.IsNullOrEmpty(selectedUserId))
+        if (hubConnection is not null && !string.IsNullOrEmpty(selectedUserId) && !string.IsNullOrWhiteSpace(messageInput))
         {
             try
             {
+                var textToSend = messageInput;
+
                 await hubConnection.InvokeAsync("SendPrivateMessage",
                     selectedUserId,
-                    messageInput,
+                    textToSend,
                     currentUserId,
                     currentUserName);
+
+                lock (_messageLock)
+                {
+                    chatMessages.Add(new ChatMessage
+                        {
+                            User = "Eu",
+                            Text = textToSend,
+                            IsOwnMessage = true
+                        });
+                }
 
                 messageInput = "";
                 await InvokeAsync(StateHasChanged);
@@ -219,17 +390,6 @@
                 Console.WriteLine($"Eroare trimitere: {ex.Message}");
             }
         }
-    }
-
-    private async Task OnUserSelected(ChangeEventArgs e)
-    {
-        selectedUserId = e.Value?.ToString();
-        lock (_messageLock)
-        {
-            chatMessages.Clear();
-        }
-
-        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleKeyUp(KeyboardEventArgs e)

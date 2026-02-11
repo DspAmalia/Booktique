@@ -3,54 +3,136 @@
 
 <PageTitle>Contact Us</PageTitle>
 
-<h2><b>Contact</b> Us</h2>
+<div class="main-wrapper py-5">
+    <div class="container">
+        <h2 class="fw-bold text-brown mb-4">Contact <strong>Us</strong></h2>
+        <hr />
+        <div class="row g-4 mb-5">
+            <div class="col-md-6">
+                <div class="glass-card h-100 p-4 shadow-sm border-0">
+                    <h4 class="text-brown fw-bold mb-4">
+                        <i class="bi bi-info-circle me-2 text-orange"></i>Contact Details
+                    </h4>
+                    <div class="contact-info">
+                        <div class="info-item mb-3">
+                            <i class="bi bi-telephone-fill text-orange me-3"></i>
+                            <div>
+                                <span class="d-block small text-muted text-uppercase fw-bold">Phone</span>
+                                <span class="fw-bold">+40 749 656 025</span>
+                            </div>
+                        </div>
+                        <div class="info-item mb-3">
+                            <i class="bi bi-envelope-at-fill text-orange me-3"></i>
+                            <div>
+                                <span class="d-block small text-muted text-uppercase fw-bold">Email</span>
+                                <span class="fw-bold">booktique@gmail.com</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-geo-alt-fill text-orange me-3"></i>
+                            <div>
+                                <span class="d-block small text-muted text-uppercase fw-bold">Location</span>
+                                <span class="fw-bold">Strada Exemplului Nr. 12, București</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<hr />
-<div class="card map-card mb-4">
-    <div class="card-body">
-        <p class="mb-1">Tel: +40 749656025</p>
-        <p class="mb-0">Email: booktique@gmail.com</p>
+            <div class="col-md-6">
+                <div class="glass-card h-100 p-4 shadow-sm border-0 schedule-card">
+                    <h4 class="text-brown fw-bold mb-4">
+                        <i class="bi bi-clock-history me-2 text-orange"></i>Opening Hours
+                    </h4>
+                    <div class="schedule-grid">
+                        <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+                            <span>Monday - Friday</span>
+                            <span class="fw-bold">09:00 - 20:00</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+                            <span>Saturday</span>
+                            <span class="fw-bold">10:00 - 18:00</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted">
+                            <span>Sunday</span>
+                            <span class="fw-bold text-danger">Closed</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-2 bg-light rounded-3 text-center small">
+                        <i class="bi bi-cup-hot me-2 text-orange"></i>
+                        The cafe closes 30 minutes before the bookstore.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card shadow-sm border-0 overflow-hidden">
+            <div class="p-4 bg-white border-bottom">
+                <h4 class="text-brown fw-bold mb-0">You can find us here</h4>
+            </div>
+            <div class="p-0">
+                <div id="map" style="height:450px; width: 100%;"></div>
+            </div>
+        </div>
     </div>
 </div>
-
-<div class="card map-card">
-    <div class="card-header bg-white">
-        <h3 class="mb-4 text-dark">You can find us here</h3>
-    </div>
-    <div class="card-body p-0">
-        <div id="map" style="height:500px;"></div>
-    </div>
-</div>
-
 
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
+    :root {
+        --brown-primary: #5a3e2b;
+        --orange-accent: #f0a500;
+    }
+
+    body {
         background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .text-orange {
+        color: var(--orange-accent);
+    }
+
+    .glass-card {
+        background: white;
+        border-radius: 1.5rem;
+        overflow: hidden;
+    }
+
+    .contact-info .info-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: #fcf9f5;
+        border-radius: 12px;
+        transition: 0.3s;
+    }
+
+        .contact-info .info-item:hover {
+            background: #f8f1e9;
+        }
+
+    .info-item i {
+        font-size: 1.5rem;
+    }
+
+    .schedule-card {
+        border-left: 5px solid var(--orange-accent) !important;
     }
 
     #map {
-        height: 100vh; /* full viewport height */
-        width: 100%; /* full width of card */
-    }
-
-    /* Cardul puțin mai mare decât harta */
-    .map-card {
         width: 100%;
-        max-width: 95vw;
-        margin: auto;
-        background-color: #fff;
-        padding: 10px;
+        filter: grayscale(0.2) contrast(1.1); 
     }
 
-        /* Adaugă spațiu între carduri */
-        .map-card + .map-card {
-            margin-top: 20px;
+    @@media (max-width: 768px) {
+        .main-wrapper {
+            padding-top: 2rem;
         }
-
+    }
 </style>
 
 @code {

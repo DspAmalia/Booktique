@@ -1,0 +1,310 @@
+﻿@page "/antiquelistings/details"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Chronicle of @antiquelisting?.OriginalBook?.BookTitle</PageTitle>
+
+<div class="antique-details-bg py-5">
+    <div class="container">
+        @if (antiquelisting is null)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-gold" role="status"></div>
+                <p class="text-gold mt-3 font-serif italic">Unlocking the archives...</p>
+            </div>
+        }
+        else
+        {
+            <div class="mb-4">
+                <a href="/antiquelistings" class="btn-quill text-decoration-none">
+                    <i class="bi bi-arrow-left me-2"></i>Return to Antique Booktique
+                </a>
+            </div>
+
+            <div class="archive-folder p-4 p-md-5">
+                <div class="row">
+                    @* Partea Stângă: Imaginea *@
+                    <div class="col-lg-5 mb-4 mb-lg-0">
+                        <div class="archive-photo-frame">
+                            <img src="@(string.IsNullOrEmpty(antiquelisting.ImagePath) ? "/images/default-book.png" : antiquelisting.ImagePath)"
+                                 class="img-fluid archive-img" alt="Book Image" />
+                            <div class="photo-caption font-serif">Original Capture of the Tome</div>
+                        </div>
+
+                        @if (antiquelisting.IsSold)
+                        {
+                            <div class="sold-ribbon">TRANSACTED</div>
+                        }
+                    </div>
+
+                    @* Partea Dreaptă: Documentația (Detaliile) *@
+                    <div class="col-lg-7">
+                        <div class="archive-content">
+                            <h5 class="archive-label text-uppercase mb-0">Record No. #@antiquelisting.Id</h5>
+                            <h1 class="archive-title mb-1">@antiquelisting.OriginalBook?.BookTitle</h1>
+                            <p class="archive-author fs-4 mb-4">by @antiquelisting.OriginalBook?.BookAuthor</p>
+
+                            <div class="archive-separator mb-4"></div>
+
+                            <div class="row g-4">
+                                <div class="col-sm-6">
+                                    <h6 class="text-muted fw-bold">Preservation State</h6>
+                                    <span class="badge-antique">@antiquelisting.Condition</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <h6 class="text-muted fw-bold">Valuation</h6>
+                                    <span class="price-ink">
+                                        @(antiquelisting.IsExchangeOnly ? "BARTER/EXCHANGE ONLY" : $"{antiquelisting.Price} RON")
+                                    </span>
+                                </div>
+                                <div class="col-12">
+                                    <h6 class="text-muted fw-bold">Curator's Notes</h6>
+                                    <p class="archive-description">"@antiquelisting.Description"</p>
+                                </div>
+                                <div class="col-sm-6">
+                                    <h6 class="text-muted fw-bold">Date Cataloged</h6>
+                                    <p class="small">@antiquelisting.DatePosted.ToString("dd MMMM, yyyy")</p>
+                                </div>
+                                <div class="col-sm-6">
+                                    <h6 class="text-muted fw-bold">Owner Record</h6>
+                                    @if (antiquelisting.Seller != null)
+                                    {
+                                        <p class="small italic text-brown-dark">
+                                            Curator: <strong>@antiquelisting.Seller.UserName</strong> (Verified Member)
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        <p class="small italic text-brown-dark">Collector #@antiquelisting.SellerId</p>
+                                    }
+                                </div>
+                            </div>
+
+                            @* Acțiuni în dosar *@
+                            <div class="d-flex gap-3 mt-5 pt-4 border-top border-dark-subtle">
+                                @* Oricine poate trimite un mesaj, mai puțin proprietarul *@
+                                @if (!antiquelisting.IsSold && currentUserId != antiquelisting.SellerId.ToString())
+                                {
+                                    <a href="/chat?targetUserId=@antiquelisting.SellerId&initialMessage=Greetings, @(antiquelisting.Seller?.UserName)! I am interested in the volume: @antiquelisting.OriginalBook?.BookTitle"
+                                       class="btn-wax-seal px-4 py-2 text-decoration-none">
+                                        <i class="bi bi-envelope-paper me-2"></i>Send Inquiry
+                                    </a>
+                                }
+
+                                @* Zona restricționată: Doar Admin sau Proprietar *@
+                                @if (antiquelisting != null && (isAdmin || currentUserId == antiquelisting.SellerId.ToString()))
+                                {
+                                    <a href="@($"/antiquelistings/edit?id={antiquelisting.Id}")" class="btn-scroll-edit px-4 py-2 text-decoration-none">
+                                        <i class="bi bi-pencil-square me-1"></i> Edit Record
+                                    </a>
+
+                                    <button @onclick="DeleteListing" class="btn-strike-archive px-4 py-2">
+                                        <i class="bi bi-trash3 me-1"></i> Strike from Archive
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+    body {
+        background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png'), 
+                          linear-gradient(to bottom, #2c1e14, #3d2b1f);
+        background-attachment: fixed;
+    }
+
+    .archive-folder {
+        background-color: #f2e8d5; 
+        
+        background-image: url('https://www.transparenttextures.com/patterns/old-map.png');
+        
+        background-size: auto; 
+        background-repeat: repeat;
+        
+        background-image: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.05) 100%), 
+                          url('https://www.transparenttextures.com/patterns/old-map.png');
+
+        border: 1px solid #d4c5a9;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.15);
+        color: #2c1e14;
+        position: relative;
+        border-radius: 3px;
+    }
+
+    .archive-content {
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 1px 1px rgba(255,255,255,0.3);
+    }
+
+    .archive-photo-frame {
+        padding: 12px;
+        background: #fffcf5; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        transform: rotate(-1.5deg);
+        border: 1px solid #e2d7c5;
+    }
+
+    .archive-img {
+        border: 1px solid #d4c5a9;
+        filter: sepia(0.15) contrast(1.05); 
+    }
+
+    .archive-label {
+        font-family: 'Cinzel', serif;
+        color: #8b6b3e; 
+        font-size: 0.85rem;
+        letter-spacing: 3px;
+        font-weight: 700;
+    }
+
+    .archive-title {
+        font-family: 'IM Fell English', serif;
+        font-size: 3.2rem;
+        font-weight: bold;
+        line-height: 1.1;
+        color: #1a120b;
+    }
+
+    .archive-author {
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        color: #4a3324;
+    }
+
+    .archive-separator {
+        height: 2px;
+        background: linear-gradient(to right, #8b6b3e, transparent);
+        opacity: 0.6;
+    }
+
+    .archive-description {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        line-height: 1.7;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        border-left: 4px solid #8b6b3e;
+        font-style: italic;
+    }
+
+    .badge-antique {
+        background: #3d2b1f;
+        color: #e2d7c5;
+        padding: 6px 18px;
+        font-family: 'Cinzel', serif;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+
+    .price-ink {
+        font-family: 'Cinzel', serif;
+        font-weight: bold;
+        font-size: 1.6rem;
+        color: #7a0000; 
+    }
+
+    .btn-quill {
+        color: #d4c5a9;
+        font-family: 'Cinzel', serif;
+        font-size: 0.95rem;
+        transition: 0.3s;
+    }
+
+    .btn-quill:hover {
+        color: #fff;
+        text-shadow: 0 0 10px rgba(212, 197, 169, 0.5);
+    }
+
+    .btn-wax-seal {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        font-family: 'Cinzel', serif;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .btn-wax-seal:hover {
+        background: #900000;
+        transform: scale(1.05) translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    }
+
+    .btn-scroll-edit {
+        border: 1.5px solid #2c1e14;
+        color: #2c1e14;
+        font-family: 'Cinzel', serif;
+        background: rgba(0,0,0,0.05);
+        transition: 0.3s;
+    }
+
+    .btn-scroll-edit:hover {
+        background: #2c1e14;
+        color: #e2d7c5;
+    }
+</style>
+
+@code {
+    private AntiqueListing? antiquelisting;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    private string? currentUserId;
+    private bool isAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                        ?? user.FindFirst("UserId")?.Value;
+        
+        isAdmin = user.IsInRole("Administrator");
+
+        using var context = DbFactory.CreateDbContext();
+        antiquelisting = await context.AntiqueListing
+            .Include(a => a.OriginalBook)
+            .Include(a => a.Seller)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (antiquelisting is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+    
+    private async Task DeleteListing()
+    {
+        if (antiquelisting == null || (!isAdmin && currentUserId != antiquelisting.SellerId.ToString()))
+    {
+        await JS.InvokeVoidAsync("alert", "You do not have the authority to strike this record.");
+        return;
+    }
+
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Are you certain you wish to strike this record from the permanent archives?");
+        
+        if (confirmed && antiquelisting != null)
+        {
+            using var context = DbFactory.CreateDbContext();
+            context.AntiqueListing.Remove(antiquelisting);
+            await context.SaveChangesAsync();
+
+            NavigationManager.NavigateTo("/antiquelistings");
+        }
+    }
+}

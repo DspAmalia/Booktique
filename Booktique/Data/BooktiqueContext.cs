@@ -19,6 +19,6 @@ public class BooktiqueContext : DbContext
     public DbSet<Booktique.Models.MainModels.Folder> Folder { get; set; } = default!;
     public DbSet<Booktique.Models.MainModels.OrderItem> OrderItem { get; set; } = default!;
     public DbSet<Booktique.Models.MainModels.Order> Order { get; set; } = default!;
-
+    public DbSet<Booktique.Models.MainModels.AntiqueListing> AntiqueListing { get; set; } = default!;
 
 }

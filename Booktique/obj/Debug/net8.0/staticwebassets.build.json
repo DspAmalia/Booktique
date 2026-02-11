@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Nt0EJ2pUDj1yurZtB9uIx37Gk2/opK6TAVUZsI0OD5k=",
+  "Hash": "tG5Hi4A2LeJiqifVo4zfqbf2tF5Rnc0fMEH6nvo4ZPg=",
   "Source": "Booktique",
   "BasePath": "_content/Booktique",
   "Mode": "Default",
@@ -188,10 +188,10 @@
       "OriginalItemSpec": "C:\\Users\\Ami\\.nuget\\packages\\blazor.bootstrap\\3.4.0\\staticwebassets\\pdfjs-4.0.379.worker.min.js"
     },
     {
-      "Identity": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.11\\staticwebassets\\Microsoft.AspNetCore.Components.QuickGrid.bundle.scp.css",
+      "Identity": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.23\\staticwebassets\\Microsoft.AspNetCore.Components.QuickGrid.bundle.scp.css",
       "SourceId": "Microsoft.AspNetCore.Components.QuickGrid",
       "SourceType": "Package",
-      "ContentRoot": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.11\\staticwebassets\\",
+      "ContentRoot": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.23\\staticwebassets\\",
       "BasePath": "_content/Microsoft.AspNetCore.Components.QuickGrid",
       "RelativePath": "Microsoft.AspNetCore.Components.QuickGrid.bundle.scp.css",
       "AssetKind": "All",
@@ -204,13 +204,13 @@
       "AssetTraitValue": "ProjectBundle",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.11\\staticwebassets\\Microsoft.AspNetCore.Components.QuickGrid.bundle.scp.css"
+      "OriginalItemSpec": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.23\\staticwebassets\\Microsoft.AspNetCore.Components.QuickGrid.bundle.scp.css"
     },
     {
-      "Identity": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.11\\staticwebassets\\QuickGrid.razor.js",
+      "Identity": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.23\\staticwebassets\\QuickGrid.razor.js",
       "SourceId": "Microsoft.AspNetCore.Components.QuickGrid",
       "SourceType": "Package",
-      "ContentRoot": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.11\\staticwebassets\\",
+      "ContentRoot": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.23\\staticwebassets\\",
       "BasePath": "_content/Microsoft.AspNetCore.Components.QuickGrid",
       "RelativePath": "QuickGrid.razor.js",
       "AssetKind": "All",
@@ -223,7 +223,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.11\\staticwebassets\\QuickGrid.razor.js"
+      "OriginalItemSpec": "C:\\Users\\Ami\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.23\\staticwebassets\\QuickGrid.razor.js"
     },
     {
       "Identity": "C:\\Users\\Ami\\.nuget\\packages\\radzen.blazor\\8.3.4\\staticwebassets\\css\\components\\_qrcode.scss",

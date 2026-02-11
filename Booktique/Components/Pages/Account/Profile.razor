@@ -25,6 +25,7 @@
         else
         {
             <div class="row g-4">
+                @* Coloana din Stânga: Profil și Info *@
                 <div class="col-lg-4">
                     <div class="profile-card shadow-lg border-0">
                         <div class="avatar-section">
@@ -35,19 +36,19 @@
                                     <i class="bi bi-camera-fill"></i>
                                 </button>
                             </div>
-                            <h3 class="mt-3 fw-bold">@user.UserName</h3>
+                            <h3 class="mt-3 fw-bold text-brown">@user.UserName</h3>
                             <span class="badge rounded-pill bg-light text-brown border px-3">@user.Role</span>
                         </div>
 
                         <div class="info-section mt-4 px-3">
-                            <div class="info-item border-bottom py-2 d-flex justify-content-between">
+                            <div class="info-item border-bottom py-2 d-flex justify-content-between align-items-center">
                                 <span class="text-muted"><i class="bi bi-envelope me-2"></i>Email</span>
-                                <span class="fw-medium">@user.UserEmail</span>
+                                <span class="fw-medium text-truncate ms-2" style="max-width: 150px;">@user.UserEmail</span>
                             </div>
                         </div>
 
                         <div class="actions-section mt-4 d-grid gap-2 p-3">
-                            <button class="btn btn-warning shadow-sm" @onclick="EditProfile">
+                            <button class="btn btn-warning shadow-sm fw-bold" @onclick="EditProfile">
                                 <i class="bi bi-pencil-square me-2"></i>Edit Information
                             </button>
                             <div class="d-flex gap-2">
@@ -59,27 +60,166 @@
                                 </button>
                             </div>
                         </div>
+
+                        <div class="badges-section mt-4 px-3 text-center">
+                            <h6 class="fw-bold text-brown mb-3 small text-uppercase letter-spacing-1">Achievements</h6>
+                            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                                @foreach (var badge in Badges)
+                                {
+                                    bool isUnlocked = booksCount >= badge.RequiredBooks;
+                                    int missing = badge.RequiredBooks - booksCount;
+
+                                    // Textul care apare când ții mouse-ul pe badge
+                                    string tooltip = isUnlocked
+                                    ? $"{badge.Name}: {badge.Description}"
+                                    : $"Locked: Read {missing} more books to unlock {badge.Name}";
+
+                                    <div class="badge-item @(isUnlocked ? "unlocked" : "locked")" title="@tooltip">
+                                        <div class="badge-icon">@badge.Icon</div>
+                                        <div class="badge-name">@badge.Name</div>
+
+                                        @if (!isUnlocked)
+                                        {
+                                            <div class="lock-overlay">
+                                                <i class="bi bi-lock-fill"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
 
+                @* Coloana din Dreapta: Statistici și Raft *@
                 <div class="col-lg-8">
                     <div class="stats-card shadow-lg border-0 p-4 h-100">
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="stats-icon me-3">📊</div>
-                            <h2 class="mb-0 fw-bold text-brown">Personal Reading Stats</h2>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h2 class="mb-0 fw-bold text-brown">Reading Journey</h2>
+                                <p class="text-muted mb-0">
+                                    Status:
+                                    <span class="badge bg-warning text-dark">
+                                        @(booksCount > 10 ? "Avid Reader" : "Bookworm")
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <span class="fs-1">🏆</span>
+                            </div>
                         </div>
-                        <hr />
-                        <div class="chart-container py-4">
-                            <GenreChart @key="chartKey" />
+
+                        @* Grid Statistici Rapide *@
+                        <div class="row g-3 mb-4 text-center">
+                            <div class="col-6 col-md-4">
+                                <div class="p-3 border rounded bg-light shadow-sm">
+                                    <h4 class="fw-bold text-brown mb-0">@booksCount</h4>
+                                    <small class="text-muted">Books</small>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="p-3 border rounded bg-light shadow-sm">
+                                    <h4 class="fw-bold text-brown mb-0">@reviewsCount</h4>
+                                    <small class="text-muted">Reviews</small>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column align-items-center justify-content-center" style="min-height: 85px;">
+                                    @if (CurrentRank != null)
+                                    {
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fs-4">@CurrentRank.Icon</span>
+                                            <h4 class="fw-bold mb-0 @(booksCount >= 50 ? "text-warning shadow-text" : "text-brown")">
+                                                @CurrentRank?.Name
+                                            </h4>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <h4 class="fw-bold text-muted mb-0">Novice</h4>
+                                    }
+                                    <small class="text-muted">Current Rank</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Logică Progres *@
+                        @{
+                            int readingGoal = 20;
+                            int percentage = (booksCount * 100) / readingGoal;
+                            int displayPercentage = Math.Min(percentage, 100);
+                            int currentMonth = DateTime.Now.Month;
+                            int expectedBooksSoFar = (readingGoal / 12) * currentMonth;
+                            int diff = booksCount - expectedBooksSoFar;
+                        }
+
+                        <div class="challenge-container p-3 rounded-3 bg-white border mb-4 shadow-sm">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">@DateTime.Now.Year Reading Challenge</span>
+                                <span class="text-brown fw-bold">@booksCount / @readingGoal books</span>
+                            </div>
+                            <div class="progress" style="height: 15px; background-color: #e9ecef; border-radius: 10px;">
+                                <div class="progress-bar bg-warning"
+                                     role="progressbar"
+                                     style="width: @(displayPercentage)% ; transition: width 1s ease-in-out;"
+                                     aria-valuenow="@displayPercentage"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+
+                            <small class="mt-2 d-block">
+                                @if (booksCount >= readingGoal)
+                                {
+                                    <span class="text-success fw-bold">🏆 Goal Achieved! You're a legend!</span>
+                                }
+                                else if (diff > 0)
+                                {
+                                    <span class="text-muted">You're @diff books ahead of schedule! Keep it up! 🔥</span>
+                                }
+                                else if (diff < 0)
+                                {
+                                    <span class="text-muted">You're @Math.Abs(diff) books behind. Time to read! 📖</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">You're right on track! 🚀</span>
+                                }
+                            </small>
+                        </div>
+
+                        <h5 class="fw-bold mb-3"><i class="bi bi-bookshelf me-2"></i>Your Virtual Bookshelf</h5>
+                        <div class="shelf-wrapper">
+                            <div class="book-shelf d-flex gap-3 px-2">
+                                @if (userBooks != null && userBooks.Any())
+                                {
+                                    @foreach (var book in userBooks)
+                                    {
+                                        <div class="shelf-book shadow"
+                                             @onclick="@(() => NavigationManager.NavigateTo($"/books/details?bookid={book.BookId}"))"
+                                             title="@book.BookTitle by @book.BookAuthor">
+                                            <img src="@book.BookCoverPath" alt="@book.BookTitle" />
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-center w-100 py-4" style="border: 2px dashed #d2a679; border-radius: 10px;">
+                                        <p class="text-muted mb-0">Your shelf is empty. Time for a new adventure! 📚</p>
+                                    </div>
+                                }
+                            </div>
+                            <div class="shelf-wood"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            @* Modal Alegere Avatar *@
             @if (showAvatarPicker)
             {
                 <div class="avatar-modal-overlay" @onclick="ToggleAvatarPicker">
-                    <div class="avatar-modal-content card shadow-xl p-4" @onclick:stopPropagation="true">
+                    <div class="avatar-modal-content card shadow-lg p-4" @onclick:stopPropagation="true">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="mb-0 fw-bold">Choose your Avatar</h4>
                             <button class="btn-close" @onclick="ToggleAvatarPicker"></button>
@@ -105,38 +245,23 @@
 </div>
 
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    }
-
     :root {
         --brown-primary: #5a3e2b;
         --brown-hover: #4a3324;
         --cream-bg: #fdf6ee;
     }
+    body {
+        background-color: var(--cream-bg);
+    }
 
     .profile-page-wrapper {
-        background-color: var(--cream-bg);
         min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     .text-brown {
         color: var(--brown-primary);
     }
-
-    .btn-brown {
-        background-color: var(--brown-primary);
-        color: white;
-    }
-
-        .btn-brown:hover {
-            background-color: var(--brown-hover);
-            color: white;
-        }
 
     .profile-card, .stats-card {
         background: white;
@@ -152,12 +277,11 @@
 
     .avatar-wrapper {
         position: relative;
-        width: 160px;
-        height: 160px;
+        width: 150px;
+        height: 150px;
         margin: 0 auto;
         border-radius: 50%;
-        padding: 5px;
-        background: white;
+        border: 5px solid white;
     }
 
     .profile-avatar-img {
@@ -175,17 +299,13 @@
         color: white;
         border: 3px solid white;
         border-radius: 50%;
-        width: 45px;
-        height: 45px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform 0.2s;
+        transition: 0.3s;
     }
-
-        .change-avatar-btn:hover {
-            transform: scale(1.1);
-        }
 
     .avatar-modal-overlay {
         position: fixed;
@@ -193,24 +313,22 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.6);
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 1050;
+        z-index: 2100;
     }
 
     .avatar-modal-content {
-        max-width: 500px;
+        max-width: 450px;
         width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
         border-radius: 20px;
     }
 
     .avatar-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
         gap: 15px;
     }
 
@@ -219,13 +337,9 @@
         border-radius: 15px;
         padding: 5px;
         border: 3px solid transparent;
-        transition: all 0.2s;
+        transition: 0.2s;
         position: relative;
     }
-
-        .avatar-option:hover {
-            background: var(--cream-bg);
-        }
 
         .avatar-option.selected {
             border-color: var(--brown-primary);
@@ -242,49 +356,149 @@
         right: -5px;
         background: var(--brown-primary);
         color: white;
-        width: 24px;
-        height: 24px;
+        width: 22px;
+        height: 22px;
         border-radius: 50%;
-        font-size: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 12px;
     }
 
-    .stats-icon {
-        font-size: 2.5rem;
+    .book-shelf {
+        align-items: flex-end;
+        height: 170px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+
+    .shelf-book {
+        width: 100px;
+        height: 140px;
+        flex-shrink: 0;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+        .shelf-book img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 2px 5px 5px 2px;
+        }
+
+        .shelf-book:hover {
+            transform: translateY(-10px) rotate(-3deg);
+        }
+
+    .shelf-wood {
+        height: 12px;
+        background: linear-gradient(to bottom, #d2a679, #86592d);
+        border-radius: 5px;
+    }
+
+    .badge-item {
+        position: relative;
+        width: 70px; /* Lățime fixă */
+        height: 70px; /* Înălțime egală cu lățimea */
+        border-radius: 50%; /* Le face perfect rotunde */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border: 2px solid #eee;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: help;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+    }
+
+        /* Badge Deblocat */
+        .badge-item.unlocked {
+            background: white;
+            border-color: #ffc107; /* Culoarea aurie a warning-ului din site */
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        }
+
+            .badge-item.unlocked:hover {
+                transform: scale(1.1) rotate(5deg);
+                box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+                z-index: 10;
+            }
+
+        /* Badge Blocat */
+        .badge-item.locked {
+            filter: grayscale(1) opacity(0.5);
+            background: #e9ecef;
+            border-style: dashed; /* Arată că "lipsește" ceva */
+        }
+
+    .badge-icon {
+        font-size: 1.6rem;
+        line-height: 1;
+    }
+
+    .badge-name {
+        font-size: 0.55rem;
+        font-weight: 800;
+        color: var(--brown-primary);
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    .lock-overlay {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #5a3e2b;
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+    }
+
+    .letter-spacing-1 {
+        letter-spacing: 1px;
     }
 </style>
 
 @code {
     private User? user;
-    private Guid chartKey = Guid.NewGuid();
     private bool showAvatarPicker = false;
+    private List<Book> userBooks = new();
+    private int booksCount = 0;
+    private int reviewsCount = 0;
 
-    [CascadingParameter]
-    public HttpContext HttpContext { get; set; }
+    private string defaultAvatar = "https://cdn-icons-png.flaticon.com/512/1903/1903172.png";
 
-    // Imaginea default cerută de tine
-    private string defaultAvatar = "https://www.shutterstock.com/image-illustration/man-open-book-illustration-element-260nw-1103282219.jpg";
-
-    // Listă de avatare din care utilizatorul poate alege
     private List<string> availableAvatars = new()
     {
-        "https://cdn-icons-png.flaticon.com/512/2702/2702134.png", // Băiat citind (copertă roșie)
-        "https://cdn-icons-png.flaticon.com/512/2702/2702069.png", // Fată citind (copertă verde)
-        "https://cdn-icons-png.flaticon.com/512/3532/3532840.png", // Fată citind relaxată (galben)
-        "https://cdn-icons-png.flaticon.com/512/201/201623.png",   // Doar cărțile (pentru cine vrea ceva neutru)
-        "https://cdn-icons-png.flaticon.com/512/1903/1903162.png", // Personaj cu ochelari și carte
-        "https://cdn-icons-png.flaticon.com/512/1903/1903177.png", // Cititoare entuziasmată
-        "https://cdn-icons-png.flaticon.com/512/167/167756.png", // Student cu teanc de cărți
-        "https://cdn-icons-png.flaticon.com/512/1903/1903172.png", // Cititor pe fotoliu
-        "https://cdn-icons-png.flaticon.com/512/2232/2232688.png", // Cititor la fereastră
-        "https://www.shutterstock.com/image-illustration/man-open-book-illustration-element-260nw-1103282219.jpg" // Originalul (Default)
+        "https://cdn-icons-png.flaticon.com/512/2702/2702134.png",
+        "https://cdn-icons-png.flaticon.com/512/2702/2702069.png",
+        "https://cdn-icons-png.flaticon.com/512/3532/3532840.png",
+        "https://cdn-icons-png.flaticon.com/512/201/201623.png",
+        "https://cdn-icons-png.flaticon.com/512/1903/1903162.png",
+        "https://cdn-icons-png.flaticon.com/512/1903/1903177.png",
+        "https://cdn-icons-png.flaticon.com/512/167/167756.png",
+        "https://cdn-icons-png.flaticon.com/512/1903/1903172.png",
+        "https://cdn-icons-png.flaticon.com/512/2232/2232688.png"
     };
+
+    // Proprietate care returnează ultimul badge deblocat
+    private BadgeModel? CurrentRank => Badges
+        .Where(b => booksCount >= b.RequiredBooks)
+        .OrderByDescending(b => b.RequiredBooks)
+        .FirstOrDefault();
 
     protected override async Task OnInitializedAsync()
     {
         var username = HttpContextAccessor.HttpContext?.User?.Identity?.Name;
+
         if (string.IsNullOrWhiteSpace(username))
         {
             NavigationManager.NavigateTo("/login");
@@ -292,7 +506,29 @@
         }
 
         user = await DbContext.User.FirstOrDefaultAsync(u => u.UserName == username);
-        if (user == null) NavigationManager.NavigateTo("/notfound");
+
+        if (user == null)
+        {
+            NavigationManager.NavigateTo("/notfound");
+            return;
+        }
+
+        userBooks = await DbContext.Order
+            .Where(o => o.UserId == user.UserId)
+            .SelectMany(o => o.OrderItems)
+            .Select(oi => oi.Book)
+            .Distinct()
+            .Take(10)
+            .ToListAsync();
+
+        booksCount = await DbContext.Order
+            .Where(o => o.UserId == user.UserId)
+            .SelectMany(o => o.OrderItems)
+            .CountAsync();
+
+        reviewsCount = await DbContext.Review
+            .Where(r => r.UserId == user.UserId)
+            .CountAsync();
     }
 
     private void ToggleAvatarPicker() => showAvatarPicker = !showAvatarPicker;
@@ -308,12 +544,24 @@
         }
     }
 
-    protected override void OnParametersSet()
-    {
-        chartKey = Guid.NewGuid(); // forțează re-rendere completă
-    }
-
     private void EditProfile() => NavigationManager.NavigateTo($"/users/edit?userid={user?.UserId}");
     private void Logout() => NavigationManager.NavigateTo("/logout");
     private void Delete() => NavigationManager.NavigateTo("/delete");
+
+    private class BadgeModel
+    {
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public int RequiredBooks { get; set; }
+        public string Description { get; set; } = "";
+    }
+
+    private List<BadgeModel> Badges = new()
+{
+    new BadgeModel { Name = "Newbie", Icon = "🌱", RequiredBooks = 1, Description = "Your first journey begins!" },
+    new BadgeModel { Name = "Reader", Icon = "📖", RequiredBooks = 5, Description = "5 books collected!" },
+    new BadgeModel { Name = "Bibliophile", Icon = "📚", RequiredBooks = 10, Description = "Double digits! 10 books." },
+    new BadgeModel { Name = "Book Wyrm", Icon = "🐉", RequiredBooks = 20, Description = "Hoarding 20+ treasures!" },
+    new BadgeModel { Name = "Legend", Icon = "👑", RequiredBooks = 50, Description = "A true Master of Stories." }
+};
 }

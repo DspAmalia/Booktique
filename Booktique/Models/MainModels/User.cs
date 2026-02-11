@@ -30,6 +30,12 @@ namespace Booktique.Models.MainModels
 
         public string? ProfilePicture { get; set; }
 
-        public bool IsSubscribed { get; set; } = false;
+        public enum SubscriptionLevel
+        {
+            None = 0,
+            Monthly = 1,
+            Yearly = 2
+        }
+        public SubscriptionLevel IsSubscribed { get; set; } = SubscriptionLevel.None;
     }
 }

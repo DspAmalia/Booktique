@@ -183,12 +183,38 @@
                                     <div class="book-card">
                                         <img src="@b.BookCoverPath" alt="@b.BookTitle" class="book-img" />
                                         <div class="book-info">
-                                            <h5 class="book-title text-truncate w-100">@b.BookTitle</h5>
+                                            <h5 class="book-title text-truncate w-100"><strong>@b.BookTitle</strong></h5>
                                             <p class="book-author-year">
-                                                <strong>Author:</strong> @b.BookAuthor <br />
-                                                <strong>Year:</strong> @b.BookYear
+                                                 @b.BookAuthor <br />
+                                                 @b.BookYear
                                             </p>
                                             <p class="book-price"><strong>@b.BookPrice lei</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+            }
+
+            @if (authorBooks?.Any() == true)
+            {
+                <section class="author-books-wrapper">
+                    <div class="author-books-inner">
+                        <h3 class="mb-4 text-brown"><strong>More by <span class="fw-bold">@book.BookAuthor</span></strong></h3>
+                        <div class="books-grid">
+                            @foreach (var b in authorBooks)
+                            {
+                                <div class="book-card-wrapper" @onclick="() => NavigateToDetails(b.BookId)">
+                                    <div class="book-card shadow-sm">
+                                        <img src="@b.BookCoverPath" alt="@b.BookTitle" class="book-img" />
+                                        <div class="book-info">
+                                            <h5 class="book-title text-truncate w-100"><strong>@b.BookTitle</strong></h5>
+                                            <p class="book-author-year">
+                                                 @b.BookYear
+                                            </p>
+                                            <p class="book-price text-orange"><strong>@b.BookPrice lei</strong></p>
                                         </div>
                                     </div>
                                 </div>
@@ -257,12 +283,12 @@
 
     @@media (max-width: 768px) {
         .specs-grid {
-            grid-template-columns: 1fr 1fr; /* 2 coloane pe tabletă */
+            grid-template-columns: 1fr 1fr; 
         }
     }
     @@media (max-width: 480px) {
         .specs-grid {
-            grid-template-columns: 1fr;  /* 1 coloană pe telefon */
+            grid-template-columns: 1fr;  
         }
     }
 
@@ -329,16 +355,34 @@
         padding: 0 2rem;
     }
 
+    .author-books-wrapper {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        background-color: #f8f1e9; 
+        padding: 4rem 0;
+        border-top: 1px solid rgba(90, 62, 43, 0.1);
+    }
+
+    .author-books-inner {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
     .books-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1.5rem;
     }
 
     .book-card {
         background: white;
-        border-radius: 15px;
-        padding: 1.2rem;
+        border-radius: 12px;
+        padding: 0.8rem; 
         text-align: center;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -353,10 +397,10 @@
 
     .book-img {
         width: 100%;
-        height: 280px;
+        height: 220px; 
         object-fit: cover;
-        border-radius: 10px;
-        margin-bottom: 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.8rem;
     }
 
     .book-price {
@@ -378,6 +422,7 @@
     private bool isFavorite = false;
     private List<Book> relatedBooks = new();
     private bool isAdded = false;
+    private List<Book> authorBooks = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -392,7 +437,6 @@
             pageTitle = book.BookTitle;
             reviews = book.Reviews.OrderByDescending(r => r.CreatedAt).ToList();
 
-            // Verificăm dacă e favorit
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var userName = authState.User.Identity?.Name;
             if (!string.IsNullOrEmpty(userName))
@@ -404,10 +448,15 @@
                 }
             }
 
-            // Cărți sugerate
             relatedBooks = await context.Book
                 .Where(b => b.BookCategory == book.BookCategory && b.BookId != book.BookId)
                 .OrderBy(_ => Guid.NewGuid())
+                .Take(4)
+                .ToListAsync();
+
+            authorBooks = await context.Book
+                .Where(b => b.BookAuthor == book.BookAuthor && b.BookId != book.BookId)
+                .OrderByDescending(b => b.BookYear) 
                 .Take(4)
                 .ToListAsync();
         }

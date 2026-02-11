@@ -10,6 +10,7 @@
 
 <div class="container mt-5 mb-5">
     <div class="row">
+        @* Coloana Stângă: Detalii Livrare *@
         <div class="col-lg-7">
             <div class="card shadow-sm border-0 p-4 rounded-4 bg-white">
                 <h3 class="text-brown fw-bold mb-4"><i class="bi bi-truck me-2"></i>Shipping Details</h3>
@@ -56,13 +57,10 @@
                         </div>
                     </div>
                 </div>
-                @if (string.IsNullOrEmpty(paymentMethod))
-                {
-                    <p class="text-muted small mt-2 text-center"><i class="bi bi-info-circle"></i> Please select a payment method.</p>
-                }
             </div>
         </div>
 
+        @* Coloana Dreaptă: Sumar Comandă *@
         <div class="col-lg-5">
             <div class="card shadow-sm border-0 p-4 rounded-4 bg-light sticky-top" style="top: 20px;">
                 <h4 class="fw-bold mb-4">Order Summary</h4>
@@ -79,7 +77,37 @@
                             <span class="fw-bold small">@(item.Price * item.Quantity) lei</span>
                         </div>
                     }
-                </div>
+                    
+                    @* Notificare Mystery Book *@
+                    @if (!isEligibleForMysteryBook)
+
+                    {
+
+                        decimal remaining = 200 - cartService.Items.Sum(i => i.Price * i.Quantity);
+
+                        <div class="alert alert-info border-0 rounded-4 shadow-sm mb-4">
+
+                            <i class="bi bi-gift-fill me-2"></i>
+
+                            Add <strong>@remaining lei</strong> more to your cart to unlock a <strong>FREE Mystery Book!</strong>
+
+                        </div>
+
+                    }
+                    
+                    @if (selectedMysteryBook != null)
+                    {
+                        <div class="d-flex align-items-center mb-3 p-2 rounded-3 border border-success bg-white position-relative shadow-sm animate__animated animate__fadeInUp">
+                            <img src="@selectedMysteryBook.BookCoverPath" class="rounded me-3 shadow-sm" style="width: 45px; height: 65px; object-fit: cover;" />
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 small fw-bold text-success">@selectedMysteryBook.BookTitle (Gift)</h6>
+                                <span class="badge bg-success small">FREE</span>
+                            </div>
+                            <button class="btn btn-sm text-muted" @onclick="ChangeGiftChoice">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                        </div>
+                    }
 
                 <hr />
                 <div class="d-flex justify-content-between fs-5 fw-bold text-brown mb-4">
@@ -90,7 +118,7 @@
                 <button class="btn btn-warning w-100 fw-bold py-3 shadow rounded-pill btn-finalize"
                         @onclick="FinalizeOrder"
                         disabled="@(!IsFormValid)">
-                    <i class="bi bi-lock-fill me-1"></i> FINISH AND PAY
+                    <i class="bi bi-lock-fill me-1"></i> @(paymentMethod == "Card" ? "PAY AND FINISH" : "PLACE ORDER")
                 </button>
 
                 @if (!IsFormValid)
@@ -102,6 +130,35 @@
             </div>
         </div>
     </div>
+
+        @* MODAL PENTRU CADOU *@
+        @if (showGiftModal)
+        {
+            <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6);" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 rounded-4 shadow-lg">
+                        <div class="modal-header border-0 bg-success text-white rounded-top-4">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-gift me-2"></i>You've unlocked a Mystery Gift!</h5>
+                        </div>
+                        <div class="modal-body text-center p-5">
+                            <p class="mb-4">Since your order is over <strong>200 lei</strong>, please pick one of these mystery boxes:</p>
+
+                            <div class="d-flex justify-content-around py-3">
+                                @for (int i = 0; i < 3; i++)
+                                {
+                                    int index = i;
+                                    <div class="gift-box-wrapper text-center" @onclick="() => RevealGift(index)">
+                                        <div class="gift-box-icon pulse-animation">🎁</div>
+                                        <span class="small text-muted">Box #@(index + 1)</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+</div>
 </div>
 
 <style>
@@ -147,7 +204,69 @@
     .rounded-4 {
         border-radius: 1.25rem !important;
     }
+
+    .border-dashed {
+        border-style: dashed !important;
+    }
+
+    .gift-box-wrapper {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.gift-box-wrapper:hover {
+    transform: scale(1.15);
+}
+
+.gift-box-icon {
+    font-size: 3rem;
+    filter: drop-shadow(0 5px 10px rgba(40, 167, 69, 0.2));
+}
+
+.pulse-animation {
+    animation: boxPulse 1.5s infinite ease-in-out;
+}
+
+@@keyframes boxPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.revealed-gift-anim {
+    animation: fadeIn zoomIn 0.5s ease-out;
+}
+
+.revealed-img {
+    width: 60px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 2px solid #28a745;
+}
+
+.mystery-selection-container {
+    border: 2px dashed #28a745;
+    background: #f9fffb;
+}
+.animate__animated {
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+
+@@keyframes fadeInUp {
+    from { opacity: 0; transform: translate3d(0, 40px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.animate__fadeInUp { animation-name: fadeInUp; }
+
+@@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
 </style>
+
 
 @code {
     private string fullName = "";
@@ -155,6 +274,11 @@
     private string city = "";
     private string shippingAddress = "";
     private string? paymentMethod = null;
+    
+    private bool isEligibleForMysteryBook = false;
+    private Book? selectedMysteryBook = null;
+    private List<Book> potentialGifts = new();
+    private bool showGiftModal = false;
 
     private bool IsFormValid =>
         !string.IsNullOrWhiteSpace(fullName) &&
@@ -162,21 +286,71 @@
         !string.IsNullOrWhiteSpace(city) &&
         !string.IsNullOrWhiteSpace(shippingAddress) &&
         !string.IsNullOrEmpty(paymentMethod) &&
-        phoneNumber.Length >= 10;
+        phoneNumber.Length >= 10 &&
+        (!isEligibleForMysteryBook || selectedMysteryBook != null); 
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckMysteryEligibility();
+    }
+
+    private async Task CheckMysteryEligibility()
+    {
+        decimal cartTotal = cartService.Items.Sum(i => i.Price * i.Quantity);
+
+        if (cartTotal >= 200)
+        {
+            isEligibleForMysteryBook = true;
+
+            if (selectedMysteryBook == null)
+            {
+                await PrepareGifts();
+                showGiftModal = true;
+            }
+        }
+        else
+        {
+            isEligibleForMysteryBook = false;
+            selectedMysteryBook = null;
+            showGiftModal = false;
+        }
+    }
+
+    private void RevealGift(int index)
+    {
+        if (potentialGifts.Count > index)
+        {
+            selectedMysteryBook = potentialGifts[index];
+            showGiftModal = false; 
+            StateHasChanged();
+        }
+    }
+
+    private void ChangeGiftChoice()
+    {
+        selectedMysteryBook = null;
+        showGiftModal = true; 
+    }
+
+    private async Task PrepareGifts()
+    {
+        using var ctx = await DbFactory.CreateDbContextAsync();
+        potentialGifts = await ctx.Book
+            .Where(b => b.BookStock > 0)
+            .OrderBy(r => Guid.NewGuid())
+            .Take(3)
+            .ToListAsync();
+    }
+
+    private void ResetGift() => selectedMysteryBook = null;
 
     private async Task FinalizeOrder()
     {
         if (!IsFormValid) return;
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        var userIdClaim = user.FindFirst("UserId");
-
-        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userIdInt))
-        {
-            Nav.NavigateTo("/login");
-            return;
-        }
+        var userClaim = authState.User.FindFirst("UserId");
+        if (userClaim == null || !int.TryParse(userClaim.Value, out int userIdInt)) return;
 
         try
         {
@@ -209,7 +383,7 @@
 
                             order.OrderItems.Add(new OrderItem
                                 {
-                                    BookId = item.BookId,
+                                    BookId = dbBook.BookId,
                                     Quantity = item.Quantity,
                                     UnitPrice = item.Price
                                 });
@@ -221,22 +395,37 @@
                     }
                 }
 
-                ctx.Order.Add(order);
+                if (isEligibleForMysteryBook && selectedMysteryBook != null)
+                {
+                    var giftInDb = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == selectedMysteryBook.BookId);
+                    if (giftInDb != null && giftInDb.BookStock > 0)
+                    {
+                        giftInDb.BookStock -= 1;
+                        order.OrderItems.Add(new OrderItem
+                            {
+                                BookId = giftInDb.BookId,
+                                Quantity = 1,
+                                UnitPrice = 0 
+                            });
+                    }
+                }
 
+                ctx.Order.Add(order);
                 await ctx.SaveChangesAsync();
                 await transaction.CommitAsync();
+
                 await cartService.ClearCart();
                 Nav.NavigateTo("/order-success");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                throw; 
+                Console.WriteLine($"Transaction Error: {ex.Message}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Order Finalization Error: {ex.Message}");
+            Console.WriteLine($"General Error: {ex.Message}");
         }
     }
 }

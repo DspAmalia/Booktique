@@ -1,0 +1,301 @@
+﻿@page "/antiquelistings/create"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+<PageTitle>Register New Artifact | Booktique Heritage</PageTitle>
+
+<div class="antique-create-bg py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+
+                @* Buton Înapoi *@
+                <div class="mb-4">
+                    <a href="/antiquelistings" class="btn-quill text-decoration-none">
+                        <i class="bi bi-arrow-left me-2"></i>Return to Archives
+                    </a>
+                </div>
+
+                <div class="inventory-scroll p-4 p-md-5">
+                    <div class="text-center mb-5 border-bottom border-dark pb-4">
+                        <h5 class="archive-label text-uppercase">Official Registry Entry</h5>
+                        <h1 class="archive-title">Book Acquisition Record</h1>
+                        <p class="archive-author fs-6">Documenting the passage of literary heritage</p>
+                    </div>
+
+                    <EditForm Model="AntiqueListing" OnValidSubmit="AddAntiqueListing" FormName="create-heritage">
+                        <DataAnnotationsValidator />
+
+                        <div class="row g-4">
+                            @* Secțiunea 1: Identificarea Cărții *@
+                            <div class="col-12">
+                                <h6 class="registry-section-title"><i class="bi bi-book me-2"></i>I. Identification</h6>
+                                <div class="p-3 border-dashed rounded mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <label class="font-serif fw-bold text-brown-dark">Cataloged Title</label>
+                                        <button type="button" class="btn-ink-sm" @onclick="() => isManualEntry = !isManualEntry">
+                                            <i class="bi @(isManualEntry ? "bi-search" : "bi-pencil-square") me-1"></i>
+                                            @(isManualEntry ? "Search Database" : "Custom Entry")
+                                        </button>
+                                    </div>
+
+                                    @if (!isManualEntry)
+                                    {
+                                        <InputSelect @bind-Value="AntiqueListing.BookId" class="form-select ink-input">
+                                            <option value="0">-- Select Title from Library Archives --</option>
+                                            @foreach (var book in allAvailableBooks)
+                                            {
+                                                <option value="@book.BookId">@book.BookTitle — @book.BookAuthor</option>
+                                            }
+                                        </InputSelect>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-sepia small animate__animated animate__fadeIn">
+                                            <i class="bi bi-info-circle me-2"></i>Since this volume is not in our archives, please provide full details in the <strong>Curator's Notes</strong> below.
+                                        </div>
+                                    }
+                                    <ValidationMessage For="() => AntiqueListing.BookId" class="text-danger small italic" />
+                                </div>
+                            </div>
+
+                            @* Secțiunea 2: Starea și Valoarea *@
+                            <div class="col-md-6">
+                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-shield-check me-2"></i>II. Preservation State</label>
+                                <InputSelect @bind-Value="AntiqueListing.Condition" class="form-select ink-input">
+                                    <option value="">-- Condition --</option>
+                                    <option value="As New">Pristine / As New</option>
+                                    <option value="Fine">Fine Preservation</option>
+                                    <option value="Good">Good (Readable)</option>
+                                    <option value="Fair">Fair (Signs of Age)</option>
+                                    <InputSelect @bind-Value="AntiqueListing.Condition" />
+                                </InputSelect>
+                                <ValidationMessage For="() => AntiqueListing.Condition" class="text-danger small" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-currency-exchange me-2"></i>III. Valuation (RON)</label>
+                                <div class="input-group">
+                                    <InputNumber @bind-Value="AntiqueListing.Price" class="form-control ink-input" disabled="@AntiqueListing.IsExchangeOnly" />
+                                    <span class="input-group-text ink-input-addon">RON</span>
+                                </div>
+                                <ValidationMessage For="() => AntiqueListing.Price" class="text-danger small" />
+                            </div>
+
+                            @* Secțiunea 3: Note și Vizual *@
+                            <div class="col-12">
+                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-feather me-2"></i>IV. Curator's Notes & Observations</label>
+                                <InputTextArea @bind-Value="AntiqueListing.Description" class="form-control ink-input" rows="4"
+                                               placeholder="Describe unique markings, inscriptions, or the history of this specific copy..." />
+                                <ValidationMessage For="() => AntiqueListing.Description" class="text-danger small" />
+                            </div>
+
+                            <div class="col-12">
+                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-camera me-2"></i>V. Photographic Evidence (URL)</label>
+                                <InputText @bind-Value="AntiqueListing.ImagePath" class="form-control ink-input" placeholder="Link to a clear capture of the book..." />
+                                <ValidationMessage For="() => AntiqueListing.ImagePath" class="text-danger small" />
+                            </div>
+
+                            @* Secțiunea 4: Termeni *@
+                            <div class="col-12">
+                                <div class="form-check form-switch wax-seal-switch p-3 border rounded">
+                                    <InputCheckbox id="isexchange" @bind-Value="AntiqueListing.IsExchangeOnly" class="form-check-input ms-0 me-3" />
+                                    <label class="form-check-label font-serif fw-bold pt-1" for="isexchange">
+                                        This Artifact is strictly for Barter/Exchange
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Butoane de Finalizare *@
+                        <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-dark">
+                            <span class="small italic text-muted">Dated: @DateTime.Now.ToString("dd MMMM, yyyy")</span>
+                            <div class="d-flex gap-3">
+                                <a href="/antiquelistings" class="btn-scroll-edit px-4 py-2 text-decoration-none">Discard Entry</a>
+                                <button type="submit" class="btn-wax-seal px-5 py-2">
+                                    Seal & Register
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+    body {
+        background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png'), linear-gradient(to bottom, #2c1e14, #3d2b1f);
+        background-attachment: fixed;
+    }
+
+    .inventory-scroll {
+        background-color: #f2e8d5;
+        background-image: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.05) 100%), url('https://www.transparenttextures.com/patterns/old-map.png');
+        border: 1px solid #d4c5a9;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        color: #1a120b;
+        border-radius: 4px;
+        position: relative;
+    }
+
+    .archive-label {
+        font-family: 'Cinzel', serif;
+        color: #8b6b3e;
+        letter-spacing: 3px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .archive-title {
+        font-family: 'IM Fell English', serif;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #1a120b;
+    }
+
+    .archive-author {
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        color: #5a3e2b;
+    }
+
+    .registry-section-title {
+        font-family: 'Cinzel', serif;
+        color: #1a120b;
+        border-bottom: 1px solid #8b6b3e;
+        padding-bottom: 5px;
+        margin-top: 15px;
+        margin-bottom: 20px;
+    }
+
+    .text-brown-dark {
+        color: #3d2b1f;
+    }
+
+    .ink-input {
+        background: rgba(255, 255, 255, 0.4) !important;
+        border: none !important;
+        border-bottom: 1px solid #8b6b3e !important;
+        border-radius: 0 !important;
+        color: #1a120b !important;
+        padding-left: 0 !important;
+        font-family: 'Playfair Display', serif;
+    }
+
+        .ink-input:focus {
+            background: rgba(255, 255, 255, 0.6) !important;
+            box-shadow: none !important;
+            border-bottom: 2px solid #1a120b !important;
+        }
+
+    .ink-input-addon {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px solid #8b6b3e !important;
+        border-radius: 0 !important;
+        color: #8b6b3e;
+        font-family: 'Cinzel', serif;
+    }
+
+    .border-dashed {
+        border: 1px dashed #8b6b3e !important;
+    }
+
+    .alert-sepia {
+        background-color: rgba(139, 107, 62, 0.1);
+        border: 1px solid #8b6b3e;
+        color: #5a3e2b;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .btn-ink-sm {
+        background: transparent;
+        border: 1px solid #8b6b3e;
+        color: #8b6b3e;
+        font-family: 'Cinzel', serif;
+        font-size: 0.7rem;
+        padding: 2px 10px;
+        transition: 0.3s;
+    }
+
+        .btn-ink-sm:hover {
+            background: #8b6b3e;
+            color: #f2e8d5;
+        }
+
+    .btn-wax-seal {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        font-family: 'Cinzel', serif;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        transition: 0.3s;
+    }
+
+        .btn-wax-seal:hover {
+            background: #900000;
+            transform: translateY(-2px);
+        }
+
+    .btn-scroll-edit {
+        border: 1px solid #2c1e14;
+        color: #2c1e14;
+        font-family: 'Cinzel', serif;
+    }
+
+    .btn-quill {
+        color: #d4c5a9;
+        font-family: 'Cinzel', serif;
+    }
+
+    .wax-seal-switch .form-check-input:checked {
+        background-color: #7a0000;
+        border-color: #500000;
+    }
+</style>
+
+@code {
+    [SupplyParameterFromForm]
+    private AntiqueListing AntiqueListing { get; set; } = new();
+
+    private List<Book> allAvailableBooks = new();
+    private User? currentUser;
+    private bool isManualEntry = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        var username = HttpContextAccessor.HttpContext?.User?.Identity?.Name;
+        currentUser = await context.User.FirstOrDefaultAsync(u => u.UserName == username);
+
+        allAvailableBooks = await context.Book
+            .OrderBy(b => b.BookTitle)
+            .ToListAsync();
+
+        if (currentUser != null)
+        {
+            AntiqueListing.SellerId = currentUser.UserId;
+            AntiqueListing.DatePosted = DateTime.Now;
+        }
+    }
+
+    private async Task AddAntiqueListing()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        if (!isManualEntry && AntiqueListing.BookId == 0) return;
+
+        context.AntiqueListing.Add(AntiqueListing);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/antiquelistings");
+    }
+}

@@ -204,6 +204,7 @@
                                 <a href="@($"/books/details?bookid={book.BookId}")" class="d-block w-100 h-100 text-center p-3">
                                     <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img" />
                                 </a>
+
                                 <button type="button" class="wishlist-btn" @onclick:stopPropagation="true" @onclick="() => ToggleFavorite(book)">
                                     <i class="bi @(favoriteBookIds.Contains(book.BookId) ? "bi-heart-fill text-danger" : "bi-heart")"></i>
                                 </button>
@@ -211,9 +212,9 @@
 
                             <a class="text-decoration-none text-dark" href="@($"/books/details?bookid={book.BookId}")">
                                 <div class="book-info p-3 d-flex flex-column align-items-center">
-                                    <h6 class="book-title text-truncate text-center w-100 mb-1">
+                                    <h5 class="book-title text-truncate text-center w-100 mb-1">
                                         <strong>@book.BookTitle</strong>
-                                    </h6>
+                                    </h5>
                                     <p class="book-author text-muted small mb-2 text-center w-100">@book.BookAuthor</p>
                                     <div class="mt-1">
                                         <span class="book-price fw-bold text-accent-yellow">@book.BookPrice LEI</span>
@@ -370,16 +371,14 @@
         box-shadow: 0 10px 20px rgba(240, 165, 0, 0.3);
     }
 
-    /* --- MODIFICARE PENTRU SCROLL ORIZONTAL --- */
     .top-books-scroll-container {
         width: 100%;
-        overflow-x: auto; /* Permite scroll-ul */
+        overflow-x: auto; 
         padding-bottom: 20px;
-        scrollbar-width: thin; /* Pentru Firefox */
+        scrollbar-width: thin; 
         scrollbar-color: var(--accent) transparent;
     }
 
-    /* Stil scrollbar pentru Chrome/Safari */
     .top-books-scroll-container::-webkit-scrollbar {
         height: 6px;
     }
@@ -392,12 +391,12 @@
         display: flex;
         gap: 5rem;
         padding: 30px 40px 40px 100px;
-        min-width: max-content; /* Esențial pentru a forța scroll-ul */
+        min-width: max-content; 
     }
 
     .top-book-item {
         position: relative;
-        flex: 0 0 auto; /* Previne comprimarea cardurilor */
+        flex: 0 0 auto; 
     }
 
     .rank-number {
@@ -555,6 +554,11 @@
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 20;
+    }
+
+    .text-accent-yellow {
+        color: #f0a500;
+        font-weight: 800;
     }
 
     @@media (max-width: 1200px) {

@@ -3,6 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Booktique.Models.MainModels
+@using static Booktique.Models.MainModels.User
 @implements IAsyncDisposable
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 
@@ -20,8 +21,8 @@
             <a href="users/create" class="btn btn-warning rounded-pill px-4 shadow-sm">
                 <i class="bi bi-person-plus-fill me-2"></i>Create New
             </a>
-            <a href="/" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
-                <i class="bi bi-arrow-left me-2"></i>Back to Home
+            <a href="/admin/dashboard" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i>Back
             </a>
         </div>
     </div>
@@ -47,14 +48,27 @@
                     <span class="badge @roleClass rounded-pill">@context.Role</span>
                 </TemplateColumn>
 
-                <TemplateColumn Title="Subscribed" Sortable="true" Class="col-subscribed">
-                    @if (context.IsSubscribed)
+                <TemplateColumn Title="Subscription Plan" Sortable="true" Class="col-subscribed">
+                    @switch (context.IsSubscribed)
                     {
-                        <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Yes</span>
-                    }
-                    else
-                    {
-                        <span class="text-muted small"><i class="bi bi-x-circle me-1"></i>No</span>
+                        case SubscriptionLevel.Yearly:
+                            <span class="badge rounded-pill bg-warning text-dark">
+                                <i class="bi bi-star-fill me-1"></i> Yearly Premium
+                            </span>
+                            break;
+
+                        case SubscriptionLevel.Monthly:
+                            <span class="badge rounded-pill bg-info text-white">
+                                <i class="bi bi-calendar-check-fill me-1"></i> Monthly
+                            </span>
+                            break;
+
+                        case SubscriptionLevel.None:
+                        default:
+                            <span class="badge rounded-pill bg-light text-muted border">
+                                <i class="bi bi-x-circle me-1"></i> No Active Plan
+                            </span>
+                            break;
                     }
                 </TemplateColumn>
 

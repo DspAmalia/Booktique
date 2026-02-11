@@ -1,0 +1,192 @@
+﻿@page "/antiquelistings/delete"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Expunge Record | Booktique Heritage</PageTitle>
+
+<div class="antique-delete-bg py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <div class="mb-4">
+                    <a href="/antiquelistings" class="btn-quill text-decoration-none">
+                        <i class="bi bi-arrow-left me-2"></i>Return to Safety
+                    </a>
+                </div>
+
+                <div class="inventory-scroll p-4 p-md-5 border-danger-subtle">
+                    @* Header de Avertizare *@
+                    <div class="text-center mb-5 border-bottom border-danger pb-4">
+                        <h5 class="archive-label text-danger opacity-75 text-uppercase">Final Warning</h5>
+                        <h1 class="archive-title">Expunge Archive Record</h1>
+                        <p class="archive-author text-muted">You are about to permanently strike this entry from the chronicles.</p>
+                    </div>
+
+                    @if (antiquelisting is null)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-brown" role="status"></div>
+                            <p class="font-serif italic mt-3">Locating original scrolls...</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger-antique mb-5">
+                            <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                            <div>
+                                <strong>Irreversible Action:</strong> Once the seal is broken and the record is burnt, it cannot be recovered from the Great Library.
+                            </div>
+                        </div>
+
+                        @* Rezumatul Recordului (Style Ledger) *@
+                        <div class="record-preview p-4 mb-5">
+                            <h6 class="registry-section-title mb-4">Summary of the Subject</h6>
+                            <div class="row g-3">
+                                <div class="col-sm-4 fw-bold font-serif text-brown-dark">Record Number:</div>
+                                <div class="col-sm-8 font-serif italic">#@antiquelisting.Id</div>
+
+                                <div class="col-sm-4 fw-bold font-serif text-brown-dark">Catalog Date:</div>
+                                <div class="col-sm-8 font-serif">@antiquelisting.DatePosted.ToString("dd MMMM, yyyy")</div>
+
+                                <div class="col-sm-4 fw-bold font-serif text-brown-dark">Description:</div>
+                                <div class="col-sm-8 font-serif italic text-muted">"@antiquelisting.Description"</div>
+                            </div>
+                        </div>
+
+                        <EditForm Model="antiquelisting" OnValidSubmit="DeleteAntiqueListing" FormName="delete">
+                            <div class="d-flex justify-content-center gap-4 align-items-center">
+                                <a href="/antiquelistings" class="btn-scroll-edit px-4 py-2 text-decoration-none">Preserve Record</a>
+
+                                <button type="submit" class="btn-expunge px-5 py-2">
+                                    <i class="bi bi-fire me-2"></i>Expunge & Burn
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+    body {
+        background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png'), linear-gradient(to bottom, #2c1e14, #3d2b1f);
+        background-attachment: fixed;
+    }
+
+    .inventory-scroll {
+        background-color: #f2e8d5;
+        background-image: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.05) 100%), url('https://www.transparenttextures.com/patterns/old-map.png');
+        border: 2px solid #a73a3a; 
+        box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        border-radius: 4px;
+    }
+
+    .archive-label {
+        font-family: 'Cinzel', serif;
+        letter-spacing: 3px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .archive-title {
+        font-family: 'IM Fell English', serif;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #1a120b;
+    }
+
+    .archive-author {
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+    }
+
+    .record-preview {
+        background: rgba(0, 0, 0, 0.03);
+        border: 1px dashed #8b6b3e;
+    }
+
+    .registry-section-title {
+        font-family: 'Cinzel', serif;
+        color: #1a120b;
+        border-bottom: 1px solid #8b6b3e;
+        display: inline-block;
+    }
+
+    .alert-danger-antique {
+        background-color: rgba(167, 58, 58, 0.1);
+        border: 1px solid #a73a3a;
+        color: #7a0000;
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        font-family: 'Playfair Display', serif;
+    }
+
+    /* Butoane */
+    .btn-expunge {
+        background: #4a0000;
+        color: #f2e8d5;
+        border: none;
+        font-family: 'Cinzel', serif;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        transition: 0.3s;
+    }
+
+        .btn-expunge:hover {
+            background: #7a0000;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+        }
+
+    .btn-scroll-edit {
+        border: 1px solid #2c1e14;
+        color: #2c1e14;
+        font-family: 'Cinzel', serif;
+    }
+
+    .btn-quill {
+        color: #d4c5a9;
+        font-family: 'Cinzel', serif;
+    }
+
+    .text-brown-dark {
+        color: #3d2b1f;
+    }
+</style>
+
+@code {
+    private AntiqueListing? antiquelisting;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        antiquelisting = await context.AntiqueListing.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (antiquelisting is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteAntiqueListing()
+    {
+        using var context = DbFactory.CreateDbContext();
+        if (antiquelisting != null)
+        {
+            context.AntiqueListing.Remove(antiquelisting);
+            await context.SaveChangesAsync();
+            NavigationManager.NavigateTo("/antiquelistings");
+        }
+    }
+}

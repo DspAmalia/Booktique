@@ -1,0 +1,253 @@
+﻿@page "/antiquelistings/edit"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Amending Record #@Id</PageTitle>
+
+<div class="antique-edit-bg py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+
+                @* Navigare înapoi stilizată *@
+                <div class="mb-4">
+                    <a href="/antiquelistings" class="btn-quill text-decoration-none">
+                        <i class="bi bi-journal-arrow-up me-2"></i>Return to Archive List
+                    </a>
+                </div>
+
+                @if (AntiqueListing is null)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-gold" role="status"></div>
+                        <p class="text-gold mt-3 font-serif italic">Retrieving original scrolls...</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="inventory-scroll p-4 p-md-5">
+                        @* Header stilizat *@
+                        <div class="text-center mb-5 border-bottom border-dark pb-4">
+                            <h5 class="archive-label text-uppercase">Record Correction Module</h5>
+                            <h1 class="archive-title">Amend Heritage Entry</h1>
+                            <p class="archive-author fs-6">Modifying Document No. #@AntiqueListing.Id</p>
+                        </div>
+
+                        <EditForm Model="AntiqueListing" OnValidSubmit="UpdateAntiqueListing" FormName="edit">
+                            <DataAnnotationsValidator />
+
+                            <div class="row g-4">
+                                @* Identificatori (Read Only în design) *@
+                                <div class="col-md-6">
+                                    <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-person-badge me-2"></i>Curator ID</label>
+                                    <InputNumber @bind-Value="AntiqueListing.SellerId" class="form-control ink-input" />
+                                    <ValidationMessage For="() => AntiqueListing.SellerId" class="text-danger small" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-hash me-2"></i>Book Archive Reference</label>
+                                    <InputNumber @bind-Value="AntiqueListing.BookId" class="form-control ink-input" />
+                                    <ValidationMessage For="() => AntiqueListing.BookId" class="text-danger small" />
+                                </div>
+
+                                @* Valoare și Stare *@
+                                <div class="col-md-6">
+                                    <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-currency-exchange me-2"></i>Revised Valuation (RON)</label>
+                                    <InputNumber @bind-Value="AntiqueListing.Price" class="form-control ink-input" />
+                                    <ValidationMessage For="() => AntiqueListing.Price" class="text-danger small" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-shield-shaded me-2"></i>Condition Update</label>
+                                    <InputSelect @bind-Value="AntiqueListing.Condition" class="form-select ink-input">
+                                        <option value="As New">As New</option>
+                                        <option value="Fine">Fine</option>
+                                        <option value="Good">Good</option>
+                                        <option value="Fair">Fair</option>
+                                    </InputSelect>
+                                    <ValidationMessage For="() => AntiqueListing.Condition" class="text-danger small" />
+                                </div>
+
+                                @* Descriere și Imagine *@
+                                <div class="col-12">
+                                    <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-feather me-2"></i>Updated Curator's Notes</label>
+                                    <InputTextArea @bind-Value="AntiqueListing.Description" class="form-control ink-input" rows="3" />
+                                    <ValidationMessage For="() => AntiqueListing.Description" class="text-danger small" />
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-image me-2"></i>Update Visual Reference (URL)</label>
+                                    <InputText @bind-Value="AntiqueListing.ImagePath" class="form-control ink-input" />
+                                    <ValidationMessage For="() => AntiqueListing.ImagePath" class="text-danger small" />
+                                </div>
+
+                                @* Status Switch-uri *@
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch wax-seal-switch p-2">
+                                        <InputCheckbox id="issold" @bind-Value="AntiqueListing.IsSold" class="form-check-input" />
+                                        <label class="form-check-label font-serif fw-bold" for="issold">Mark as Transacted (Sold)</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch wax-seal-switch p-2">
+                                        <InputCheckbox id="isexchange" @bind-Value="AntiqueListing.IsExchangeOnly" class="form-check-input" />
+                                        <label class="form-check-label font-serif fw-bold" for="isexchange">Barter Only</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @* Acțiuni *@
+                            <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top border-dark">
+                                <a href="/antiquelistings" class="btn-scroll-edit px-4 py-2 text-decoration-none">Cancel Changes</a>
+                                <button type="submit" class="btn-wax-seal px-5 py-2">
+                                    Re-Seal Record
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+    body {
+        background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png'), linear-gradient(to bottom, #2c1e14, #3d2b1f);
+        background-attachment: fixed;
+    }
+
+    .inventory-scroll {
+        background-color: #f2e8d5;
+        background-image: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.05) 100%), url('https://www.transparenttextures.com/patterns/old-map.png');
+        border: 1px solid #d4c5a9;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        color: #1a120b;
+        border-radius: 4px;
+    }
+
+    .archive-label {
+        font-family: 'Cinzel', serif;
+        color: #8b6b3e;
+        letter-spacing: 3px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .archive-title {
+        font-family: 'IM Fell English', serif;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #1a120b;
+    }
+
+    .archive-author {
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        color: #5a3e2b;
+    }
+
+    .ink-input {
+        background: rgba(255, 255, 255, 0.3) !important;
+        border: none !important;
+        border-bottom: 1px solid #8b6b3e !important;
+        border-radius: 0 !important;
+        color: #1a120b !important;
+        font-family: 'Playfair Display', serif;
+    }
+
+        .ink-input:focus {
+            background: rgba(255, 255, 255, 0.5) !important;
+            box-shadow: none !important;
+            border-bottom: 2px solid #1a120b !important;
+        }
+
+    .btn-wax-seal {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        font-family: 'Cinzel', serif;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        transition: 0.3s;
+    }
+
+        .btn-wax-seal:hover {
+            background: #900000;
+            transform: translateY(-2px);
+        }
+
+    .btn-scroll-edit {
+        border: 1px solid #2c1e14;
+        color: #2c1e14;
+        font-family: 'Cinzel', serif;
+    }
+
+    .btn-quill {
+        color: #d4c5a9;
+        font-family: 'Cinzel', serif;
+    }
+
+    .wax-seal-switch .form-check-input:checked {
+        background-color: #7a0000;
+        border-color: #500000;
+    }
+
+    .text-gold {
+        color: #c5a059;
+    }
+</style>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private AntiqueListing? AntiqueListing { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        AntiqueListing ??= await context.AntiqueListing.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (AntiqueListing is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task UpdateAntiqueListing()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(AntiqueListing!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!AntiqueListingExists(AntiqueListing!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/antiquelistings");
+    }
+
+    private bool AntiqueListingExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.AntiqueListing.Any(e => e.Id == id);
+    }
+}

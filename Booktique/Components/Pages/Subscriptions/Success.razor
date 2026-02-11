@@ -1,6 +1,7 @@
 ﻿@page "/success"
 @using Microsoft.EntityFrameworkCore
 @using System.Security.Claims
+@using static Booktique.Models.MainModels.User
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
@@ -64,15 +65,16 @@
 </style>
 
 @code {
+    [SupplyParameterFromQuery]
+    public string? Plan { get; set; } // Primește "monthly" sau "yearly" din URL (?plan=monthly)
+
     protected override async Task OnInitializedAsync()
     {
-        // 1. Preluăm starea de autentificare
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
         if (user.Identity?.IsAuthenticated == true)
         {
-            // 2. Extragem ID-ul utilizatorului din Claims
             var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
                             ?? user.FindFirst("UserId")?.Value;
 
@@ -81,23 +83,27 @@
                 using var context = DbFactory.CreateDbContext();
                 var dbUser = await context.User.FindAsync(userId);
 
-                if (dbUser != null && !dbUser.IsSubscribed)
+                if (dbUser != null)
                 {
-                    // 3. Actualizăm coloana IsSubscribed în SQL Server
-                    dbUser.IsSubscribed = true;
-                    await context.SaveChangesAsync();
+                    // Mapăm string-ul din URL la tipul de Enum
+                    var newLevel = Plan?.ToLower() switch
+                    {
+                        "monthly" => SubscriptionLevel.Monthly,
+                        "yearly" => SubscriptionLevel.Yearly,
+                        _ => SubscriptionLevel.None
+                    };
+
+                    // Actualizăm doar dacă planul primit este valid și diferit de ce are deja
+                    if (newLevel != SubscriptionLevel.None && dbUser.IsSubscribed != newLevel)
+                    {
+                        dbUser.IsSubscribed = newLevel;
+                        await context.SaveChangesAsync();
+                    }
                 }
             }
         }
     }
 
-    private void GoHome()
-    {
-        NavManager.NavigateTo("/");
-    }
-
-    private void GoToChat()
-    {
-        NavManager.NavigateTo("/chat");
-    }
+    private void GoHome() => NavManager.NavigateTo("/");
+    private void GoToChat() => NavManager.NavigateTo("/chat");
 }

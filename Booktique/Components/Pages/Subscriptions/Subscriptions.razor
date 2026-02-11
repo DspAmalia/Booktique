@@ -7,162 +7,206 @@
 
 <PageTitle>Subscriptions</PageTitle>
 
-<hr />
-<div class="subscriptions-container">
-    <div class="card book-card">
-        <div class="card-header text-center">
-            <h2><strong>Test</strong> Subscription - 1 RON</h2>
+<div class="main-wrapper py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-4 fw-bold text-brown">Choose Your Plan</h2>
+            <p class="text-muted">Join the Booktique community and enjoy exclusive benefits.</p>
         </div>
-        <div class="card-body">
-            <p class="card-text">
-                With your monthly subscription you gain access to:
-            </p>
-            <ul>
-                <li>Right to borrow 1 book </li>
-                <li>Right to purchase products from the café</li>
-                <li>Returning books on time</li>
-                <li>Penalty fees (if applicable): <strong>2 RON/day late</strong></li>
-                <li>Subscription suspension after <strong>14 days of non-payment</strong></li>
-            </ul>
-        </div>
-        <div class="card-footer text-center">
-            <form action="/create-checkout-session" method="POST">
-                <!-- priceId este ID-ul de preț din Stripe Dashboard -->
-                <input type="hidden" name="priceId" value="price_1SlpLfInaqYDz3lYP7ltigGe" />
-                <button type="submit" class="btn-subs">Activate Subscription</button>
-            </form>
-        </div>
-    </div>
 
-<div class="card book-card">
-    <div class="card-header text-center">
-        <h2><strong>Monthly</strong> Subscription - 50 RON</h2>
-    </div>
-    <div class="card-body">
-        <p class="card-text">
-            With your monthly subscription you gain access to:
-        </p>
-        <ul>
-            <li>Right to borrow 1 book </li>
-            <li>Right to purchase products from the café</li>
-            <li>Returning books on time</li>
-            <li>Penalty fees (if applicable): <strong>2 RON/day late</strong></li>
-            <li>Subscription suspension after <strong>14 days of non-payment</strong></li>
-        </ul>
-    </div>
-    <div class="card-footer text-center">
-        <form action="/create-checkout-session" method="POST">
-                <!-- priceId este ID-ul de preț din Stripe Dashboard -->
-                <input type="hidden" name="priceId" value="price_1SaWieInaqYDz3lYBqfhbi3M" />
-                <button type="submit" class="btn-subs">Activate Subscription</button>
-        </form>
-    </div>
-</div>
+        <div class="subscriptions-grid">
+            @* --- TEST SUBSCRIPTION --- *@
+            <div class="glass-card plan-card">
+                <div class="plan-header text-center">
+                    <div class="plan-badge">Trial</div>
+                    <h2 class="fw-bold text-brown">Test</h2>
+                    <div class="price text-orange">1 <span>lei</span></div>
+                </div>
+                <div class="plan-body">
+                    <ul class="benefit-list">
+                        <li><i class="bi bi-book"></i> Borrow 1 book</li>
+                        <li><i class="bi bi-cup-hot"></i> Cafe access</li>
+                        <li><i class="bi bi-calendar-check"></i> Standard returns</li>
+                        <li><i class="bi bi-exclamation-triangle"></i> 2 lei/day late fee</li>
+                    </ul>
+                </div>
+                <div class="plan-footer">
+                    <form action="/create-checkout-session" method="POST">
+                        <input type="hidden" name="priceId" value="price_1SlpLfInaqYDz3lYP7ltigGe" />
+                        <button type="submit" class="btn btn-brown w-100 rounded-pill fw-bold">Activate Trial</button>
+                    </form>
+                </div>
+            </div>
 
-<div class="card book-card">
-    <div class="card-header text-center">
-        <h2><strong>Yearly</strong> Subscription - 400 RON</h2>
+            @* --- MONTHLY SUBSCRIPTION --- *@
+            <div class="glass-card plan-card popular">
+                <div class="plan-header text-center">
+                    <div class="plan-badge bg-orange">Most Popular</div>
+                    <h2 class="fw-bold text-brown">Monthly</h2>
+                    <div class="price text-orange">50 <span>lei</span></div>
+                </div>
+                <div class="plan-body">
+                    <ul class="benefit-list">
+                        <li><i class="bi bi-book"></i> Borrow 1 book</li>
+                        <li><i class="bi bi-cup-hot"></i> Cafe access</li>
+                        <li><i class="bi bi-calendar-check"></i> Standard returns</li>
+                        <li><i class="bi bi-exclamation-triangle"></i> 2 lei/day late fee</li>
+                    </ul>
+                </div>
+                <div class="plan-footer">
+                    <form action="/create-checkout-session" method="POST">
+                        <input type="hidden" name="priceId" value="price_1SaWieInaqYDz3lYBqfhbi3M" />
+                        <button type="submit" class="btn btn-brown w-100 rounded-pill fw-bold">Go Monthly</button>
+                    </form>
+                </div>
+            </div>
+
+            @* --- YEARLY SUBSCRIPTION --- *@
+            <div class="glass-card plan-card">
+                <div class="plan-header text-center">
+                    <div class="plan-badge">Best Value</div>
+                    <h2 class="fw-bold text-brown">Yearly</h2>
+                    <div class="price text-orange">400 <span>lei</span></div>
+                </div>
+                <div class="plan-body">
+                    <ul class="benefit-list">
+                        <li><i class="bi bi-journals"></i> Borrow 2 books/month</li>
+                        <li><i class="bi bi-cup-hot"></i> Cafe access</li>
+                        <li><i class="bi bi-star"></i> Premium events</li>
+                        <li><i class="bi bi-check2-all"></i> Priority Support</li>
+                    </ul>
+                </div>
+                <div class="plan-footer">
+                    <form action="/create-checkout-session" method="POST">
+                        <input type="hidden" name="priceId" value="price_1Slp75InaqYDz3lYBN65bI5x" />
+                        <button type="submit" class="btn btn-brown w-100 rounded-pill fw-bold">Activate Yearly</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <p class="card-text">
-            With your yearly subscription you gain access to:
-        </p>
-        <ul>
-            <li>Right to borrow 2 books/month</li>
-            <li>Right to purchase products from the café</li>
-            <li>Returning books on time</li>
-            <li>Penalty fees (if applicable): <strong>2 RON/day late</strong></li>
-            <li>Subscription suspension after <strong>14 days of non-payment</strong></li>
-        </ul>
-    </div>
-    <div class="card-footer text-center">
-        <form action="/create-checkout-session" method="POST">
-            <!-- priceId pentru abonamentul anual -->
-                <input type="hidden" name="priceId" value="price_1Slp75InaqYDz3lYBN65bI5x" />
-            <button type="submit" class="btn-subs">Activate Yearly Subscription</button>
-        </form>
-    </div>
-</div>
 </div>
 
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
+    :root {
+        --brown-primary: #5a3e2b;
+        --orange-accent: #f0a500;
+    }
+
+    body {
         background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .subscriptions-container {
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .text-orange {
+        color: var(--orange-accent);
+    }
+
+    .bg-orange {
+        background-color: var(--orange-accent) !important;
+        color: white;
+    }
+
+    .subscriptions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        padding-top: 1rem;
+    }
+
+    .glass-card {
+        background: white;
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 2.5rem;
+        transition: all 0.3s ease;
         display: flex;
-        justify-content: center;
-        gap: 2rem; /* spațiu între carduri */
-        margin-top: 2rem;
-        flex-wrap: wrap; /* ca să se așeze frumos pe ecrane mici */
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
     }
 
-    .book-card {
-        max-width: 600px;
-        margin: 2rem auto;
-        border: 2px solid #8d6e63; /* dark brown, like old book edges */
-        border-radius: 12px;
-        background: #fdfaf4; /* parchment-like background */
-        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    .plan-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(90, 62, 43, 0.15);
     }
 
-        .book-card:hover{
-            transform: scale(1.02);
+    .plan-card.popular {
+        border: 2px solid var(--orange-accent);
+        transform: scale(1.05);
+    }
+
+        .plan-card.popular:hover {
+            transform: scale(1.05) translateY(-10px);
         }
 
-        .book-card .card-header {
-            background: #8d6e63;
-            color: #fff;
-            border-bottom: 2px solid #8d6e63;
-            padding: 1rem;
-        }
-
-        .book-card h2 {
-            margin: 0;
-            font-size: 1.8rem;
-            letter-spacing: 1px;
-        }
-
-        .book-card .card-body {
-            padding: 1.5rem;
-            font-size: 1.1rem;
-            line-height: 1.6;
-        }
-
-        .book-card ul {
-            list-style-type: "📖 ";
-            padding-left: 1.5rem;
-        }
-
-        .book-card li {
-            margin-bottom: 0.6rem;
-        }
-
-        .book-card .card-footer {
-            background: #f0e9dd;
-            border-top: 1px solid #d6c9b3;
-            padding: 1rem;
-        }
-
-    .btn-subs {
-        background-color: #f4d03f;
-        color: #fff;
+    .plan-badge {
+        display: inline-block;
+        padding: 0.25rem 1rem;
+        background: #eee;
+        border-radius: 20px;
+        font-size: 0.8rem;
         font-weight: bold;
-        padding: 0.8rem 1.6rem;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.2s ease;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
     }
 
-        .btn-subs:hover {
-            background-color: #f4d03f;
-            transform: scale(1.05);
+    .price {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 1rem 0;
+    }
+
+        .price span {
+            font-size: 1.2rem;
+            font-weight: normal;
         }
 
+    .benefit-list {
+        list-style: none;
+        padding: 0;
+        margin: 2rem 0;
+    }
+
+        .benefit-list li {
+            margin-bottom: 1rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+        }
+
+        .benefit-list i {
+            color: var(--orange-accent);
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+    .btn-brown {
+        background: var(--brown-primary);
+        color: white;
+        border: none;
+        padding: 0.8rem;
+        transition: 0.3s;
+    }
+
+        .btn-brown:hover {
+            background: #452f21;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(90, 62, 43, 0.3);
+            color: white;
+        }
+
+    @@media (max-width: 768px) {
+        .plan-card.popular {
+            transform: none;
+        }
+
+            .plan-card.popular:hover {
+                transform: translateY(-10px);
+            }
+    }
 </style>

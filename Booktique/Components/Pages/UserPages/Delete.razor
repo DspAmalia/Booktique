@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
+@using static Booktique.Models.MainModels.User
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 
@@ -42,10 +43,30 @@
                             <div class="col-4 fw-bold text-muted ultra-small text-uppercase">Email:</div>
                             <div class="col-8 text-brown small text-truncate">@user.UserEmail</div>
                         </div>
-                        <div class="row mb-2">
-                            <div class="col-4 fw-bold text-muted ultra-small text-uppercase">Status:</div>
-                            <div class="col-8 small">
-                                @(user.IsSubscribed ? "✅ Subscribed" : "❌ Not Subscribed")
+                        <div class="row mb-2 align-items-center">
+                            <div class="col-4 fw-bold text-muted ultra-small text-uppercase">Subscription:</div>
+                            <div class="col-8">
+                                @switch (user.IsSubscribed)
+                                {
+                                    case SubscriptionLevel.Yearly:
+                                        <span class="text-orange small fw-bold">
+                                            <i class="bi bi-star-fill me-1"></i> Yearly Premium
+                                        </span>
+                                        break;
+
+                                    case SubscriptionLevel.Monthly:
+                                        <span class="text-brown small fw-bold">
+                                            <i class="bi bi-calendar-check-fill me-1"></i> Monthly Plan
+                                        </span>
+                                        break;
+
+                                    case SubscriptionLevel.None:
+                                    default:
+                                        <span class="text-muted small">
+                                            <i class="bi bi-x-circle me-1"></i> No Active Plan
+                                        </span>
+                                        break;
+                                }
                             </div>
                         </div>
                         <div class="row">
