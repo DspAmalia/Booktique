@@ -187,42 +187,46 @@
             </div>
         </div>
 
-        @* --- BOOKS GRID --- *@
+        @* --- BOOKS GRID (ONLY PUBLIC/NO SELLER) --- *@
         <div class="col-lg-9 col-md-8">
             <div class="books-grid">
                 @foreach (var book in PaginatedBooks)
                 {
-                    <div class="book-card-wrapper position-relative">
-                        @if (book.BookStock == 0)
-                        {
-                            <div class="sold-out-badge">
-                                <span class="badge bg-danger shadow">SOLD OUT</span>
-                            </div>
-                        }
-                        <div class="book-card shadow-sm @(book.BookStock == 0 ? "is-sold-out" : "")">
-                            <div class="book-img-container">
-                                <a href="@($"/books/details?bookid={book.BookId}")" class="d-block w-100 h-100 text-center p-3">
-                                    <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img" />
-                                </a>
-
-                                <button type="button" class="wishlist-btn" @onclick:stopPropagation="true" @onclick="() => ToggleFavorite(book)">
-                                    <i class="bi @(favoriteBookIds.Contains(book.BookId) ? "bi-heart-fill text-danger" : "bi-heart")"></i>
-                                </button>
-                            </div>
-
-                            <a class="text-decoration-none text-dark" href="@($"/books/details?bookid={book.BookId}")">
-                                <div class="book-info p-3 d-flex flex-column align-items-center">
-                                    <h5 class="book-title text-truncate text-center w-100 mb-1">
-                                        <strong>@book.BookTitle</strong>
-                                    </h5>
-                                    <p class="book-author text-muted small mb-2 text-center w-100">@book.BookAuthor</p>
-                                    <div class="mt-1">
-                                        <span class="book-price fw-bold text-accent-yellow">@book.BookPrice LEI</span>
-                                    </div>
+                    @* Afișăm doar dacă SellerId este null sau 0 *@
+                    @if (book.SellerId == null || book.SellerId == 0)
+                    {
+                        <div class="book-card-wrapper position-relative">
+                            @if (book.BookStock == 0)
+                            {
+                                <div class="sold-out-badge">
+                                    <span class="badge bg-danger shadow">SOLD OUT</span>
                                 </div>
-                            </a>
+                            }
+                            <div class="book-card shadow-sm @(book.BookStock == 0 ? "is-sold-out" : "")">
+                                <div class="book-img-container">
+                                    <a href="@($"/books/details?bookid={book.BookId}")" class="d-block w-100 h-100 text-center p-3">
+                                        <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img" />
+                                    </a>
+
+                                    <button type="button" class="wishlist-btn" @onclick:stopPropagation="true" @onclick="() => ToggleFavorite(book)">
+                                        <i class="bi @(favoriteBookIds.Contains(book.BookId) ? "bi-heart-fill text-danger" : "bi-heart")"></i>
+                                    </button>
+                                </div>
+
+                                <a class="text-decoration-none text-dark" href="@($"/books/details?bookid={book.BookId}")">
+                                    <div class="book-info p-3 d-flex flex-column align-items-center">
+                                        <h5 class="book-title text-truncate text-center w-100 mb-1">
+                                            <strong>@book.BookTitle</strong>
+                                        </h5>
+                                        <p class="book-author text-muted small mb-2 text-center w-100">@book.BookAuthor</p>
+                                        <div class="mt-1">
+                                            <span class="book-price fw-bold text-accent-yellow">@book.BookPrice LEI</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    }
                 }
             </div>
         </div>
@@ -627,10 +631,11 @@
     {
         context = DbFactory.CreateDbContext();
         var allBooks = await context.Book.ToListAsync();
-        books = Shuffle(allBooks);
+        var publicBooks = allBooks.Where(b => b.SellerId == null || b.SellerId == 0).ToList();
+        books = Shuffle(publicBooks);
 
-        categories = allBooks.Select(b => b.BookCategory).Distinct().OrderBy(c => c).ToList();
-        years = allBooks.Select(b => b.BookYear.ToString()).Distinct().OrderByDescending(y => y).ToList();
+        categories = publicBooks.Select(b => b.BookCategory).Distinct().OrderBy(c => c).ToList();
+        years = publicBooks.Select(b => b.BookYear.ToString()).Distinct().OrderByDescending(y => y).ToList();
 
         var topIds = await context.OrderItem
         .GroupBy(oi => oi.BookId)

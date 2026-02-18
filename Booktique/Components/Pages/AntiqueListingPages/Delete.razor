@@ -1,69 +1,55 @@
-﻿@page "/antiquelistings/delete"
+﻿@page "/antique/delete"
 @rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Expunge Record | Booktique Heritage</PageTitle>
+<PageTitle>Delete Listing | Antique Booktique</PageTitle>
 
-<div class="antique-delete-bg py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 text-center">
+                    <i class="bi bi-exclamation-octagon text-danger display-1 mb-3"></i>
+                    <h2 class="fw-bold mb-3">Delete Confirmation</h2>
 
-                <div class="mb-4">
-                    <a href="/antiquelistings" class="btn-quill text-decoration-none">
-                        <i class="bi bi-arrow-left me-2"></i>Return to Safety
-                    </a>
-                </div>
-
-                <div class="inventory-scroll p-4 p-md-5 border-danger-subtle">
-                    @* Header de Avertizare *@
-                    <div class="text-center mb-5 border-bottom border-danger pb-4">
-                        <h5 class="archive-label text-danger opacity-75 text-uppercase">Final Warning</h5>
-                        <h1 class="archive-title">Expunge Archive Record</h1>
-                        <p class="archive-author text-muted">You are about to permanently strike this entry from the chronicles.</p>
-                    </div>
-
-                    @if (antiquelisting is null)
+                    @if (book is null)
                     {
-                        <div class="text-center py-5">
-                            <div class="spinner-border text-brown" role="status"></div>
-                            <p class="font-serif italic mt-3">Locating original scrolls...</p>
+                        <div class="py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="text-muted mt-2">Verifying record integrity...</p>
                         </div>
+                    }
+                    else if (book.Seller is null)
+                    {
+                        @* CAZUL ÎN CARE SELLER-UL LIPSEȘTE *@
+                        <div class="alert alert-warning border-0 shadow-sm">
+                            <h5 class="fw-bold"><i class="bi bi-shield-lock-fill me-2"></i>Action Restricted</h5>
+                            <p class="mb-0">This listing is currently locked because the <strong>Seller information is missing or null</strong>. Only valid merchant records can be processed for deletion.</p>
+                        </div>
+                        <a href="/antiquelistings" class="btn btn-secondary w-100 rounded-pill mt-3">Back to Listings</a>
                     }
                     else
                     {
-                        <div class="alert alert-danger-antique mb-5">
-                            <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
-                            <div>
-                                <strong>Irreversible Action:</strong> Once the seal is broken and the record is burnt, it cannot be recovered from the Great Library.
+                        @* CAZUL ÎN CARE SELLER-UL EXISTĂ *@
+                        <p class="text-muted">Are you sure you want to remove the book <strong>"@book.BookTitle"</strong> posted by <strong>@book.Seller.UserName</strong>?</p>
+
+                        <div class="bg-light p-3 rounded-3 mb-4 text-start">
+                            <div class="small text-muted text-uppercase fw-bold">Seller Verification</div>
+                            <div class="d-flex align-items-center mt-2">
+                                <div class="bg-success rounded-circle p-1 me-2" style="width: 10px; height: 10px;"></div>
+                                <span class="fw-bold">@book.Seller.UserEmail</span>
                             </div>
                         </div>
 
-                        @* Rezumatul Recordului (Style Ledger) *@
-                        <div class="record-preview p-4 mb-5">
-                            <h6 class="registry-section-title mb-4">Summary of the Subject</h6>
-                            <div class="row g-3">
-                                <div class="col-sm-4 fw-bold font-serif text-brown-dark">Record Number:</div>
-                                <div class="col-sm-8 font-serif italic">#@antiquelisting.Id</div>
-
-                                <div class="col-sm-4 fw-bold font-serif text-brown-dark">Catalog Date:</div>
-                                <div class="col-sm-8 font-serif">@antiquelisting.DatePosted.ToString("dd MMMM, yyyy")</div>
-
-                                <div class="col-sm-4 fw-bold font-serif text-brown-dark">Description:</div>
-                                <div class="col-sm-8 font-serif italic text-muted">"@antiquelisting.Description"</div>
-                            </div>
-                        </div>
-
-                        <EditForm Model="antiquelisting" OnValidSubmit="DeleteAntiqueListing" FormName="delete">
-                            <div class="d-flex justify-content-center gap-4 align-items-center">
-                                <a href="/antiquelistings" class="btn-scroll-edit px-4 py-2 text-decoration-none">Preserve Record</a>
-
-                                <button type="submit" class="btn-expunge px-5 py-2">
-                                    <i class="bi bi-fire me-2"></i>Expunge & Burn
+                        <EditForm Model="book" OnValidSubmit="DeleteAntiqueListing" FormName="delete">
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-danger btn-lg rounded-pill shadow-sm">
+                                    <i class="bi bi-trash3 me-2"></i>Delete Permanently
                                 </button>
+                                <a href="/antiquelistings" class="btn btn-outline-secondary btn-lg rounded-pill border-0">Cancel and Keep</a>
                             </div>
                         </EditForm>
                     }
@@ -84,7 +70,7 @@
     .inventory-scroll {
         background-color: #f2e8d5;
         background-image: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.05) 100%), url('https://www.transparenttextures.com/patterns/old-map.png');
-        border: 2px solid #a73a3a; 
+        border: 2px solid #a73a3a;
         box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         border-radius: 4px;
     }
@@ -162,8 +148,9 @@
     }
 </style>
 
+
 @code {
-    private AntiqueListing? antiquelisting;
+    private Book? book;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -171,9 +158,13 @@
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        antiquelisting = await context.AntiqueListing.FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (antiquelisting is null)
+        // FOARTE IMPORTANT: Folosim .Include(b => b.Seller) pentru a încărca datele vânzătorului
+        book = await context.Book
+            .Include(b => b.Seller)
+            .FirstOrDefaultAsync(m => m.BookId == Id);
+
+        if (book is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
@@ -181,12 +172,18 @@
 
     private async Task DeleteAntiqueListing()
     {
-        using var context = DbFactory.CreateDbContext();
-        if (antiquelisting != null)
+        if (book?.Seller != null)
         {
-            context.AntiqueListing.Remove(antiquelisting);
-            await context.SaveChangesAsync();
-            NavigationManager.NavigateTo("/antiquelistings");
+            using var context = DbFactory.CreateDbContext();
+
+            var dbBook = await context.Book.FindAsync(book.BookId);
+
+            if (dbBook != null)
+            {
+                context.Book.Remove(dbBook);
+                await context.SaveChangesAsync();
+                NavigationManager.NavigateTo("/antiquelistings");
+            }
         }
     }
 }

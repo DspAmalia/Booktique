@@ -4,6 +4,15 @@ using System.Text.Json.Serialization;
 
 namespace Booktique.Models.MainModels
 {
+    public enum OrderStatus
+    {
+        Pending,    // Comandă plasată
+        Confirmed,  // Verificată de admin
+        Shipped,    // Trimisă prin curier
+        Delivered,  // Livrată cu succes
+        Cancelled   // Anulată
+    }
+
     public class Order
     {
         public int OrderId { get; set; }
@@ -30,7 +39,13 @@ namespace Booktique.Models.MainModels
 
         public int UserId { get; set; }
 
+        [Required]
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+
+        public DateTime LastUpdated { get; set; } = DateTime.Now;
+
         [JsonIgnore]
         public List<OrderItem> OrderItems { get; set; } = new();
     }
 }
+

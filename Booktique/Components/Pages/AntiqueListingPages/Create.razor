@@ -1,12 +1,13 @@
-﻿@page "/antiquelistings/create"
+﻿@page "/antique/create"
 @rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
+@using System.Security.Claims
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
-@inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthStateProvider
 
-<PageTitle>Register New Artifact | Booktique Heritage</PageTitle>
+<PageTitle>Register New Artifact | Antique Booktique </PageTitle>
 
 <div class="antique-create-bg py-5">
     <div class="container">
@@ -15,7 +16,7 @@
 
                 @* Buton Înapoi *@
                 <div class="mb-4">
-                    <a href="/antiquelistings" class="btn-quill text-decoration-none">
+                    <a href="/antique" class="btn-quill text-decoration-none">
                         <i class="bi bi-arrow-left me-2"></i>Return to Archives
                     </a>
                 </div>
@@ -24,98 +25,96 @@
                     <div class="text-center mb-5 border-bottom border-dark pb-4">
                         <h5 class="archive-label text-uppercase">Official Registry Entry</h5>
                         <h1 class="archive-title">Book Acquisition Record</h1>
-                        <p class="archive-author fs-6">Documenting the passage of literary heritage</p>
+                        <p class="archive-author fs-6">Documenting a new addition to our collective heritage</p>
                     </div>
 
-                    <EditForm Model="AntiqueListing" OnValidSubmit="AddAntiqueListing" FormName="create-heritage">
+                    <EditForm Model="NewBook" OnValidSubmit="HandleSubmit" FormName="create-heritage">
                         <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger small mb-4" />
 
                         <div class="row g-4">
-                            @* Secțiunea 1: Identificarea Cărții *@
+                            @* I. Identificare *@
                             <div class="col-12">
-                                <h6 class="registry-section-title"><i class="bi bi-book me-2"></i>I. Identification</h6>
-                                <div class="p-3 border-dashed rounded mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <label class="font-serif fw-bold text-brown-dark">Cataloged Title</label>
-                                        <button type="button" class="btn-ink-sm" @onclick="() => isManualEntry = !isManualEntry">
-                                            <i class="bi @(isManualEntry ? "bi-search" : "bi-pencil-square") me-1"></i>
-                                            @(isManualEntry ? "Search Database" : "Custom Entry")
-                                        </button>
+                                <h6 class="registry-section-title"><i class="bi bi-book me-2"></i>I. Tome Identification</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="font-serif fw-bold text-brown-dark">Title</label>
+                                        <InputText @bind-Value="NewBook.BookTitle" class="form-control ink-input" />
+                                        <ValidationMessage For="() => NewBook.BookTitle" class="text-danger small italic" />
                                     </div>
-
-                                    @if (!isManualEntry)
-                                    {
-                                        <InputSelect @bind-Value="AntiqueListing.BookId" class="form-select ink-input">
-                                            <option value="0">-- Select Title from Library Archives --</option>
-                                            @foreach (var book in allAvailableBooks)
-                                            {
-                                                <option value="@book.BookId">@book.BookTitle — @book.BookAuthor</option>
-                                            }
-                                        </InputSelect>
-                                    }
-                                    else
-                                    {
-                                        <div class="alert alert-sepia small animate__animated animate__fadeIn">
-                                            <i class="bi bi-info-circle me-2"></i>Since this volume is not in our archives, please provide full details in the <strong>Curator's Notes</strong> below.
-                                        </div>
-                                    }
-                                    <ValidationMessage For="() => AntiqueListing.BookId" class="text-danger small italic" />
+                                    <div class="col-md-6">
+                                        <label class="font-serif fw-bold text-brown-dark">Author</label>
+                                        <InputText @bind-Value="NewBook.BookAuthor" class="form-control ink-input" />
+                                        <ValidationMessage For="() => NewBook.BookAuthor" class="text-danger small italic" />
+                                    </div>
                                 </div>
                             </div>
 
-                            @* Secțiunea 2: Starea și Valoarea *@
-                            <div class="col-md-6">
-                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-shield-check me-2"></i>II. Preservation State</label>
-                                <InputSelect @bind-Value="AntiqueListing.Condition" class="form-select ink-input">
-                                    <option value="">-- Condition --</option>
-                                    <option value="As New">Pristine / As New</option>
-                                    <option value="Fine">Fine Preservation</option>
-                                    <option value="Good">Good (Readable)</option>
-                                    <option value="Fair">Fair (Signs of Age)</option>
-                                    <InputSelect @bind-Value="AntiqueListing.Condition" />
-                                </InputSelect>
-                                <ValidationMessage For="() => AntiqueListing.Condition" class="text-danger small" />
+                            @* II. Detalii Tehnice *@
+                            <div class="col-md-4">
+                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-house me-2"></i>II. Publishing House</label>
+                                <InputText @bind-Value="NewBook.BookPublishingHouse" class="form-control ink-input" />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="font-serif fw-bold text-brown-dark">Year</label>
+                                <InputNumber @bind-Value="NewBook.BookYear" class="form-control ink-input" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="font-serif fw-bold text-brown-dark">Language</label>
+                                <InputText @bind-Value="NewBook.BookLanguage" class="form-control ink-input" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="font-serif fw-bold text-brown-dark">Pages</label>
+                                <InputNumber @bind-Value="NewBook.BookNumberPag" class="form-control ink-input" />
+                                <ValidationMessage For="() => NewBook.BookNumberPag" class="text-danger small" />
                             </div>
 
+                            @* III. Stare și Preț *@
                             <div class="col-md-6">
-                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-currency-exchange me-2"></i>III. Valuation (RON)</label>
+                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-shield-check me-2"></i>III. Preservation State</label>
+                                <InputSelect @bind-Value="NewBook.Condition" class="form-select ink-input">
+                                    <option value="">-- Select Condition --</option>
+                                    <option value="Mint">Mint (Pristine)</option>
+                                    <option value="Fine">Fine (Light wear)</option>
+                                    <option value="Good">Good (Aged but intact)</option>
+                                    <option value="Fair">Fair (Significant wear)</option>
+                                    <option value="Poor">Poor (Fragile/Damaged)</option>
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-currency-exchange me-2"></i>IV. Valuation (RON)</label>
                                 <div class="input-group">
-                                    <InputNumber @bind-Value="AntiqueListing.Price" class="form-control ink-input" disabled="@AntiqueListing.IsExchangeOnly" />
+                                    <InputNumber @bind-Value="NewBook.BookPrice" class="form-control ink-input" />
                                     <span class="input-group-text ink-input-addon">RON</span>
                                 </div>
-                                <ValidationMessage For="() => AntiqueListing.Price" class="text-danger small" />
                             </div>
 
-                            @* Secțiunea 3: Note și Vizual *@
-                            <div class="col-12">
-                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-feather me-2"></i>IV. Curator's Notes & Observations</label>
-                                <InputTextArea @bind-Value="AntiqueListing.Description" class="form-control ink-input" rows="4"
-                                               placeholder="Describe unique markings, inscriptions, or the history of this specific copy..." />
-                                <ValidationMessage For="() => AntiqueListing.Description" class="text-danger small" />
+                            @* IV. Vizual și Categorie *@
+                            <div class="col-md-6">
+                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-camera me-2"></i>V. Visual Capture (URL)</label>
+                                <InputText @bind-Value="NewBook.BookCoverPath" class="form-control ink-input" placeholder="http://..." />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="font-serif fw-bold text-brown-dark">Category</label>
+                                <InputSelect @bind-Value="NewBook.BookCategory" class="form-select ink-input">
+                                    <option value="">-- Choose Category --</option>
+                                    <option value="Fiction">Fiction</option>
+                                    <option value="Philosophy">Philosophy</option>
+                                    <option value="History">History</option>
+                                    <option value="Rare">Rare Artifact</option>
+                                </InputSelect>
                             </div>
 
+                            @* V. Descriere *@
                             <div class="col-12">
-                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-camera me-2"></i>V. Photographic Evidence (URL)</label>
-                                <InputText @bind-Value="AntiqueListing.ImagePath" class="form-control ink-input" placeholder="Link to a clear capture of the book..." />
-                                <ValidationMessage For="() => AntiqueListing.ImagePath" class="text-danger small" />
-                            </div>
-
-                            @* Secțiunea 4: Termeni *@
-                            <div class="col-12">
-                                <div class="form-check form-switch wax-seal-switch p-3 border rounded">
-                                    <InputCheckbox id="isexchange" @bind-Value="AntiqueListing.IsExchangeOnly" class="form-check-input ms-0 me-3" />
-                                    <label class="form-check-label font-serif fw-bold pt-1" for="isexchange">
-                                        This Artifact is strictly for Barter/Exchange
-                                    </label>
-                                </div>
+                                <label class="font-serif fw-bold text-brown-dark"><i class="bi bi-feather me-2"></i>VI. Curator's Observations</label>
+                                <InputTextArea @bind-Value="NewBook.BookDescription" class="form-control ink-input" rows="4" />
                             </div>
                         </div>
 
-                        @* Butoane de Finalizare *@
                         <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-dark">
-                            <span class="small italic text-muted">Dated: @DateTime.Now.ToString("dd MMMM, yyyy")</span>
+                            <span class="small italic text-muted">Curator ID: @NewBook.SellerId</span>
                             <div class="d-flex gap-3">
-                                <a href="/antiquelistings" class="btn-scroll-edit px-4 py-2 text-decoration-none">Discard Entry</a>
                                 <button type="submit" class="btn-wax-seal px-5 py-2">
                                     Seal & Register
                                 </button>
@@ -264,38 +263,44 @@
 
 @code {
     [SupplyParameterFromForm]
-    private AntiqueListing AntiqueListing { get; set; } = new();
-
-    private List<Book> allAvailableBooks = new();
-    private User? currentUser;
-    private bool isManualEntry = false;
+    private Book NewBook { get; set; } = new() { BookStock = 1, BookRating = 0 };
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-        var username = HttpContextAccessor.HttpContext?.User?.Identity?.Name;
-        currentUser = await context.User.FirstOrDefaultAsync(u => u.UserName == username);
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? user.FindFirst("sub")?.Value
+                          ?? user.FindFirst("UserId")?.Value;
 
-        allAvailableBooks = await context.Book
-            .OrderBy(b => b.BookTitle)
-            .ToListAsync();
-
-        if (currentUser != null)
+        if (int.TryParse(userIdClaim, out var userId))
         {
-            AntiqueListing.SellerId = currentUser.UserId;
-            AntiqueListing.DatePosted = DateTime.Now;
+            NewBook.SellerId = userId;
+        }
+        else if (!user.Identity?.IsAuthenticated ?? true)
+        {
+            NavigationManager.NavigateTo("/login");
         }
     }
 
-    private async Task AddAntiqueListing()
+    private async Task HandleSubmit()
     {
         using var context = DbFactory.CreateDbContext();
 
-        if (!isManualEntry && AntiqueListing.BookId == 0) return;
-
-        context.AntiqueListing.Add(AntiqueListing);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/antiquelistings");
+        try
+        {
+            // Verificăm SellerId înainte de salvare pentru a fi siguri
+            if (NewBook.SellerId != 0)
+            {
+                context.Book.Add(NewBook);
+                await context.SaveChangesAsync();
+                NavigationManager.NavigateTo("/antique");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
 }

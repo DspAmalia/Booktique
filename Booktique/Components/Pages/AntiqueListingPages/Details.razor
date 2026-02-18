@@ -1,4 +1,4 @@
-﻿@page "/antiquelistings/details"
+﻿@page "/antique/details"
 @rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
@@ -7,104 +7,104 @@
 @inject IJSRuntime JS
 @inject AuthenticationStateProvider AuthStateProvider
 
-<PageTitle>Chronicle of @antiquelisting?.OriginalBook?.BookTitle</PageTitle>
+<PageTitle>Chronicle of @book?.BookTitle</PageTitle>
 
 <div class="antique-details-bg py-5">
     <div class="container">
-        @if (antiquelisting is null)
+        @if (book is null)
         {
             <div class="text-center py-5">
                 <div class="spinner-border text-gold" role="status"></div>
                 <p class="text-gold mt-3 font-serif italic">Unlocking the archives...</p>
             </div>
         }
+        else if (book.SellerId == 0 || book.Seller is null)
+        {
+            @* BLOCARE ACCES DACĂ NU EXISTĂ VÂNZĂTOR *@
+            <div class="archive-folder p-5 text-center">
+                <div class="alert alert-warning border-dark shadow-sm py-4">
+                    <i class="bi bi-shield-lock text-danger display-4 mb-3 d-block"></i>
+                    <h3 class="font-serif fw-bold">Restricted Archive</h3>
+                    <p class="archive-author">This tome has no registered Curator and cannot be inspected.</p>
+                </div>
+                <a href="/antique" class="btn-quill text-decoration-none mt-3 d-inline-block">
+                    <i class="bi bi-arrow-left me-2"></i>Return to Library
+                </a>
+            </div>
+        }
         else
         {
             <div class="mb-4">
-                <a href="/antiquelistings" class="btn-quill text-decoration-none">
+                <a href="/antique" class="btn-quill text-decoration-none">
                     <i class="bi bi-arrow-left me-2"></i>Return to Antique Booktique
                 </a>
             </div>
 
             <div class="archive-folder p-4 p-md-5">
                 <div class="row">
-                    @* Partea Stângă: Imaginea *@
+                    @* Partea Stângă: Imaginea Cărții *@
                     <div class="col-lg-5 mb-4 mb-lg-0">
                         <div class="archive-photo-frame">
-                            <img src="@(string.IsNullOrEmpty(antiquelisting.ImagePath) ? "/images/default-book.png" : antiquelisting.ImagePath)"
-                                 class="img-fluid archive-img" alt="Book Image" />
-                            <div class="photo-caption font-serif">Original Capture of the Tome</div>
+                            <div class="archive-img-container">
+                                <img src="@(string.IsNullOrEmpty(book.BookCoverPath) ? "/images/default-book.png" : book.BookCoverPath)"
+                                     class="archive-img-fixed" alt="Book Image" />
+                            </div>
+                            <div class="photo-caption font-serif">Official Plate: @book.BookTitle</div>
                         </div>
-
-                        @if (antiquelisting.IsSold)
-                        {
-                            <div class="sold-ribbon">TRANSACTED</div>
-                        }
                     </div>
 
-                    @* Partea Dreaptă: Documentația (Detaliile) *@
+                    @* Partea Dreaptă: Documentația (Detaliile din modelul Book) *@
                     <div class="col-lg-7">
                         <div class="archive-content">
-                            <h5 class="archive-label text-uppercase mb-0">Record No. #@antiquelisting.Id</h5>
-                            <h1 class="archive-title mb-1">@antiquelisting.OriginalBook?.BookTitle</h1>
-                            <p class="archive-author fs-4 mb-4">by @antiquelisting.OriginalBook?.BookAuthor</p>
+                            <h5 class="archive-label text-uppercase mb-0">Book Ref. #@book.BookId</h5>
+                            <h1 class="archive-title mb-1">@book.BookTitle</h1>
+                            <p class="archive-author fs-4 mb-4">by @book.BookAuthor</p>
 
                             <div class="archive-separator mb-4"></div>
 
                             <div class="row g-4">
                                 <div class="col-sm-6">
-                                    <h6 class="text-muted fw-bold">Preservation State</h6>
-                                    <span class="badge-antique">@antiquelisting.Condition</span>
+                                    <h6 class="text-muted fw-bold">Published</h6>
+                                    <span class="badge-antique">@book.BookPublishingHouse (@book.BookYear)</span>
                                 </div>
                                 <div class="col-sm-6">
                                     <h6 class="text-muted fw-bold">Valuation</h6>
-                                    <span class="price-ink">
-                                        @(antiquelisting.IsExchangeOnly ? "BARTER/EXCHANGE ONLY" : $"{antiquelisting.Price} RON")
-                                    </span>
+                                    <span class="price-ink">@book.BookPrice RON</span>
                                 </div>
                                 <div class="col-12">
-                                    <h6 class="text-muted fw-bold">Curator's Notes</h6>
-                                    <p class="archive-description">"@antiquelisting.Description"</p>
+                                    <h6 class="text-muted fw-bold">Curator's Description</h6>
+                                    <p class="archive-description">"@book.BookDescription"</p>
                                 </div>
                                 <div class="col-sm-6">
-                                    <h6 class="text-muted fw-bold">Date Cataloged</h6>
-                                    <p class="small">@antiquelisting.DatePosted.ToString("dd MMMM, yyyy")</p>
+                                    <h6 class="text-muted fw-bold">Category & Language</h6>
+                                    <p class="small italic">@book.BookCategory | @book.BookLanguage</p>
                                 </div>
                                 <div class="col-sm-6">
-                                    <h6 class="text-muted fw-bold">Owner Record</h6>
-                                    @if (antiquelisting.Seller != null)
-                                    {
-                                        <p class="small italic text-brown-dark">
-                                            Curator: <strong>@antiquelisting.Seller.UserName</strong> (Verified Member)
-                                        </p>
-                                    }
-                                    else
-                                    {
-                                        <p class="small italic text-brown-dark">Collector #@antiquelisting.SellerId</p>
-                                    }
+                                    <h6 class="text-muted fw-bold">Registered Curator</h6>
+                                    <p class="small italic text-brown-dark">
+                                        <strong>@book.Seller.UserName</strong> (ID: #@book.SellerId)
+                                    </p>
                                 </div>
                             </div>
 
-                            @* Acțiuni în dosar *@
+                            @* Acțiuni *@
                             <div class="d-flex gap-3 mt-5 pt-4 border-top border-dark-subtle">
-                                @* Oricine poate trimite un mesaj, mai puțin proprietarul *@
-                                @if (!antiquelisting.IsSold && currentUserId != antiquelisting.SellerId.ToString())
+                                @if (currentUserId != book.SellerId.ToString())
                                 {
-                                    <a href="/chat?targetUserId=@antiquelisting.SellerId&initialMessage=Greetings, @(antiquelisting.Seller?.UserName)! I am interested in the volume: @antiquelisting.OriginalBook?.BookTitle"
+                                    <a href="/chat?targetUserId=@book.SellerId&initialMessage=Greetings! I am inquiring about: @book.BookTitle"
                                        class="btn-wax-seal px-4 py-2 text-decoration-none">
-                                        <i class="bi bi-envelope-paper me-2"></i>Send Inquiry
+                                        <i class="bi bi-envelope-paper me-2"></i>Inquire Curator
                                     </a>
                                 }
 
-                                @* Zona restricționată: Doar Admin sau Proprietar *@
-                                @if (antiquelisting != null && (isAdmin || currentUserId == antiquelisting.SellerId.ToString()))
+                                @if (isAdmin || currentUserId == book.SellerId.ToString())
                                 {
-                                    <a href="@($"/antiquelistings/edit?id={antiquelisting.Id}")" class="btn-scroll-edit px-4 py-2 text-decoration-none">
-                                        <i class="bi bi-pencil-square me-1"></i> Edit Record
+                                    <a href="@($"/antique/edit?id={book.BookId}")" class="btn-scroll-edit px-4 py-2 text-decoration-none">
+                                        <i class="bi bi-pencil-square me-1"></i> Amend Record
                                     </a>
 
-                                    <button @onclick="DeleteListing" class="btn-strike-archive px-4 py-2">
-                                        <i class="bi bi-trash3 me-1"></i> Strike from Archive
+                                    <button @onclick="DeleteBook" class="btn-scroll-edit px-4 py-2 text-danger">
+                                        <i class="bi bi-trash3 me-1"></i> Expunge Tome
                                     </button>
                                 }
                             </div>
@@ -120,22 +120,16 @@
     @@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
     body {
-        background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png'), 
-                          linear-gradient(to bottom, #2c1e14, #3d2b1f);
+        background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png'), linear-gradient(to bottom, #2c1e14, #3d2b1f);
         background-attachment: fixed;
     }
 
     .archive-folder {
-        background-color: #f2e8d5; 
-        
+        background-color: #f2e8d5;
         background-image: url('https://www.transparenttextures.com/patterns/old-map.png');
-        
-        background-size: auto; 
+        background-size: auto;
         background-repeat: repeat;
-        
-        background-image: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.05) 100%), 
-                          url('https://www.transparenttextures.com/patterns/old-map.png');
-
+        background-image: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.05) 100%), url('https://www.transparenttextures.com/patterns/old-map.png');
         border: 1px solid #d4c5a9;
         box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.15);
         color: #2c1e14;
@@ -149,22 +143,41 @@
         text-shadow: 0 1px 1px rgba(255,255,255,0.3);
     }
 
+    /* Containerul care forțează dimensiunea */
+    .archive-img-container {
+        width: 100%;
+        height: 450px; /* Înălțime fixă - ajustează după preferință */
+        overflow: hidden;
+        background-color: #e2d7c5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #d4c5a9;
+    }
+
+    /* Imaginea care se adaptează fără să se deformeze */
+    .archive-img-fixed {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Aceasta este cheia: taie marginile dacă e prea mare, dar nu deformează */
+        object-position: center;
+        filter: sepia(0.15) contrast(1.05);
+    }
+
+    /* Ajustăm frame-ul să nu aibă padding excesiv */
     .archive-photo-frame {
-        padding: 12px;
-        background: #fffcf5; 
+        padding: 15px;
+        background: #fffcf5;
         box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         transform: rotate(-1.5deg);
         border: 1px solid #e2d7c5;
-    }
-
-    .archive-img {
-        border: 1px solid #d4c5a9;
-        filter: sepia(0.15) contrast(1.05); 
+        max-width: 350px; /* Limitează lățimea maximă a ramei */
+        margin: 0 auto;
     }
 
     .archive-label {
         font-family: 'Cinzel', serif;
-        color: #8b6b3e; 
+        color: #8b6b3e;
         font-size: 0.85rem;
         letter-spacing: 3px;
         font-weight: 700;
@@ -213,7 +226,7 @@
         font-family: 'Cinzel', serif;
         font-weight: bold;
         font-size: 1.6rem;
-        color: #7a0000; 
+        color: #7a0000;
     }
 
     .btn-quill {
@@ -223,10 +236,10 @@
         transition: 0.3s;
     }
 
-    .btn-quill:hover {
-        color: #fff;
-        text-shadow: 0 0 10px rgba(212, 197, 169, 0.5);
-    }
+        .btn-quill:hover {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(212, 197, 169, 0.5);
+        }
 
     .btn-wax-seal {
         background: #7a0000;
@@ -237,11 +250,11 @@
         transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .btn-wax-seal:hover {
-        background: #900000;
-        transform: scale(1.05) translateY(-3px);
-        box-shadow: 0 6px 15px rgba(0,0,0,0.4);
-    }
+        .btn-wax-seal:hover {
+            background: #900000;
+            transform: scale(1.05) translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        }
 
     .btn-scroll-edit {
         border: 1.5px solid #2c1e14;
@@ -251,14 +264,14 @@
         transition: 0.3s;
     }
 
-    .btn-scroll-edit:hover {
-        background: #2c1e14;
-        color: #e2d7c5;
-    }
+        .btn-scroll-edit:hover {
+            background: #2c1e14;
+            color: #e2d7c5;
+        }
 </style>
 
 @code {
-    private AntiqueListing? antiquelisting;
+    private Book? book;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -271,40 +284,43 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+        currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                         ?? user.FindFirst("UserId")?.Value;
-        
+
         isAdmin = user.IsInRole("Administrator");
 
         using var context = DbFactory.CreateDbContext();
-        antiquelisting = await context.AntiqueListing
-            .Include(a => a.OriginalBook)
-            .Include(a => a.Seller)
-            .FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (antiquelisting is null)
+        book = await context.Book
+            .Include(b => b.Seller)
+            .FirstOrDefaultAsync(m => m.BookId == Id);
+
+        if (book is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
     }
-    
-    private async Task DeleteListing()
-    {
-        if (antiquelisting == null || (!isAdmin && currentUserId != antiquelisting.SellerId.ToString()))
-    {
-        await JS.InvokeVoidAsync("alert", "You do not have the authority to strike this record.");
-        return;
-    }
 
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Are you certain you wish to strike this record from the permanent archives?");
-        
-        if (confirmed && antiquelisting != null)
+    private async Task DeleteBook()
+    {
+        if (book == null || (!isAdmin && currentUserId != book.SellerId.ToString()))
+        {
+            await JS.InvokeVoidAsync("alert", "Authority denied.");
+            return;
+        }
+
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Strike this volume from the archives permanently?");
+
+        if (confirmed)
         {
             using var context = DbFactory.CreateDbContext();
-            context.AntiqueListing.Remove(antiquelisting);
-            await context.SaveChangesAsync();
-
-            NavigationManager.NavigateTo("/antiquelistings");
+            var dbBook = await context.Book.FindAsync(book.BookId);
+            if (dbBook != null)
+            {
+                context.Book.Remove(dbBook);
+                await context.SaveChangesAsync();
+                NavigationManager.NavigateTo("/antique");
+            }
         }
     }
 }

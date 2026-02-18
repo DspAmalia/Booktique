@@ -1,35 +1,35 @@
-﻿@page "/antiquelistings"
+﻿@page "/antique"
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @implements IAsyncDisposable
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Antique Booktique | Booktique</PageTitle>
 
 <div class="antique-shop-floor py-5">
     <div class="container">
-        
-        @* Antet Stilizat - Placuță de intrare *@
+        @* Antet Stilizat *@
         <div class="shop-sign text-center mb-5 p-4">
             <h1 class="antique-title">Antique Booktique</h1>
             <div class="separator"><i class="bi bi-feather"></i></div>
             <p class="antique-subtitle">Rare Finds & Pre-loved Treasures from Our Annual Members</p>
-            
-            <button class="btn btn-ink mt-3 rounded-0 px-4" @onclick='() => NavigationManager.NavigateTo("antiquelistings/create")'>
+
+            <button class="btn btn-ink mt-3 rounded-0 px-4" @onclick='() => NavigationManager.NavigateTo("antique/create")'>
                 <i class="bi bi-journal-plus me-2"></i>List a Treasure
             </button>
         </div>
 
-        @if (listings == null)
+        @if (books == null)
         {
             <div class="text-center py-5">
                 <div class="spinner-border text-sepia" role="status"></div>
                 <p class="text-sepia mt-2 italic">Unrolling the scrolls...</p>
             </div>
         }
-        else if (!listings.Any())
+        else if (!books.Any())
         {
             <div class="empty-shelf text-center py-5">
                 <i class="bi bi-archive display-1"></i>
@@ -39,48 +39,50 @@
         else
         {
             <div class="row g-5">
-                @foreach (var item in listings)
+                @foreach (var item in books)
                 {
                     <div class="col-md-6 col-lg-4">
-                        <div class="book-tome @(item.IsSold ? "sold-tome" : "")">
-                            @* Imaginea înrămată *@
+                        @* Am adaptat verificarea de 'Sold' pe baza stocului sau a unei proprietăți specifice din Book *@
+                        <div class="book-tome @(item.BookStock <= 0 ? "sold-tome" : "")">
                             <div class="tome-frame">
-                                <img src="@(string.IsNullOrEmpty(item.ImagePath) ? "/images/default-book.png" : item.ImagePath)"
-                                     class="tome-img" alt="@item.OriginalBook?.BookTitle">
-                                
-                                @if (item.IsSold)
-                                {
-                                    <div class="wax-seal">SOLD</div>
-                                }
-                                
+                                <img src="@(string.IsNullOrEmpty(item.BookCoverPath) ? "/images/default-book.png" : item.BookCoverPath)"
+                                     class="tome-img" alt="@item.BookTitle">
+
                                 <div class="tome-price">
-                                    @(item.IsExchangeOnly ? "SWAP" : $"{item.Price} RON")
+                                    @item.BookPrice RON
                                 </div>
                             </div>
 
-                            @* Eticheta tip "Manuscris" *@
-                            <div class="tome-details mt-3">
+                            <div class="tome-details mt-3 position-relative">
+                                @if (item.BookStock <= 0)
+                                {
+                                    <div class="wax-seal">SOLD</div>
+                                }
+
                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="tome-condition">@item.Condition</span>
-                                    <span class="tome-date">Est. @item.DatePosted.ToString("MMMM yyyy")</span>
+                                    <span class="tome-condition">@item.BookCategory</span>
+                                    <span class="tome-date pe-4">Edition: @item.BookYear</span>
                                 </div>
-                                
-                                <h4 class="tome-title">@item.OriginalBook?.BookTitle</h4>
-                                <p class="tome-author">by @item.OriginalBook?.BookAuthor</p>
-                                
+
+                                <h4 class="tome-title">@item.BookTitle</h4>
+                                <p class="tome-author">by @item.BookAuthor</p>
+
                                 <div class="tome-description">
-                                    <p>@item.Description</p>
+                                    <p>@item.BookDescription</p>
                                 </div>
 
                                 <div class="tome-actions d-flex gap-2 mt-3">
-                                    <button class="btn-scroll w-100" @onclick='() => NavigationManager.NavigateTo($"antiquelistings/details?id={item.Id}")'>
+                                    <button class="btn-scroll w-100" @onclick='() => NavigationManager.NavigateTo($"antique/details?id={item.BookId}")'>
                                         View Chronicle
                                     </button>
-                                    @if (!item.IsSold)
+
+                                    @if (item.BookStock > 0 && currentUserId != item.SellerId.ToString())
                                     {
-                                        <button class="btn-ink-sm" title="Contact Collector">
+                                        <a href="/chat?targetUserId=@item.SellerId&initialMessage=Greetings, @(item.Seller?.UserName ?? "Curator")! I am interested in the volume: @item.BookTitle"
+                                           class="btn-ink-sm"
+                                           title="Contact Curator">
                                             <i class="bi bi-chat-left-quote"></i>
-                                        </button>
+                                        </a>
                                     }
                                 </div>
                             </div>
@@ -100,6 +102,7 @@
         --ink-color: #2c1e14;
         --sepia-paper: #f4ecd8;
         --wax-red: #8b0000;
+        --wax-dark: #5e0000;
         --accent-gold: #c5a059;
     }
 
@@ -121,12 +124,6 @@
         border-radius: 2px;
     }
 
-    .antique-title {
-        font-family: 'IM Fell English SC', serif;
-        font-size: 3.5rem;
-        margin-bottom: 0;
-    }
-
     .separator {
         color: var(--accent-gold);
         font-size: 1.5rem;
@@ -136,6 +133,12 @@
     .antique-subtitle {
         font-style: italic;
         font-size: 1.2rem;
+    }
+
+    .antique-title {
+        font-family: 'IM Fell English SC', serif;
+        font-size: 3.5rem;
+        margin-bottom: 0;
     }
 
     .book-tome {
@@ -149,15 +152,45 @@
         border: 1px solid rgba(0,0,0,0.1);
     }
 
-    .book-tome:hover {
-        transform: rotate(-1deg) scale(1.02);
-        box-shadow: 15px 15px 30px rgba(0,0,0,0.4);
+        .book-tome:hover {
+            transform: rotate(-1deg) scale(1.02);
+            box-shadow: 15px 15px 30px rgba(0,0,0,0.4);
+        }
+
+    .wax-seal {
+        position: absolute;
+        top: 50px;
+        right: -10px;
+        width: 75px;
+        height: 75px;
+        background: var(--wax-red);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Cinzel', serif;
+        font-weight: bold;
+        font-size: 0.9rem;
+        z-index: 10;
+        border-radius: 46% 54% 51% 49% / 55% 44% 56% 45%;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.2), inset -2px -2px 4px rgba(0,0,0,0.4);
+        border: 2px solid var(--wax-dark);
+        transform: rotate(15deg);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
+
+        .wax-seal::after {
+            content: '';
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
 
     .tome-frame {
         position: relative;
         border: 5px solid white;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
         height: 300px;
         overflow: hidden;
     }
@@ -177,111 +210,109 @@
         color: var(--accent-gold);
         padding: 5px 15px;
         font-family: 'Cinzel', serif;
-        font-weight: bold;
-    }
-
-    .wax-seal {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-20deg);
-        width: 100px;
-        height: 100px;
-        background: var(--wax-red);
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        border: 4px dashed rgba(255,255,255,0.3);
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        z-index: 2;
     }
 
     .tome-title {
         font-family: 'Cinzel', serif;
         font-weight: 700;
         border-bottom: 1px solid rgba(0,0,0,0.1);
-        padding-bottom: 5px;
-    }
-
-    .tome-author {
-        font-style: italic;
-        color: #555;
     }
 
     .tome-condition {
         font-size: 0.7rem;
         text-transform: uppercase;
-        letter-spacing: 1px;
         background: var(--accent-gold);
         color: white;
         padding: 2px 8px;
     }
 
-    .tome-description {
-        font-size: 0.9rem;
-        line-height: 1.4;
-        height: 60px;
-        overflow: hidden;
-        position: relative;
+    .btn-scroll {
+        background: transparent;
+        border: 1px solid var(--ink-color);
+        font-family: 'Cinzel', serif;
     }
+
+        .btn-scroll:hover {
+            background: var(--ink-color);
+            color: var(--sepia-paper);
+        }
 
     .btn-ink {
         background: var(--ink-color);
         color: var(--accent-gold);
-        border: 1px solid var(--accent-gold);
         font-family: 'Cinzel', serif;
-        transition: all 0.3s;
     }
 
-    .btn-ink:hover {
-        background: var(--accent-gold);
-        color: var(--ink-color);
-    }
-
-    .btn-scroll {
-        background: transparent;
-        border: 1px solid var(--ink-color);
-        color: var(--ink-color);
-        padding: 5px;
-        font-family: 'Cinzel', serif;
-        font-size: 0.8rem;
-    }
-
-    .btn-scroll:hover {
-        background: var(--ink-color);
-        color: var(--sepia-paper);
-    }
+        .btn-ink:hover {
+            background: var(--accent-gold);
+        }
 
     .btn-ink-sm {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        text-decoration: none;
         background: var(--dark-wood);
-        color: white;
-        border: none;
-        padding: 5px 15px;
+        color: var(--accent-gold);
+        border: 2px solid var(--accent-gold);
+        border-radius: 4px;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
     }
 
-    .text-sepia { color: var(--sepia-paper); }
-    .italic { font-style: italic; }
+        .btn-ink-sm:hover {
+            background: var(--accent-gold);
+            color: var(--ink-color);
+            box-shadow: 0 0 12px rgba(197, 160, 89, 0.6);
+            transform: translateY(-2px);
+        }
 
-    .sold-tome {
-        filter: opacity(0.8);
-    }
+        .btn-ink-sm i {
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.3);
+        }
+
+        .btn-ink-sm::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .btn-ink-sm:active {
+            transform: translateY(1px);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
 </style>
 
 @code {
     private BooktiqueContext context = default!;
-    private List<AntiqueListing>? listings;
+    private List<Book>? books;
+    private string? currentUserId;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                        ?? user.FindFirst("UserId")?.Value;
+
         context = DbFactory.CreateDbContext();
 
-        // Include OriginalBook pentru a avea acces la Titlu și Autor
-        listings = await context.AntiqueListing
-            .Include(a => a.OriginalBook)
-            .OrderByDescending(a => a.DatePosted)
+        // Filtrare: Doar cărțile care au un vânzător (SellerId != null și != 0)
+        books = await context.Book
+            .Include(b => b.Seller)
+            .Where(b => b.SellerId != null && b.SellerId != 0)
+            .OrderByDescending(b => b.BookId) // Cele mai noi adăugate primele
             .ToListAsync();
     }
 

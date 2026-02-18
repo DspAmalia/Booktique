@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Booktique.Migrations
 {
     [DbContext(typeof(BooktiqueContext))]
-    [Migration("20260211145144_antique_mig")]
-    partial class antique_mig
+    [Migration("20260218124346_antique_book_mig")]
+    partial class antique_book_mig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,53 +23,6 @@ namespace Booktique.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Booktique.Models.MainModels.AntiqueListing", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BookId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Condition")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DatePosted")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImagePath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsExchangeOnly")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSold")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("SellerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookId");
-
-                    b.HasIndex("SellerId");
-
-                    b.ToTable("AntiqueListing");
-                });
 
             modelBuilder.Entity("Booktique.Models.MainModels.Book", b =>
                 {
@@ -140,7 +93,19 @@ namespace Booktique.Migrations
                         .HasColumnType("int")
                         .HasColumnName("BookYear");
 
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DatePosted")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("SellerId")
+                        .HasColumnType("int");
+
                     b.HasKey("BookId");
+
+                    b.HasIndex("SellerId");
 
                     b.ToTable("book");
                 });
@@ -208,6 +173,9 @@ namespace Booktique.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
@@ -225,6 +193,9 @@ namespace Booktique.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
@@ -342,21 +313,11 @@ namespace Booktique.Migrations
                     b.ToTable("user");
                 });
 
-            modelBuilder.Entity("Booktique.Models.MainModels.AntiqueListing", b =>
+            modelBuilder.Entity("Booktique.Models.MainModels.Book", b =>
                 {
-                    b.HasOne("Booktique.Models.MainModels.Book", "OriginalBook")
-                        .WithMany()
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Booktique.Models.MainModels.User", "Seller")
                         .WithMany()
-                        .HasForeignKey("SellerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("OriginalBook");
+                        .HasForeignKey("SellerId");
 
                     b.Navigation("Seller");
                 });

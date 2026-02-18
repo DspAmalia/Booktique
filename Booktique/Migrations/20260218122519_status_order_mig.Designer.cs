@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Booktique.Migrations
 {
     [DbContext(typeof(BooktiqueContext))]
-    partial class BooktiqueContextModelSnapshot : ModelSnapshot
+    [Migration("20260218122519_status_order_mig")]
+    partial class status_order_mig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,19 +93,7 @@ namespace Booktique.Migrations
                         .HasColumnType("int")
                         .HasColumnName("BookYear");
 
-                    b.Property<string>("Condition")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DatePosted")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("SellerId")
-                        .HasColumnType("int");
-
                     b.HasKey("BookId");
-
-                    b.HasIndex("SellerId");
 
                     b.ToTable("book");
                 });
@@ -308,15 +299,6 @@ namespace Booktique.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("user");
-                });
-
-            modelBuilder.Entity("Booktique.Models.MainModels.Book", b =>
-                {
-                    b.HasOne("Booktique.Models.MainModels.User", "Seller")
-                        .WithMany()
-                        .HasForeignKey("SellerId");
-
-                    b.Navigation("Seller");
                 });
 
             modelBuilder.Entity("Booktique.Models.MainModels.Favorite", b =>
