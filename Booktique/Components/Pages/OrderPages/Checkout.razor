@@ -115,6 +115,13 @@
                     <span class="text-orange">@cartService.Items.Sum(i => i.Price * i.Quantity) lei</span>
                 </div>
 
+                    @* <div class="text-danger small">
+                        DEBUG:
+                        Nume: @(!string.IsNullOrWhiteSpace(fullName)) |
+                        Tel: @(phoneNumber.Length >= 10) |
+                        Plata: @(paymentMethod != null)
+                    </div> *@
+
                 <button class="btn btn-warning w-100 fw-bold py-3 shadow rounded-pill btn-finalize"
                         @onclick="FinalizeOrder"
                         disabled="@(!IsFormValid)">
@@ -349,8 +356,14 @@
         if (!IsFormValid) return;
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var userClaim = authState.User.FindFirst("UserId");
-        if (userClaim == null || !int.TryParse(userClaim.Value, out int userIdInt)) return;
+        var user = authState.User;
+        var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("UserId")?.Value;
+
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userIdInt))
+        {
+            return;
+        }
 
         try
         {
@@ -359,58 +372,68 @@
 
             try
             {
-                var order = new Order
-                    {
-                        UserId = userIdInt,
-                        OrderDate = DateTime.Now,
-                        TotalAmount = cartService.Items.Sum(i => i.Price * i.Quantity),
-                        ShippingAddress = $"{fullName} - {shippingAddress}",
-                        City = city,
-                        PhoneNumber = phoneNumber,
-                        PaymentMethod = paymentMethod!,
-                        OrderItems = new List<OrderItem>()
-                    };
+                var groupedItems = cartService.Items.GroupBy(i => i.SellerId).ToList();
 
-                foreach (var item in cartService.Items)
+                foreach (var group in groupedItems)
                 {
-                    var dbBook = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == item.BookId);
-
-                    if (dbBook != null)
-                    {
-                        if (dbBook.BookStock >= item.Quantity)
+                    var order = new Order
                         {
-                            dbBook.BookStock -= item.Quantity;
+                            UserId = userIdInt,
+                            SellerId = group.Key, 
+                            OrderDate = DateTime.Now,
+                            TotalAmount = group.Sum(i => i.Price * i.Quantity),
+                            ShippingAddress = $"{fullName} - {shippingAddress}",
+                            City = city,
+                            PhoneNumber = phoneNumber,
+                            PaymentMethod = paymentMethod!,
+                            Status = OrderStatus.Pending,
+                            LastUpdated = DateTime.Now,
+                            OrderItems = new List<OrderItem>()
+                        };
 
+                    foreach (var item in group)
+                    {
+                        var dbBook = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == item.BookId);
+
+                        if (dbBook != null)
+                        {
+                            if (dbBook.BookStock >= item.Quantity)
+                            {
+                                dbBook.BookStock -= item.Quantity;
+
+                                order.OrderItems.Add(new OrderItem
+                                    {
+                                        BookId = dbBook.BookId,
+                                        Quantity = item.Quantity,
+                                        UnitPrice = item.Price,
+                                    });
+                            }
+                            else
+                            {
+                                throw new Exception($"Stock insufficient for: {dbBook.BookTitle}");
+                            }
+                        }
+                    }
+
+                    // Mystery Book DOAR la comanda "Official" (unde SellerId e null sau 0)
+                    if ((group.Key == null || group.Key == 0) && isEligibleForMysteryBook && selectedMysteryBook != null)
+                    {
+                        var giftInDb = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == selectedMysteryBook.BookId);
+                        if (giftInDb != null && giftInDb.BookStock > 0)
+                        {
+                            giftInDb.BookStock -= 1;
                             order.OrderItems.Add(new OrderItem
                                 {
-                                    BookId = dbBook.BookId,
-                                    Quantity = item.Quantity,
-                                    UnitPrice = item.Price
+                                    BookId = giftInDb.BookId,
+                                    Quantity = 1,
+                                    UnitPrice = 0
                                 });
                         }
-                        else
-                        {
-                            throw new Exception($"Stock insufficient for: {dbBook.BookTitle}");
-                        }
                     }
+
+                    ctx.Order.Add(order);
                 }
 
-                if (isEligibleForMysteryBook && selectedMysteryBook != null)
-                {
-                    var giftInDb = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == selectedMysteryBook.BookId);
-                    if (giftInDb != null && giftInDb.BookStock > 0)
-                    {
-                        giftInDb.BookStock -= 1;
-                        order.OrderItems.Add(new OrderItem
-                            {
-                                BookId = giftInDb.BookId,
-                                Quantity = 1,
-                                UnitPrice = 0 
-                            });
-                    }
-                }
-
-                ctx.Order.Add(order);
                 await ctx.SaveChangesAsync();
                 await transaction.CommitAsync();
 

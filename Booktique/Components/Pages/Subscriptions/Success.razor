@@ -13,13 +13,39 @@
 <div class="container text-center mt-5">
     <div class="card shadow p-5 border-0">
         <h2 class="text-success mb-3">✅ The payment was made successfully!</h2>
-        <p class="lead">Thank you for subscribing. Your account has been updated.</p>
+
+        @if (Plan?.ToLower() == "monthly")
+        {
+            <p class="lead">Thank you for your <strong>Monthly Subscription</strong>!</p>
+            <p class="text-muted">You now have access to Messenger and all standard Booktique features.</p>
+        }
+        else if (Plan?.ToLower() == "yearly")
+        {
+            <p class="lead">Thank you for your <strong>Yearly Subscription</strong>!</p>
+            <p class="text-muted">You have unlocked full access, including the <strong>Antique Booktique</strong> and advanced features.</p>
+        }
+        else
+        {
+            <p class="lead">Thank you for subscribing. Your account has been updated.</p>
+        }
+
         <hr />
-        <p class="text-muted">You now have access to Messenger and the rest of Booktique's features.</p>
 
         <div class="mt-4">
             <button class="btn btn-secondary btn-lg" @onclick="GoHome">Back to Home</button>
-            <button class="btn btn-outline-warning btn-lg ms-2" @onclick="GoToChat">Go to Chat</button>
+
+            @if (Plan?.ToLower() == "monthly")
+            {
+                <button class="btn btn-outline-warning btn-lg ms-2" @onclick="GoToChat">
+                    <i class="bi bi-chat-dots me-1"></i> Go to Chat
+                </button>
+            }
+            else if (Plan?.ToLower() == "yearly")
+            {
+                <button class="btn btn-outline-warning btn-lg ms-2" @onclick="GoToAntique">
+                    <i class="bi bi-bank me-1"></i> Go to Antique
+                </button>
+            }
         </div>
     </div>
 </div>
@@ -85,7 +111,6 @@
 
                 if (dbUser != null)
                 {
-                    // Mapăm string-ul din URL la tipul de Enum
                     var newLevel = Plan?.ToLower() switch
                     {
                         "monthly" => SubscriptionLevel.Monthly,
@@ -93,7 +118,6 @@
                         _ => SubscriptionLevel.None
                     };
 
-                    // Actualizăm doar dacă planul primit este valid și diferit de ce are deja
                     if (newLevel != SubscriptionLevel.None && dbUser.IsSubscribed != newLevel)
                     {
                         dbUser.IsSubscribed = newLevel;
@@ -106,4 +130,5 @@
 
     private void GoHome() => NavManager.NavigateTo("/");
     private void GoToChat() => NavManager.NavigateTo("/chat");
+    private void GoToAntique() => NavManager.NavigateTo("/antique");
 }

@@ -39,6 +39,8 @@ namespace Booktique.Models.MainModels
 
         public int UserId { get; set; }
 
+        public int? SellerId { get; set; } // NULL = Librărie, ID = Vânzător Anticariat
+
         [Required]
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
 

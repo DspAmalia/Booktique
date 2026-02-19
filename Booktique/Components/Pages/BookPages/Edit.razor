@@ -190,6 +190,7 @@
     private async Task UpdateBook()
     {
         if (Book!.BookStock < 0) Book.BookStock = 0; 
+        Book.SellerId = null;
 
         using var context = DbFactory.CreateDbContext();
         context.Attach(Book!).State = EntityState.Modified;

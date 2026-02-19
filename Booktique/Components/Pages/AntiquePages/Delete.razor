@@ -159,7 +159,6 @@
     {
         using var context = DbFactory.CreateDbContext();
 
-        // FOARTE IMPORTANT: Folosim .Include(b => b.Seller) pentru a încărca datele vânzătorului
         book = await context.Book
             .Include(b => b.Seller)
             .FirstOrDefaultAsync(m => m.BookId == Id);

@@ -479,11 +479,10 @@
         context.Review.Add(newReview);
         await context.SaveChangesAsync();
 
-        // Adăugăm în lista locală pentru refresh instant
         reviews.Insert(0, newReview);
         await UpdateBookRating(context);
 
-        newReview = new Review() { Rating = 5 }; // Resetare formular
+        newReview = new Review() { Rating = 5 }; 
         StateHasChanged();
     }
 
@@ -510,7 +509,7 @@
         {
             int newRating = reviews.Any() ? (int)Math.Round(reviews.Average(r => r.Rating)) : 0;
             bookToUpdate.BookRating = newRating;
-            if (book != null) book.BookRating = newRating; // Update vizual instant
+            if (book != null) book.BookRating = newRating; 
             await context.SaveChangesAsync();
         }
     }

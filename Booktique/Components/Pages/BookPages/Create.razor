@@ -225,8 +225,11 @@
 
     protected override void OnInitialized()
     {
-        // Setăm un an default pentru a evita eroarea de validare la încărcare
         Book.BookYear = DateTime.Now.Year;
+        Book.BookStock = 1;
+        Book.BookRating = 0;
+
+        Book.SellerId = null;
     }
 
     private async Task AddBook()
@@ -237,6 +240,8 @@
         }
 
         using var context = DbFactory.CreateDbContext();
+        Book.SellerId = null;
+
         context.Book.Add(Book);
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/");

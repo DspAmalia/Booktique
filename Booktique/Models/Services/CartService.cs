@@ -40,7 +40,9 @@ namespace Booktique.Models.Services
                     Title = book.BookTitle,
                     ImagePath = book.BookCoverPath,
                     Price = (decimal)book.BookPrice,
-                    Quantity = 1
+                    Quantity = 1,
+                    SellerId = book.SellerId,
+                    SellerName = book.Seller?.UserName
                 });
             }
             else
@@ -116,5 +118,7 @@ namespace Booktique.Models.Services
         public decimal Price { get; set; }
         public int Quantity { get; set; } = 1;
         public string ImagePath { get; set; } = "";
+        public int? SellerId { get; set; }
+        public string? SellerName { get; set; }
     }
 }

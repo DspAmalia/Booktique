@@ -1,11 +1,14 @@
 ﻿@page "/antique/details"
 @rendermode InteractiveServer
+@using Booktique.Models.Services
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 @inject AuthenticationStateProvider AuthStateProvider
+@inject CartService cartService
+@implements IDisposable
 
 <PageTitle>Chronicle of @book?.BookTitle</PageTitle>
 
@@ -107,6 +110,22 @@
                                         <i class="bi bi-trash3 me-1"></i> Expunge Tome
                                     </button>
                                 }
+
+                                <button class="btn-scroll-edit px-4 py-2"
+                                        @onclick="HandleAddToCart"
+                                        disabled="@(book.BookStock == 0)">
+
+                                    @if (book.BookStock == 0)
+                                    {
+                                        <i class="bi bi-exclamation-circle me-2"></i>
+                                        <span>Sold Out</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi @(isAdded ? "bi-cart-check-fill text-warning" : "bi-cart-plus") me-2"></i>
+                                        @(isAdded ? "In Cart" : "Add to Cart")
+                                    }
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -143,10 +162,9 @@
         text-shadow: 0 1px 1px rgba(255,255,255,0.3);
     }
 
-    /* Containerul care forțează dimensiunea */
     .archive-img-container {
         width: 100%;
-        height: 450px; /* Înălțime fixă - ajustează după preferință */
+        height: 450px; 
         overflow: hidden;
         background-color: #e2d7c5;
         display: flex;
@@ -155,23 +173,21 @@
         border: 1px solid #d4c5a9;
     }
 
-    /* Imaginea care se adaptează fără să se deformeze */
     .archive-img-fixed {
         width: 100%;
         height: 100%;
-        object-fit: cover; /* Aceasta este cheia: taie marginile dacă e prea mare, dar nu deformează */
+        object-fit: cover; 
         object-position: center;
         filter: sepia(0.15) contrast(1.05);
     }
 
-    /* Ajustăm frame-ul să nu aibă padding excesiv */
     .archive-photo-frame {
         padding: 15px;
         background: #fffcf5;
         box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         transform: rotate(-1.5deg);
         border: 1px solid #e2d7c5;
-        max-width: 350px; /* Limitează lățimea maximă a ramei */
+        max-width: 350px; 
         margin: 0 auto;
     }
 
@@ -278,6 +294,7 @@
 
     private string? currentUserId;
     private bool isAdmin;
+    private bool isAdded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -298,7 +315,12 @@
         if (book is null)
         {
             NavigationManager.NavigateTo("notfound");
+            return;
         }
+
+        isAdded = cartService.Items.Any(i => i.BookId == book.BookId);
+
+        cartService.OnChange += StateHasChanged;
     }
 
     private async Task DeleteBook()
@@ -322,5 +344,20 @@
                 NavigationManager.NavigateTo("/antique");
             }
         }
+    }
+
+    private void HandleAddToCart()
+    {
+        if (book != null && book.BookStock > 0)
+        {
+            cartService.AddToCart(book);
+            isAdded = true;
+            StateHasChanged(); 
+        }
+    }
+
+    public void Dispose()
+    {
+        cartService.OnChange -= StateHasChanged;
     }
 }

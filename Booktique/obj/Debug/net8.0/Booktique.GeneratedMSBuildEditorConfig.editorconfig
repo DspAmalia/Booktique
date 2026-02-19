@@ -50,24 +50,24 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBY2NvdW50XFByb2ZpbGUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiqueListingPages/Create.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlTGlzdGluZ1BhZ2VzXENyZWF0ZS5yYXpvcg==
+[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiquePages/Create.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlUGFnZXNcQ3JlYXRlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiqueListingPages/Delete.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlTGlzdGluZ1BhZ2VzXERlbGV0ZS5yYXpvcg==
+[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiquePages/Delete.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlUGFnZXNcRGVsZXRlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiqueListingPages/Details.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlTGlzdGluZ1BhZ2VzXERldGFpbHMucmF6b3I=
+[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiquePages/Details.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlUGFnZXNcRGV0YWlscy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiqueListingPages/Edit.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlTGlzdGluZ1BhZ2VzXEVkaXQucmF6b3I=
+[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiquePages/Edit.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlUGFnZXNcRWRpdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiqueListingPages/Index.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlTGlzdGluZ1BhZ2VzXEluZGV4LnJhem9y
+[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/AntiquePages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbnRpcXVlUGFnZXNcSW5kZXgucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/BookPages/AskAI.razor]

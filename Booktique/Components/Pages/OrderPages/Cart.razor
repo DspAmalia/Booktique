@@ -33,45 +33,61 @@
     {
         <div class="row">
             <div class="col-lg-8">
-                @foreach (var item in cartService.Items)
+                @* --- SECȚIUNEA LIBRĂRIE (Official Booktique) --- *@
+                @{
+                    // 1. Produsele oficiale (Librăria Booktique)
+                    var officialItems = cartService.Items
+                    .Where(i => i.SellerId == null || i.SellerId == 0)
+                    .ToList();
+
+                    // 2. Produsele de la vânzători (Anticariat)
+                    var antiqueItems = cartService.Items
+                    .Where(i => i.SellerId != null && i.SellerId != 0)
+                    .GroupBy(i => new { i.SellerId, i.SellerName })
+                    .ToList();
+                }
+
+                @if (officialItems.Any())
                 {
-                    <div class="cart-card mb-3 shadow-sm border rounded p-3 bg-white">
-                        <div class="d-flex align-items-center">
-                            <div class="img-container me-3">
-                                <img src="@item.ImagePath" alt="@item.Title" class="img-thumbnail cart-img-small shadow-sm" />
-                            </div>
-
-                            <div class="flex-grow-1">
-                                <h5 class="mb-1 text-dark fw-bold">@item.Title</h5>
-                                <p class="text-muted mb-0 small">Price: @item.Price lei</p>
-                                <div class="mt-2 d-flex align-items-center gap-3">
-                                    <div class="input-group input-group-sm shadow-sm" style="width: 110px;">
-                                        <button class="btn btn-outline-secondary border-secondary-subtle"
-                                                @onclick="() => cartService.DecreaseQuantity(item.BookId)">
-                                            <i class="bi bi-dash"></i>
-                                        </button>
-
-                                        <span class="input-group-text bg-white fw-bold flex-grow-1 justify-content-center">
-                                            @item.Quantity
-                                        </span>
-
-                                        <button class="btn btn-outline-secondary border-secondary-subtle"
-                                                @onclick="() => cartService.IncreaseQuantity(item.BookId)">
-                                            <i class="bi bi-plus"></i>
-                                        </button>
-                                    </div>
-
-                                    <button class="btn btn-sm btn-outline-danger border-0" @onclick="() => cartService.RemoveFromCart(item.BookId)">
-                                        <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Remove</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="text-end">
-                                <span class="fw-bold text-orange fs-5">@(item.Price * item.Quantity) lei</span>
-                            </div>
+                    <div class="d-flex align-items-center mb-3 mt-2">
+                        <div class="bg-warning rounded-circle p-2 me-2">
+                            <i class="bi bi-shop text-white"></i>
                         </div>
+                        <h5 class="fw-bold mb-0 text-warning">Booktique Official <span class="badge bg-warning ms-2">Library</span></h5>
                     </div>
+
+                    @foreach (var item in officialItems)
+                    {
+                        @RenderCartItem(item)
+                    }
+                    <div class="mb-5"></div> 
+                }
+
+                @* --- SECȚIUNEA ANTICARIAT --- *@
+                @if (antiqueItems.Any())
+                {
+                    <div class="d-flex align-items-center mb-3 mt-4">
+                        <div class="bg-brown rounded-circle p-2 me-2" style="background-color: #5a3e2b;">
+                            <i class="bi bi-shield-check text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0" style="color: #5a3e2b;">Antique Archives <span class="badge bg-secondary ms-2">Curated</span></h5>
+                    </div>
+
+                    @foreach (var sellerGroup in antiqueItems)
+                    {
+                        <div class="seller-group-header p-2 mb-2 rounded-3 bg-light border-start border-4 border-warning">
+                            <small class="text-muted text-uppercase fw-bold">Curator:</small>
+                            <span class="fw-bold text-dark ms-1">
+                                @(string.IsNullOrEmpty(sellerGroup.Key.SellerName) ? $"Seller #{sellerGroup.Key.SellerId}" : sellerGroup.Key.SellerName)
+                            </span>
+                        </div>
+
+                        @foreach (var item in sellerGroup)
+                        {
+                            @RenderCartItem(item)
+                        }
+                        <div class="mb-4"></div>
+                    }
                 }
             </div>
 
@@ -149,9 +165,54 @@
     .rounded-4 {
         border-radius: 1rem !important;
     }
+
+    .bg-brown {
+        background-color: #5a3e2b;
+    }
+
+    .seller-group-header {
+        font-size: 0.9rem;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
 </style>
 
 @code {
+    // Definirea unui RenderFragment pentru a nu repeta codul HTML al cardului
+    RenderFragment RenderCartItem(CartItem item) => __builder =>
+    {
+        <div class="cart-card mb-3 shadow-sm border rounded p-3 bg-white">
+            <div class="d-flex align-items-center">
+                <div class="img-container me-3">
+                    <img src="@item.ImagePath" alt="@item.Title" class="img-thumbnail cart-img-small shadow-sm" />
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="mb-1 text-dark fw-bold">@item.Title</h5>
+                    <p class="text-muted mb-0 small">Price: @item.Price lei</p>
+                    <div class="mt-2 d-flex align-items-center gap-3">
+                        <div class="input-group input-group-sm shadow-sm" style="width: 110px;">
+                            <button class="btn btn-outline-secondary border-secondary-subtle"
+                                    @onclick="() => cartService.DecreaseQuantity(item.BookId)">
+                                <i class="bi bi-dash"></i>
+                            </button>
+                            <span class="input-group-text bg-white fw-bold flex-grow-1 justify-content-center">
+                                @item.Quantity
+                            </span>
+                            <button class="btn btn-outline-secondary border-secondary-subtle"
+                                    @onclick="() => cartService.IncreaseQuantity(item.BookId)">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger border-0" @onclick="() => cartService.RemoveFromCart(item.BookId)">
+                            <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Remove</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="fw-bold text-orange fs-5">@(item.Price * item.Quantity) lei</span>
+                </div>
+            </div>
+        </div>
+    };
     protected override void OnInitialized() => cartService.OnChange += StateHasChanged;
 
     public void Dispose() => cartService.OnChange -= StateHasChanged;

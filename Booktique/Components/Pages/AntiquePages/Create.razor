@@ -14,7 +14,6 @@
         <div class="row justify-content-center">
             <div class="col-lg-9">
 
-                @* Buton Înapoi *@
                 <div class="mb-4">
                     <a href="/antique" class="btn-quill text-decoration-none">
                         <i class="bi bi-arrow-left me-2"></i>Return to Archives
@@ -290,7 +289,6 @@
 
         try
         {
-            // Verificăm SellerId înainte de salvare pentru a fi siguri
             if (NewBook.SellerId != 0)
             {
                 context.Book.Add(NewBook);
