@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Booktique.Migrations
 {
     [DbContext(typeof(BooktiqueContext))]
-    partial class BooktiqueContextModelSnapshot : ModelSnapshot
+    [Migration("20260221100929_notif_mig")]
+    partial class notif_mig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -175,9 +178,6 @@ namespace Booktique.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("OrderId")
-                        .HasColumnType("int");
-
                     b.Property<string>("TargetUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -185,8 +185,6 @@ namespace Booktique.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("NotificationId");
-
-                    b.HasIndex("OrderId");
 
                     b.HasIndex("UserId");
 
@@ -396,17 +394,11 @@ namespace Booktique.Migrations
 
             modelBuilder.Entity("Booktique.Models.MainModels.Notification", b =>
                 {
-                    b.HasOne("Booktique.Models.MainModels.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderId");
-
                     b.HasOne("Booktique.Models.MainModels.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Order");
 
                     b.Navigation("User");
                 });

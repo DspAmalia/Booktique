@@ -214,23 +214,6 @@
 
     private void CloseModal() { showModal = false; selectedOrder = null; }
 
-    private async Task UpdateStatus(Order order, ChangeEventArgs e)
-    {
-        if (Enum.TryParse<OrderStatus>(e.Value?.ToString(), out var newStatus))
-        {
-            using var context = DbFactory.CreateDbContext();
-            var dbOrder = await context.Order.FindAsync(order.OrderId);
-            if (dbOrder != null)
-            {
-                dbOrder.Status = newStatus;
-                dbOrder.LastUpdated = DateTime.Now;
-                await context.SaveChangesAsync();
-                order.Status = newStatus;
-                StateHasChanged();
-            }
-        }
-    }
-
     private string GetStatusClass(OrderStatus status) => status switch
     {
         OrderStatus.Pending => "bg-warning-subtle text-warning-emphasis border border-warning",
@@ -240,4 +223,41 @@
         OrderStatus.Cancelled => "bg-danger-subtle text-danger-emphasis border border-danger",
         _ => "bg-secondary-subtle text-secondary-emphasis"
     };
+
+    private async Task UpdateStatus(Order order, ChangeEventArgs e)
+    {
+        if (Enum.TryParse<OrderStatus>(e.Value?.ToString(), out var newStatus))
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+
+            // 1. Găsim comanda în baza de date
+            var dbOrder = await context.Order.FindAsync(order.OrderId);
+
+            if (dbOrder != null)
+            {
+                // 2. Actualizăm statusul comenzii
+                dbOrder.Status = newStatus;
+                dbOrder.LastUpdated = DateTime.Now;
+
+                // 3. Creăm NOTIFICAREA pentru utilizator (UserId-ul vine din comanda găsită)
+                var notification = new Notification
+                    {
+                        UserId = dbOrder.UserId, // Important: ID-ul clientului
+                        Message = $"Statusul comenzii tale #{dbOrder.OrderId} a fost actualizat în: {newStatus}.",
+                        CreatedAt = DateTime.Now,
+                        IsRead = false,
+                        TargetUrl = "/my-orders"
+                    };
+
+                context.Notification.Add(notification);
+
+                // 4. Salvăm totul într-o singură tranzacție
+                await context.SaveChangesAsync();
+
+                // 5. Actualizăm interfața Adminului (UI local)
+                order.Status = newStatus;
+                StateHasChanged();
+            }
+        }
+    }
 }

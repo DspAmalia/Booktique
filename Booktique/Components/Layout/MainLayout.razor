@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @using Booktique.Components.Pages
+@using Booktique.Models.MainModels
 @using Booktique.Models.Services
 @using Microsoft.EntityFrameworkCore
 @using static Booktique.Models.MainModels.User
@@ -7,6 +8,7 @@
 @implements IDisposable
 @inject AuthenticationStateProvider AuthProvider
 @inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager Nav
 
 <div class="page">
     <main>
@@ -58,6 +60,54 @@
 
                 <AuthorizeView Roles="User">
                     <Authorized>
+                        <div class="dropdown ms-2">
+                            <button class="nav-horizontal-link nav-icon-btn border-0 bg-transparent position-relative"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                <i class="bi bi-bell"></i>
+                                @if (unreadCount > 0)
+                                {
+                                    <span class="cart-badge bg-danger" style="top: 2px; right: 2px;">
+                                        @unreadCount
+                                    </span>
+                                }
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 animate-slide-up p-2" style="width: 300px; max-height: 400px; overflow-y: auto;">
+                                <li class="dropdown-header fw-bold border-bottom mb-2 pb-2">Notifications</li>
+                                @if (userNotifications == null || !userNotifications.Any())
+                                {
+                                    <li class="text-center p-3 text-muted small">You don't have new notifications.</li>
+                                }
+                                else
+                                {
+                                    @foreach (var n in userNotifications)
+                                    {
+                                        <li class="mb-1">
+                                            <a class="dropdown-item p-2 @(n.IsRead ? "opacity-75" : "bg-light border-start border-warning border-4")"
+                                               href="/order-details/@n.OrderId?notifId=@n.NotificationId"
+                                               style="white-space: normal;">
+
+                                                <div class="d-flex flex-column" style="max-width: 100%;">
+                                                    <div class="small fw-bold text-dark mb-1" style="word-break: break-word; line-height: 1.2;">
+                                                        @n.Message
+                                                    </div>
+                                                    <div class="text-muted d-flex justify-content-between align-items-center" style="font-size: 0.7rem;">
+                                                        <span>@n.CreatedAt.ToString("g")</span>
+                                                        @if (!n.IsRead)
+                                                        {
+                                                            <span class="text-warning fw-bold">New</span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    }
+                                }
+                            </ul>
+                        </div>
+
                         <a class="nav-horizontal-link position-relative" href="/cart" title="Cart">
                             <i class="bi bi-cart3"></i>
                             @if (cartService.Items.Any())
@@ -310,12 +360,37 @@
 @code {
     private bool isSubscribed = false;
     private string? profilePictureUrl; 
-    private int currentSubscriptionLevel = 0; 
+    private List<Notification> userNotifications = new();
+    private int unreadCount = 0;
 
     protected override async Task OnParametersSetAsync()
     {
         await CheckSubscriptionStatus();
+        await LoadNotifications();
     }
+
+    private async Task LoadNotifications()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var userIdStr = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                        ?? user.FindFirst("UserId")?.Value;
+
+        if (int.TryParse(userIdStr, out int userId))
+        {
+            await using var ctx = await DbFactory.CreateDbContextAsync();
+            userNotifications = await ctx.Notification
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(5)
+                .ToListAsync();
+
+            unreadCount = userNotifications.Count(n => !n.IsRead);
+        }
+    }
+
+    private int currentSubscriptionLevel = 0; 
 
     private async Task CheckSubscriptionStatus()
     {
