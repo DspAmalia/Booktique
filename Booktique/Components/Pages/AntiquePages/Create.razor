@@ -112,7 +112,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-dark">
-                            <span class="small italic text-muted">Curator ID: @NewBook.SellerId</span>
+                            <span class="small italic text-muted">Curator: @(curatorName ?? "Loading...")</span>
                             <div class="d-flex gap-3">
                                 <button type="submit" class="btn-wax-seal px-5 py-2">
                                     Seal & Register
@@ -264,6 +264,8 @@
     [SupplyParameterFromForm]
     private Book NewBook { get; set; } = new() { BookStock = 1, BookRating = 0 };
 
+    private string? curatorName; 
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -276,8 +278,15 @@
         if (int.TryParse(userIdClaim, out var userId))
         {
             NewBook.SellerId = userId;
+
+            using var context = await DbFactory.CreateDbContextAsync();
+            var dbUser = await context.User.FindAsync(userId);
+            if (dbUser != null)
+            {
+                curatorName = dbUser.UserName; 
+            }
         }
-        else if (!user.Identity?.IsAuthenticated ?? true)
+        else if (!(user.Identity?.IsAuthenticated ?? false))
         {
             NavigationManager.NavigateTo("/login");
         }

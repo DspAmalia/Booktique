@@ -61,7 +61,7 @@
                 <AuthorizeView Roles="User">
                     <Authorized>
                         <div class="dropdown ms-2">
-                            <button class="nav-horizontal-link nav-icon-btn border-0 bg-transparent position-relative"
+                            <a class="nav-horizontal-link position-relative"
                                     type="button"
                                     data-bs-toggle="dropdown"
                                     aria-expanded="false">
@@ -72,7 +72,7 @@
                                         @unreadCount
                                     </span>
                                 }
-                            </button>
+                            </a>
 
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 animate-slide-up p-2" style="width: 300px; max-height: 400px; overflow-y: auto;">
                                 <li class="dropdown-header fw-bold border-bottom mb-2 pb-2">Notifications</li>
@@ -270,7 +270,7 @@
         text-decoration: none;
         transition: 0.2s;
         font-size: 1.2rem;
-        position: relative; /* Pentru badge-ul de cart */
+        position: relative;
     }
 
     .nav-icon-btn:hover {
@@ -291,7 +291,7 @@
         font-size: 0.65rem;
         padding: 2px 5px;
         border-radius: 50%;
-        border: 2px solid white;
+        border: 2px solid danger;
     }
 
     .user-pill {
