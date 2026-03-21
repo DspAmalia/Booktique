@@ -110,10 +110,34 @@
                     }
 
                 <hr />
-                <div class="d-flex justify-content-between fs-5 fw-bold text-brown mb-4">
-                    <span>Total Payment:</span>
-                    <span class="text-orange">@cartService.Items.Sum(i => i.Price * i.Quantity) lei</span>
-                </div>
+                    <div class="loyalty-box p-3 rounded-4 mb-3 border border-warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0 fw-bold text-brown"><i class="bi bi-star-fill text-warning me-2"></i>Loyalty Points</h6>
+                                <small class="text-secondary">Available: <strong>@userPoints</strong> pts</small>
+                            </div>
+                            @if (userPoints >= 1)
+                            {
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input custom-switch" type="checkbox" @bind="usePoints" id="pointsSwitch">
+                                    <label class="form-check-label small fw-bold text-brown" for="pointsSwitch">Use Points</label>
+                                </div>
+                            }
+                        </div>
+                        @if (usePoints)
+                        {
+                            <div class="mt-2 pt-2 border-top border-dashed d-flex justify-content-between text-success small fw-bold">
+                                <span>Discount (10 pts = 1 leu):</span>
+                                <span>-@calculatedDiscount lei</span>
+                            </div>
+                        }
+                    </div>
+
+                    <hr />
+                    <div class="d-flex justify-content-between fs-5 fw-bold text-brown mb-4">
+                        <span>Total Payment:</span>
+                        <span class="text-orange">@FinalTotal lei</span>
+                    </div>
 
                     @* <div class="text-danger small">
                         DEBUG:
@@ -276,39 +300,69 @@
 
 
 @code {
+    // --- Date Formular ---
     private string fullName = "";
     private string phoneNumber = "";
     private string city = "";
     private string shippingAddress = "";
     private string? paymentMethod = null;
-    
+
+    // --- Logica Mystery Book ---
     private bool isEligibleForMysteryBook = false;
     private Book? selectedMysteryBook = null;
     private List<Book> potentialGifts = new();
     private bool showGiftModal = false;
 
+    // --- LOGICA PUNCTE DE LOIALITATE ---
+    private int userPoints = 0; // Punctele totale citite din DB
+    private bool usePoints = false; // Starea switch-ului (Bifat/Nebifat)
+
+    // Calculăm reducerea: 10 puncte = 1 Leu
+    private decimal calculatedDiscount => usePoints ? (userPoints / 10m) : 0;
+
+    // Totalul final care scade reducerea doar dacă usePoints este true
+    private decimal FinalTotal => Math.Max(0, cartService.Items.Sum(i => i.Price * i.Quantity) - calculatedDiscount);
+
+    // Validare formular (include condiția ca dacă e eligibil pt cadou, să-l fi ales deja)
     private bool IsFormValid =>
         !string.IsNullOrWhiteSpace(fullName) &&
         !string.IsNullOrWhiteSpace(phoneNumber) &&
+        phoneNumber.Length >= 10 &&
         !string.IsNullOrWhiteSpace(city) &&
         !string.IsNullOrWhiteSpace(shippingAddress) &&
         !string.IsNullOrEmpty(paymentMethod) &&
-        phoneNumber.Length >= 10 &&
-        (!isEligibleForMysteryBook || selectedMysteryBook != null); 
+        (!isEligibleForMysteryBook || selectedMysteryBook != null);
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadUserPoints();
         await CheckMysteryEligibility();
+    }
+
+    private async Task LoadUserPoints()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                            ?? user.FindFirst("UserId")?.Value;
+
+        if (int.TryParse(userIdString, out int userIdInt))
+        {
+            using var ctx = await DbFactory.CreateDbContextAsync();
+            var dbUser = await ctx.User.FindAsync(userIdInt);
+            if (dbUser != null)
+            {
+                userPoints = dbUser.LoyaltyPoints;
+            }
+        }
     }
 
     private async Task CheckMysteryEligibility()
     {
         decimal cartTotal = cartService.Items.Sum(i => i.Price * i.Quantity);
-
         if (cartTotal >= 200)
         {
             isEligibleForMysteryBook = true;
-
             if (selectedMysteryBook == null)
             {
                 await PrepareGifts();
@@ -319,8 +373,13 @@
         {
             isEligibleForMysteryBook = false;
             selectedMysteryBook = null;
-            showGiftModal = false;
         }
+    }
+
+    private async Task PrepareGifts()
+    {
+        using var ctx = await DbFactory.CreateDbContextAsync();
+        potentialGifts = await ctx.Book.Where(b => b.BookStock > 0).OrderBy(r => Guid.NewGuid()).Take(3).ToListAsync();
     }
 
     private void RevealGift(int index)
@@ -328,7 +387,7 @@
         if (potentialGifts.Count > index)
         {
             selectedMysteryBook = potentialGifts[index];
-            showGiftModal = false; 
+            showGiftModal = false;
             StateHasChanged();
         }
     }
@@ -336,34 +395,17 @@
     private void ChangeGiftChoice()
     {
         selectedMysteryBook = null;
-        showGiftModal = true; 
+        showGiftModal = true;
     }
-
-    private async Task PrepareGifts()
-    {
-        using var ctx = await DbFactory.CreateDbContextAsync();
-        potentialGifts = await ctx.Book
-            .Where(b => b.BookStock > 0)
-            .OrderBy(r => Guid.NewGuid())
-            .Take(3)
-            .ToListAsync();
-    }
-
-    private void ResetGift() => selectedMysteryBook = null;
 
     private async Task FinalizeOrder()
     {
         if (!IsFormValid) return;
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                           ?? user.FindFirst("UserId")?.Value;
+        var userIdString = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userIdInt))
-        {
-            return;
-        }
+        if (!int.TryParse(userIdString, out int userIdInt)) return;
 
         try
         {
@@ -373,68 +415,79 @@
             try
             {
                 var groupedItems = cartService.Items.GroupBy(i => i.SellerId).ToList();
+                var createdOrders = new List<Order>();
 
+                // 1. Pregătim și adăugăm comenzile
                 foreach (var group in groupedItems)
                 {
                     var order = new Order
                         {
                             UserId = userIdInt,
-                            SellerId = group.Key, 
+                            SellerId = group.Key,
                             OrderDate = DateTime.Now,
                             TotalAmount = group.Sum(i => i.Price * i.Quantity),
-                            ShippingAddress = $"{fullName} - {shippingAddress}",
-                            City = city,
+                            ShippingAddress = $"{fullName}, {city}, {shippingAddress}",
                             PhoneNumber = phoneNumber,
                             PaymentMethod = paymentMethod!,
                             Status = OrderStatus.Pending,
-                            LastUpdated = DateTime.Now,
                             OrderItems = new List<OrderItem>()
                         };
 
                     foreach (var item in group)
                     {
-                        var dbBook = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == item.BookId);
-
-                        if (dbBook != null)
-                        {
-                            if (dbBook.BookStock >= item.Quantity)
-                            {
-                                dbBook.BookStock -= item.Quantity;
-
-                                order.OrderItems.Add(new OrderItem
-                                    {
-                                        BookId = dbBook.BookId,
-                                        Quantity = item.Quantity,
-                                        UnitPrice = item.Price,
-                                    });
-                            }
-                            else
-                            {
-                                throw new Exception($"Stock insufficient for: {dbBook.BookTitle}");
-                            }
-                        }
+                        order.OrderItems.Add(new OrderItem { BookId = item.BookId, Quantity = item.Quantity, UnitPrice = item.Price });
                     }
 
-                    // Mystery Book DOAR la comanda "Official" (unde SellerId e null sau 0)
+                    // Logica Mystery Book
                     if ((group.Key == null || group.Key == 0) && isEligibleForMysteryBook && selectedMysteryBook != null)
                     {
                         var giftInDb = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == selectedMysteryBook.BookId);
                         if (giftInDb != null && giftInDb.BookStock > 0)
                         {
                             giftInDb.BookStock -= 1;
-                            order.OrderItems.Add(new OrderItem
-                                {
-                                    BookId = giftInDb.BookId,
-                                    Quantity = 1,
-                                    UnitPrice = 0
-                                });
+                            order.OrderItems.Add(new OrderItem { BookId = giftInDb.BookId, Quantity = 1, UnitPrice = 0 });
                         }
                     }
 
                     ctx.Order.Add(order);
+                    createdOrders.Add(order);
                 }
 
+                // 2. Actualizare puncte
+                var dbUser = await ctx.User.FindAsync(userIdInt);
+                if (dbUser != null)
+                {
+                    if (usePoints)
+                    {
+                        int pointsUsed = (int)(calculatedDiscount * 10);
+                        dbUser.LoyaltyPoints -= pointsUsed;
+                    }
+                    dbUser.LoyaltyPoints += (int)(FinalTotal / 10);
+                }
+
+                // SALVĂM 1: Trimitem comenzile spre DB (generăm OrderId-urile)
                 await ctx.SaveChangesAsync();
+
+                // 3. Creăm notificările folosind Obiectul Order, nu ID-ul direct
+                foreach (var o in createdOrders)
+                {
+                    var notification = new Notification
+                        {
+                            UserId = userIdInt,
+                            // MODIFICARE AICI: Atribuim obiectul întreg, nu doar ID-ul
+                            Order = o,
+                            OrderId = o.OrderId, // Îl lăsăm și pe acesta pentru siguranță
+                            Message = $"Comanda ta #{o.OrderId} a fost plasată cu succes.",
+                            CreatedAt = DateTime.Now,
+                            IsRead = false,
+                            TargetUrl = $"/my-orders/{o.OrderId}"
+                        };
+                    ctx.Notification.Add(notification);
+                }
+
+                // SALVĂM 2: Trimitem notificările
+                await ctx.SaveChangesAsync();
+
                 await transaction.CommitAsync();
 
                 await cartService.ClearCart();
@@ -443,12 +496,10 @@
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                Console.WriteLine($"Transaction Error: {ex.Message}");
+                Console.WriteLine($"Eroare: {ex.Message}");
+                throw;
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"General Error: {ex.Message}");
-        }
+        catch (Exception ex) { Console.WriteLine($"General Error: {ex.Message}"); }
     }
 }

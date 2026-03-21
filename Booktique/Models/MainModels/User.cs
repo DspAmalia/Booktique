@@ -37,5 +37,6 @@ namespace Booktique.Models.MainModels
             Yearly = 2
         }
         public SubscriptionLevel IsSubscribed { get; set; } = SubscriptionLevel.None;
+        public int LoyaltyPoints { get; set; } = 0;
     }
 }

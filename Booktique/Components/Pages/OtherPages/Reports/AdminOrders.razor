@@ -230,31 +230,27 @@
         {
             using var context = await DbFactory.CreateDbContextAsync();
 
-            // 1. Găsim comanda în baza de date
             var dbOrder = await context.Order.FindAsync(order.OrderId);
 
             if (dbOrder != null)
             {
-                // 2. Actualizăm statusul comenzii
                 dbOrder.Status = newStatus;
                 dbOrder.LastUpdated = DateTime.Now;
 
-                // 3. Creăm NOTIFICAREA pentru utilizator (UserId-ul vine din comanda găsită)
                 var notification = new Notification
                     {
-                        UserId = dbOrder.UserId, // Important: ID-ul clientului
+                        UserId = dbOrder.UserId,
+                        OrderId = dbOrder.OrderId, // <--- ACEASTA ESTE LINIA CARE LIPSEA!
                         Message = $"Statusul comenzii tale #{dbOrder.OrderId} a fost actualizat în: {newStatus}.",
                         CreatedAt = DateTime.Now,
                         IsRead = false,
-                        TargetUrl = "/my-orders"
+                        TargetUrl = $"/my-orders/{dbOrder.OrderId}" // Recomandat: URL direct către comandă
                     };
 
                 context.Notification.Add(notification);
 
-                // 4. Salvăm totul într-o singură tranzacție
                 await context.SaveChangesAsync();
 
-                // 5. Actualizăm interfața Adminului (UI local)
                 order.Status = newStatus;
                 StateHasChanged();
             }

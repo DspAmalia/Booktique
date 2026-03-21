@@ -9,6 +9,7 @@
 @inject AuthenticationStateProvider AuthProvider
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <div class="page">
     <main>
@@ -162,6 +163,49 @@
 </div>
 
 <style>
+
+    .checkbox {
+        opacity: 0;
+        position: absolute;
+    }
+
+    .checkbox-label {
+        background-color: #5a3e2b;
+        width: 50px;
+        height: 26px;
+        border-radius: 50px;
+        position: relative;
+        padding: 5px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .bi-moon-fill {
+        color: #f1c40f;
+    }
+
+    .bi-sun-fill {
+        color: #f39c12;
+    }
+
+    .ball {
+        background-color: #fff;
+        width: 22px;
+        height: 22px;
+        position: absolute;
+        left: 2px;
+        top: 2px;
+        border-radius: 50%;
+        transition: transform 0.2s linear;
+    }
+
+    .checkbox:checked + .checkbox-label .ball {
+        transform: translateX(24px);
+    }
+
+
     .top-row {
         min-height: 4.5rem; 
         height: auto; 
@@ -442,8 +486,8 @@
     {
         if (firstRender)
         {
-            await cartService.LoadCartAsync();
-            await CheckSubscriptionStatus();
+            var theme = await JS.InvokeAsync<string>("themeManager.getTheme");
+            await JS.InvokeVoidAsync("themeManager.setTheme", theme);
             StateHasChanged();
         }
     }
