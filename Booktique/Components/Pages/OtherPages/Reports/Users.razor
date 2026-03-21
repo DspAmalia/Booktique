@@ -2,7 +2,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @inject BooktiqueContext DbContext
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrator")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Manager")]
 
 <div class="container py-4 no-print text-end">
     <a href="/admin/dashboard" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
@@ -52,7 +52,7 @@
 
     <div class="row mt-5 pt-5">
         <div class="col-6">
-            <p class="mb-1 small text-muted">System Administrator</p>
+            <p class="mb-1 small text-muted">System Manager</p>
             <div class="border-bottom border-dark my-4" style="height:40px; width: 250px;"></div>
         </div>
     </div>

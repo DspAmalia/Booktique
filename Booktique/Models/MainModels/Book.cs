@@ -79,7 +79,7 @@ namespace Booktique.Models.MainModels
         [Range(0, 5)]
         [Column("BookRating")]
         public int? BookRating { get; set; }
-        public string Condition { get; set; }
+        public string? Condition { get; set; }
         public DateTime DatePosted { get; set; } = DateTime.Now;
 
         public int? SellerId { get; set; }

@@ -7,7 +7,7 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 
-@attribute [Authorize(Roles = "Administrator")]
+@attribute [Authorize(Roles = "Manager")]
 
 <PageTitle>User Management | Booktique</PageTitle>
 
@@ -43,7 +43,24 @@
 
                 <TemplateColumn Title="Role" Sortable="true">
                     @{
-                        var roleClass = context.Role == "Administrator" ? "bg-danger" : "bg-brown";
+                        string roleClass;
+                        string icon;
+
+                        switch (context.Role)
+                        {
+                            case "Administrator":
+                                roleClass = "bg-warning text-dark shadow-sm"; // Galben
+                                icon = "bi-shield-fill-check";
+                                break;
+                            case "Manager":
+                                roleClass = "bg-danger shadow-sm"; // Roșu
+                                icon = "bi-shield-lock";
+                                break;
+                            default:
+                                roleClass = "bg-brown"; // Maro 
+                                icon = "bi-person";
+                                break;
+                        }
                     }
                     <span class="badge @roleClass rounded-pill">@context.Role</span>
                 </TemplateColumn>

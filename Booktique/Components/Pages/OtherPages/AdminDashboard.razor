@@ -3,7 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @inject BooktiqueContext DbContext
-@attribute [Authorize(Roles = "Administrator")]
+@attribute [Authorize(Roles = "Manager")]
 @rendermode InteractiveServer
 
 <PageTitle>Admin Dashboard | Booktique</PageTitle>
@@ -277,9 +277,9 @@
         totalRevenue = rawItems.Sum(x => (decimal)x.Quantity * x.Price);
 
         criticalBooks = await DbContext.Book
-            .Where(b => b.BookStock < 5)
-            .OrderBy(b => b.BookStock)
-            .Take(6)
-            .ToListAsync();
+        .Where(b => b.SellerId == null && b.BookStock < 5) // Doar cărțile librăriei cu stoc mic
+        .OrderBy(b => b.BookStock)
+        .Take(6)
+        .ToListAsync();
     }
 }

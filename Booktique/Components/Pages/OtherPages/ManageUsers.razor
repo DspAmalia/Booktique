@@ -1,0 +1,189 @@
+﻿@page "/admin/manage-users"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@attribute [Authorize(Roles = "Administrator")]
+@rendermode InteractiveServer
+
+<PageTitle>User Management | Booktique</PageTitle>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-brown">User <strong>Rights</strong></h2>
+            <p class="text-muted small">Elevate users to Manager or Administrator status.</p>
+        </div>
+        <div class="search-box">
+            <input type="text" class="form-control rounded-pill shadow-sm"
+                   placeholder="Search by username..." @bind="searchTerm" @bind:event="oninput" />
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-brown text-white">
+                    <tr>
+                        <th class="ps-4 py-3">User Details</th>
+                        <th>Email Address</th>
+                        <th>Access Level</th>
+                        <th class="text-end pe-4">Set Permissions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (FilteredUsers != null)
+                    {
+                        @foreach (var user in FilteredUsers)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle @(GetAvatarClass(user.Role)) me-3">
+                                            @user.UserName?[0]
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">@user.UserName</div>
+                                            <div class="text-muted x-small">ID: #@user.UserId</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@user.UserEmail</td>
+                                <td>
+                                    <span class="badge rounded-pill @GetRoleBadgeClass(user.Role)">
+                                        <i class="bi @GetRoleIcon(user.Role) me-1"></i> @user.Role
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group shadow-sm">
+                                        <button @onclick='() => UpdateRole(user, "User")'
+                                                class="btn btn-sm btn-outline-secondary @(user.Role == "User" ? "active" : "")">
+                                            User
+                                        </button>
+                                        <button @onclick='() => UpdateRole(user, "Manager")'
+                                                class="btn btn-sm btn-outline-warning @(user.Role == "Manager" ? "active" : "")">
+                                            Manager
+                                        </button>
+                                        <button @onclick='() => UpdateRole(user, "Administrator")'
+                                                class="btn btn-sm btn-outline-danger @(user.Role == "Administrator" ? "active" : "")">
+                                            Admin
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #fdf6ee;
+    }
+    .bg-brown {
+        background-color: #5a3e2b;
+    }
+
+    .text-brown {
+        color: #5a3e2b;
+    }
+
+    .x-small {
+        font-size: 0.7rem;
+    }
+
+    .avatar-circle {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+    }
+
+    .av-user {
+        background-color: #adb5bd;
+    }
+
+    .av-manager {
+        background-color: #f0a500;
+    }
+
+    .av-admin {
+        background-color: #dc3545;
+    }
+
+    .search-box {
+        width: 300px;
+    }
+
+    .btn-group .btn {
+        width: 80px;
+        font-weight: 500;
+    }
+</style>
+
+@code {
+    private List<User>? allUsers;
+    private string searchTerm = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private IEnumerable<User>? FilteredUsers =>
+        string.IsNullOrWhiteSpace(searchTerm)
+        ? allUsers
+        : allUsers?.Where(u => u.UserName!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    private async Task LoadUsers()
+    {
+        using var context = DbFactory.CreateDbContext();
+        allUsers = await context.User.ToListAsync();
+    }
+
+    private async Task UpdateRole(User user, string newRole)
+    {
+        if (user.Role == newRole) return;
+
+        using var context = DbFactory.CreateDbContext();
+        var dbUser = await context.User.FindAsync(user.UserId);
+
+        if (dbUser != null)
+        {
+            dbUser.Role = newRole;
+            await context.SaveChangesAsync();
+
+            // Actualizăm și lista locală pentru UI instant
+            user.Role = newRole;
+            StateHasChanged();
+        }
+    }
+
+    private string GetRoleBadgeClass(string? role) => role switch
+    {
+        "Administrator" => "bg-danger text-white",
+        "Manager" => "bg-warning text-dark",
+        _ => "bg-light text-muted border"
+    };
+
+    private string GetRoleIcon(string? role) => role switch
+    {
+        "Administrator" => "bi-shield-lock-fill",
+        "Manager" => "bi-person-badge-fill",
+        _ => "bi-person"
+    };
+
+    private string GetAvatarClass(string? role) => role switch
+    {
+        "Administrator" => "av-admin",
+        "Manager" => "av-manager",
+        _ => "av-user"
+    };
+}

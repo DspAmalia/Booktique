@@ -304,7 +304,7 @@
         currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                         ?? user.FindFirst("UserId")?.Value;
 
-        isAdmin = user.IsInRole("Administrator");
+        isAdmin = user.IsInRole("Manager");
 
         using var context = DbFactory.CreateDbContext();
 

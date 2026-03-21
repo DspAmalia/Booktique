@@ -4,7 +4,7 @@
 @using Booktique.Models.MainModels
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
-@attribute [Authorize(Roles = "Administrator")]
+@attribute [Authorize(Roles = "Manager")]
 
 <PageTitle>User Account - @(user?.UserName ?? "Details")</PageTitle>
 
@@ -32,7 +32,7 @@
                                         </div>
                                     </div>
                                     <h2 class="fw-bold text-brown mb-0">@user.UserName</h2>
-                                    <span class="badge rounded-pill @(user.Role == "Administrator" ? "bg-danger" : "bg-brown") mt-2 px-3">
+                                    <span class="badge rounded-pill @(user.Role == "Manager" ? "bg-danger" : "bg-brown") mt-2 px-3">
                                         @user.Role
                                     </span>
                                 </div>

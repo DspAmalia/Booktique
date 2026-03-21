@@ -30,7 +30,7 @@
                         <i class="bi bi-magic"></i> AI Assistant
                     </NavLink>
 
-                    <AuthorizeView Roles="User, Administrator">
+                    <AuthorizeView Roles="User, Manager">
                         <NavLink class="nav-horizontal-link" href="/subscriptions">
                             <i class="bi bi-star"></i> Subscriptions
                         </NavLink>
@@ -52,8 +52,14 @@
 
             <div class="d-flex align-items-center gap-2">
 
-                <AuthorizeView Roles="Administrator">
+                <AuthorizeView Roles="Manager">
                     <a class="nav-horizontal-link admin-theme" href="/admin/dashboard" title="Dashboard">
+                        <i class="bi bi-speedometer2"></i>
+                    </a>
+                </AuthorizeView>
+
+                <AuthorizeView Roles="Administrator">
+                    <a class="nav-horizontal-link admin-theme" href="/admin/manage-users" title="Manage-User">
                         <i class="bi bi-speedometer2"></i>
                     </a>
                 </AuthorizeView>

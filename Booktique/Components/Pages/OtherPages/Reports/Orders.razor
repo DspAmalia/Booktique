@@ -2,7 +2,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @inject BooktiqueContext DbContext
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrator")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Manager")]
 @rendermode InteractiveServer
 
 <div class="container py-4 no-print text-end">

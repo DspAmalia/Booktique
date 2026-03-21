@@ -5,7 +5,7 @@
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
-@attribute [Authorize(Roles = "Administrator")]
+@attribute [Authorize(Roles = "Manager")]
 
 <PageTitle>Add New Book | Booktique</PageTitle>
 

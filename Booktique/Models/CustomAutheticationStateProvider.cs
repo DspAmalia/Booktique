@@ -17,7 +17,7 @@ namespace Booktique.Models
             var identity = new ClaimsIdentity(new[]
             {
             new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.Role, "User") // sau "Administrator"
+            new Claim(ClaimTypes.Role, "User") // sau "Manager"
         }, "apiauth");
 
             _currentUser = new ClaimsPrincipal(identity);

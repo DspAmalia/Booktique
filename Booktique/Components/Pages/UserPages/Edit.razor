@@ -7,7 +7,7 @@
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 
-@attribute [Authorize(Roles = "Administrator")]
+@attribute [Authorize(Roles = "Manager")]
 @rendermode InteractiveServer
 
 <PageTitle>Edit User | Booktique</PageTitle>
