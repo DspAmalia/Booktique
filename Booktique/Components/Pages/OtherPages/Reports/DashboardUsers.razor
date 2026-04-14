@@ -1,0 +1,208 @@
+﻿@page "/admin/dashboard/users"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager NavManager
+@attribute [Authorize(Roles = "Manager")]
+@rendermode InteractiveServer
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-brown fw-bold">Clients <span class="text-warning">Management</span></h2>
+        <a href="/admin/dashboard" class="btn btn-outline-secondary btn-sm rounded-pill">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-white rounded-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="small fw-bold text-muted">SEARCH NAME/EMAIL</label>
+                <input type="text" class="form-control" @bind="searchQuery" @bind:event="oninput" placeholder="Search client..." />
+            </div>
+            <div class="col-md-3">
+                <label class="small fw-bold text-muted">FILTER BY ROLE</label>
+                <select class="form-select" @bind="selectedRole">
+                    <option value="">All Roles</option>
+                    <option value="User">User</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Administrator">Administrator</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="small fw-bold text-muted">SUBSCRIPTION</label>
+                <select class="form-select" @bind="selectedSub">
+                    <option value="All">All Plans</option>
+                    @foreach (var level in Enum.GetValues<User.SubscriptionLevel>())
+                    {
+                        <option value="@level">@level</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-warning w-100 rounded-pill text-white fw-bold" @onclick="ApplyFilters">
+                    <i class="bi bi-filter"></i> Filter
+                </button>
+            </div>
+            <div class="col-md-2 text-end">
+                <button class="btn btn-dark rounded-pill px-4 shadow-sm w-100" @onclick="GoToPrintClients">
+                    <i class="bi bi-printer me-2"></i> Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="p-3 bg-light rounded-3 border-start border-warning border-4 shadow-sm">
+                <div class="small text-muted text-uppercase fw-bold">Total in View</div>
+                <div class="h3 fw-bold">@(filteredUsers?.Count ?? 0)</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-light rounded-3 border-start border-brown border-4 shadow-sm">
+                <div class="small text-muted text-uppercase fw-bold">Premium Users</div>
+                <div class="h3 fw-bold text-brown">@(filteredUsers?.Count(u => u.IsSubscribed != User.SubscriptionLevel.None) ?? 0)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Client ID</th>
+                        <th>User Identity</th>
+                        <th class="text-center">Role</th>
+                        <th class="text-center">Subscription</th>
+                        <th class="text-end pe-4">Loyalty Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (filteredUsers == null)
+                    {
+                        <tr><td colspan="5" class="text-center py-5 text-muted">Loading data...</td></tr>
+                    }
+                    else if (!filteredUsers.Any())
+                    {
+                        <tr><td colspan="5" class="text-center py-5 text-muted">No clients found for this selection.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var user in filteredUsers)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">#@user.UserId</td>
+                                <td>
+                                    <div class="fw-bold">@user.UserName</div>
+                                    <div class="small text-muted">@user.UserEmail</div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @GetRoleClass(user.Role) rounded-pill px-3 py-2">
+                                        @user.Role
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @if (user.IsSubscribed == User.SubscriptionLevel.None)
+                                    {
+                                        <span class="text-muted small">Standard</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-soft-warning text-warning border border-warning px-3 py-2 rounded-pill">
+                                            @user.IsSubscribed
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4 fw-bold text-brown">@user.LoyaltyPoints pts</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-brown {
+        color: #5a3e2b;
+    }
+
+    .border-brown {
+        border-color: #5a3e2b !important;
+    }
+
+    .bg-soft-warning {
+        background-color: #fff9e6;
+    }
+
+    .badge-admin {
+        background-color: #212529;
+        color: white;
+    }
+
+    .badge-manager {
+        background-color: #f0a500;
+        color: white;
+    }
+
+    .badge-user {
+        background-color: #e9ecef;
+        color: #4d4d4d;
+    }
+</style>
+
+@code {
+    private List<User>? filteredUsers;
+    private string searchQuery = "";
+    private string selectedRole = "";
+    private string selectedSub = "All";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ApplyFilters();
+    }
+
+    private async Task ApplyFilters()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var query = context.User.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            query = query.Where(u => u.UserName.Contains(searchQuery) || u.UserEmail.Contains(searchQuery));
+        }
+
+        if (!string.IsNullOrEmpty(selectedRole))
+        {
+            query = query.Where(u => u.Role == selectedRole);
+        }
+
+        if (selectedSub != "All" && Enum.TryParse<User.SubscriptionLevel>(selectedSub, out var subLevel))
+        {
+            query = query.Where(u => u.IsSubscribed == subLevel);
+        }
+
+        filteredUsers = await query.OrderByDescending(u => u.UserId).ToListAsync();
+        StateHasChanged();
+    }
+
+    private void GoToPrintClients()
+    {
+        var roleParam = string.IsNullOrEmpty(selectedRole) ? "All" : selectedRole;
+        NavManager.NavigateTo($"/admin/reports/users/{roleParam}/{selectedSub}/{searchQuery}");
+    }
+
+    private string GetRoleClass(string? role)
+    {
+        return role switch
+        {
+            "Administrator" => "badge-admin",
+            "Manager" => "badge-manager",
+            _ => "badge-user"
+        };
+    }
+}

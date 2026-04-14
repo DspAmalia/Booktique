@@ -1,77 +1,155 @@
-﻿@page "/admin/reports/inventory"
+﻿@page "/admin/reports/inventory/{Type}/{Filter}"
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @inject BooktiqueContext DbContext
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Manager")]
 
 <div class="container py-4 no-print text-end">
-    <a href="/admin/dashboard" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
+    <a href="/admin/dashboard/inventory" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
     <button class="btn btn-warning px-4 fw-bold shadow-sm" onclick="window.print()">
         <i class="bi bi-printer me-2"></i> PRINT USER LIST
     </button>
 </div>
 
-<div class="invoice-container p-5 bg-white mx-auto border shadow-sm">
+<div class="invoice-container p-5 bg-white mx-auto border shadow-sm rounded-1">
     <div class="row mb-5 border-bottom-gold pb-4">
         <div class="col-7 d-flex align-items-center">
-            <img src="/images/logo.png" alt="Booktique Logo" style="height: 80px; width: auto;" class="me-3" />
+            <img src="/images/logo.png" alt="Logo" style="height: 70px; width: auto;" class="me-3" />
             <div>
-                <h1 class="text-blue fw-bold mb-0" style="font-size: 2.5rem;">BOOKTIQUE</h1>
-                <p class="text-muted small mt-2 uppercase tracking-1">Warehouse & Logistics</p>
+                <h1 class="text-brown fw-bold mb-0" style="font-size: 2.2rem; letter-spacing: -1px;">BOOKTIQUE</h1>
+                <p class="text-muted small mt-1 text-uppercase tracking-2">Audit & Compliance Division</p>
             </div>
         </div>
 
         <div class="col-5 text-end">
-            <h2 class="invoice-title">STOCK AUDIT</h2>
-            <div class="invoice-meta mt-3">
-                <p><strong>STATUS:</strong> Active Inventory</p>
-                <p><strong>DATE:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</p>
+            <h2 class="report-title">STOCK AUDIT</h2>
+            <div class="report-meta mt-3">
+                <p><strong>DEPARTMENT:</strong> @(Type?.ToUpper() == "LIBRARY" ? "New Books Store" : "Antique Collection")</p>
+                <p><strong>CRITERIA:</strong> @Filter?.ToUpper()</p>
+                <p><strong>DATE:</strong> @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
             </div>
         </div>
     </div>
 
-    <table class="table table-hover mt-4 align-middle">
-        <thead class="bg-invoice-blue text-white">
+    @* TABLE *@
+    <table class="table table-hover mt-4 align-middle border">
+        <thead class="bg-brown text-white">
             <tr>
-                <th class="p-3 border-0">TITLE</th>
-                <th class="p-3 border-0">AUTHOR</th>
-                <th class="p-3 border-0 text-center">STOCK</th>
-                <th class="p-3 border-0 text-end">UNIT PRICE</th>
+                <th class="p-3">@(Type == "library" ? "ISBN / ID" : "SELLER ID")</th>
+                <th class="p-3">TITLE & AUTHOR</th>
+                <th class="p-3 text-center">@(Type == "library" ? "STOCK" : "CONDITION")</th>
+                <th class="p-3 text-end">UNIT PRICE</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var book in inventoryList)
             {
-                <tr style="@(book.BookStock < 5 ? "border-left: 4px solid #dc3545;" : "")">
-                    <td class="p-3 fw-bold">@book.BookTitle</td>
-                    <td class="p-3 text-muted">@book.BookAuthor</td>
-                    <td class="p-3 text-center @(book.BookStock < 5 ? "text-danger fw-bold" : "")">@book.BookStock</td>
-                    <td class="p-3 text-end">@((book.BookPrice ?? 0m).ToString("N2"))</td>
+                <tr class="@(Type == "library" && book.BookStock < 5 ? "table-danger-light" : "")">
+                    <td class="p-3 text-muted small fw-bold">
+                        #( @(Type == "library" ? book.BookId.ToString() : book.SellerId?.ToString() ?? "N/A") )
+                    </td>
+                    <td class="p-3">
+                        <div class="fw-bold text-brown">@book.BookTitle</div>
+                        <div class="small text-muted">@book.BookAuthor</div>
+                    </td>
+                    <td class="p-3 text-center">
+                        @if (Type == "library")
+                        {
+                            <span class="@(book.BookStock < 5 ? "text-danger fw-bold" : "")">@book.BookStock units</span>
+                        }
+                        else
+                        {
+                            <span class="text-sepia fw-bold">@book.Condition</span>
+                        }
+                    </td>
+                    <td class="p-3 text-end fw-bold">@((book.BookPrice ?? 0m).ToString("N2")) RON</td>
                 </tr>
             }
         </tbody>
     </table>
 
+    @* TOTALS SECTION *@
+    <div class="row mt-4">
+        <div class="col-8"></div>
+        <div class="col-4">
+            <div class="p-3 rounded bg-sepia-light border-sepia">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Total Items:</span>
+                    <span class="fw-bold">@inventoryList.Count</span>
+                </div>
+                <div class="d-flex justify-content-between mt-2 border-top pt-2">
+                    <span class="text-brown fw-bold">Est. Value:</span>
+                    <span class="text-brown fw-bold">@inventoryList.Sum(b => (b.BookPrice ?? 0) * (Type == "library" ? (b.BookStock ?? 1) : 1)).ToString("N2") RON</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* SIGNATURE *@
     <div class="row mt-5 pt-5">
         <div class="col-6">
-            <p class="mb-1 small text-muted">Warehouse Supervisor Signature</p>
-            <div class="border-bottom border-dark my-4" style="height:40px; width: 250px;"></div>
+            <p class="mb-1 small text-muted text-uppercase fw-bold">Warehouse Manager Authorization</p>
+            <div class="border-bottom border-sepia my-3" style="height:40px; width: 250px;"></div>
+            <p class="small text-muted italic">Digitally generated on behalf of Booktique Management</p>
         </div>
     </div>
 </div>
 
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    :root {
+        --brown-dark: #3d2b1f;
+        --brown-main: #5a3e2b;
+        --sepia-gold: #b08968;
+        --sepia-light: #fdf6ee;
+        --invoice-gold: #c5a059;
     }
 
-    :root {
-        --invoice-blue: #1a2a40;
-        --invoice-gold: #c5a059;
+    body {
+        background-color: var(--sepia-light);
+    }
+
+    .text-brown {
+        color: var(--brown-main);
+    }
+
+    .text-sepia {
+        color: var(--sepia-gold);
+    }
+
+    .bg-brown {
+        background-color: var(--brown-main) !important;
+    }
+
+    .bg-sepia-light {
+        background-color: var(--sepia-light);
+    }
+
+    .border-bottom-gold {
+        border-bottom: 3px solid var(--invoice-gold) !important;
+    }
+
+    .border-sepia {
+        border: 1px solid var(--sepia-gold) !important;
+    }
+
+    .border-bottom-sepia {
+        border-bottom: 3px solid var(--sepia-gold) !important;
+    }
+
+    .report-title {
+        color: var(--invoice-gold);
+        letter-spacing: 3px;
+        font-weight: bold;
+    }
+
+    .report-meta p {
+        margin-bottom: 2px;
+        font-size: 0.85rem;
+    }
+
+    .invoice-container {
+        max-width: 900px;
+        min-height: 297mm;
     }
 
     .btn-warning {
@@ -89,28 +167,17 @@
         border-radius: 50px;
     }
 
-    .invoice-container {
-        max-width: 1000px;
-        min-height: 297mm;
-        background: white;
+    .table-danger-light {
+        background-color: #fff5f5;
+        border-left: 5px solid #dc3545 !important;
     }
 
-    .invoice-logo {
-        color: var(--invoice-blue);
-        font-weight: 800;
+    .tracking-2 {
+        letter-spacing: 2px;
     }
 
-    .invoice-title {
-        color: var(--invoice-gold);
-        letter-spacing: 4px;
-    }
-
-    .bg-invoice-blue {
-        background-color: var(--invoice-blue) !important;
-    }
-
-    .border-bottom-gold {
-        border-bottom: 3px solid var(--invoice-gold) !important;
+    .italic {
+        font-style: italic;
     }
 
     @@media print {
@@ -128,6 +195,9 @@
             top: 0;
             width: 100% !important;
             margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
         }
 
         .no-print {
@@ -136,14 +206,37 @@
 
         .bg-invoice-blue {
             -webkit-print-color-adjust: exact !important;
-            background-color: #1a2a40 !important;
+            background-color: #2c3e50 !important;
             color: white !important;
         }
     }
 </style>
 
 @code {
+    [Parameter] public string Type { get; set; } = "library";
+    [Parameter] public string Filter { get; set; } = "all";
+
     private List<Book> inventoryList = new List<Book>();
-    protected override async Task OnInitializedAsync() =>
-        inventoryList = await DbContext.Book.OrderBy(b => b.BookStock).ToListAsync();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var query = Type.ToLower() == "library"
+            ? DbContext.Book.Where(b => b.SellerId == null)
+            : DbContext.Book.Where(b => b.SellerId != null);
+
+        if (Filter != "all")
+        {
+            if (Type.ToLower() == "library")
+            {
+                if (Filter == "low") query = query.Where(b => b.BookStock <= 5 && b.BookStock > 0);
+                if (Filter == "out") query = query.Where(b => b.BookStock == 0);
+            }
+            else
+            {
+                query = query.Where(b => b.Condition == Filter);
+            }
+        }
+
+        inventoryList = await query.OrderBy(b => b.BookTitle).ToListAsync();
+    }
 }

@@ -1,32 +1,31 @@
-﻿@page "/admin/reports/orders"
+﻿@page "/admin/reports/orders/{StartStr}/{EndStr}/{StatusStr?}"
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
-@inject BooktiqueContext DbContext
+@inject IDbContextFactory<BooktiqueContext> DbFactory
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Manager")]
 @rendermode InteractiveServer
 
 <div class="container py-4 no-print text-end">
-    <a href="/admin/dashboard" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
+    <a href="/admin/dashboard/orders" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
     <button class="btn btn-warning px-4 fw-bold shadow-sm" onclick="window.print()">
         <i class="bi bi-printer me-2"></i> PRINT USER LIST
     </button>
 </div>
 
-<div class="invoice-container p-5 bg-white mx-auto border shadow-sm" id="printable-area">
+<div class="invoice-container p-5 bg-white mx-auto border shadow-sm">
     <div class="row mb-5 border-bottom-gold pb-4">
         <div class="col-7 d-flex align-items-center">
             <img src="/images/logo.png" alt="Booktique Logo" style="height: 80px; width: auto;" class="me-3" />
             <div>
                 <h1 class="text-blue fw-bold mb-0" style="font-size: 2.5rem;">BOOKTIQUE</h1>
-                <p class="text-muted small mt-2 uppercase tracking-1">Sales & Logistics Division</p>
+                <p class="text-muted small mt-2 uppercase tracking-1">Logistics & Operations</p>
             </div>
         </div>
 
         <div class="col-5 text-end">
-            <h2 class="invoice-title">ORDER REPORT</h2>
+            <h2 class="invoice-title">ORDERS REPORT</h2>
             <div class="invoice-meta mt-3">
-                <p><strong>REPORT NO:</strong> #ORD-@reportYear-@lunaRaport</p>
-                <p><strong>PERIOD:</strong> @monthName @reportYear</p>
+                <p><strong>PERIOD:</strong> @displayPeriod</p>
                 <p><strong>GEN. DATE:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</p>
             </div>
         </div>
@@ -38,29 +37,46 @@
                 <th class="p-3 border-0">ORDER ID</th>
                 <th class="p-3 border-0">DATE</th>
                 <th class="p-3 border-0">CUSTOMER</th>
-                <th class="p-3 border-0 text-center">ITEMS</th>
+                <th class="p-3 border-0">STATUS</th>
                 <th class="p-3 border-0 text-end">TOTAL AMOUNT</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var order in ordersList)
+            @if (ordersList == null || !ordersList.Any())
             {
-                var orderTotal = order.OrderItems.Sum(oi => (decimal)(oi.Quantity * (oi.UnitPrice )));
-                <tr>
-                    <td class="p-3 fw-bold">#@order.OrderId</td>
-                    <td class="p-3">@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                    <td class="p-3 text-muted small">User ID: @order.UserId</td>
-                    <td class="p-3 text-center">@order.OrderItems.Sum(oi => oi.Quantity)</td>
-                    <td class="p-3 text-end fw-bold">@orderTotal.ToString("N2")</td>
-                </tr>
+                <tr><td colspan="5" class="text-center py-4">No orders found for the selected period.</td></tr>
+            }
+            else
+            {
+                @foreach (var order in ordersList)
+                {
+                    <tr>
+                        <td class="p-3 fw-bold">#@order.OrderId</td>
+                        <td class="p-3">@order.OrderDate.ToString("dd MMM yyyy HH:mm")</td>
+                        <td class="p-3">User #@order.UserId</td>
+                        <td class="p-3">
+                            <span class="status-text">@order.Status</span>
+                        </td>
+                        <td class="p-3 text-end fw-bold">@order.TotalAmount.ToString("N2") RON</td>
+                    </tr>
+                }
             }
         </tbody>
+        <tfoot>
+            <tr class="border-top border-dark">
+                <td colspan="4" class="p-3 text-end fw-bold uppercase">Total Volume:</td>
+                <td class="p-3 text-end fw-bold text-blue fs-5">@totalVolume.ToString("N2") RON</td>
+            </tr>
+        </tfoot>
     </table>
 
     <div class="row mt-5 pt-5">
         <div class="col-6">
-            <p class="mb-1 small text-muted">Operations Manager Signature</p>
+            <p class="mb-1 small text-muted">Authorized Logistics Manager</p>
             <div class="border-bottom border-dark my-4" style="height:40px; width: 250px;"></div>
+        </div>
+        <div class="col-6 text-end">
+            <p class="mt-4 small text-muted">Total Orders in Report: @ordersList?.Count</p>
         </div>
     </div>
 </div>
@@ -70,18 +86,13 @@
         height: 100%;
         margin: 0;
         padding: 0;
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
 
-    :root { --invoice-blue: #1a2a40; --invoice-gold: #c5a059; }
-    
-    .invoice-container { max-width: 1000px; min-height: 297mm; background: white; }
-    .invoice-logo { color: var(--invoice-blue); font-weight: 800; }
-    .invoice-title { color: var(--invoice-gold); letter-spacing: 4px; }
-    .bg-invoice-blue { background-color: var(--invoice-blue) !important; }
-    .btn-invoice-blue { background-color: var(--invoice-blue); color: white; }
-    .border-bottom-gold { border-bottom: 3px solid var(--invoice-gold) !important; }
+    :root {
+        --report-blue: #2c3e50;
+        --report-accent: #34495e;
+        --invoice-gold: #c5a059;
+    }
 
     .btn-warning {
         color: white;
@@ -96,6 +107,40 @@
 
     .btn-outline-secondary {
         border-radius: 50px;
+    }
+
+    .invoice-container {
+        max-width: 1000px;
+        min-height: 297mm;
+        background: white;
+    }
+
+    .invoice-title {
+        color: var(--invoice-gold);
+        letter-spacing: 2px;
+        font-weight: 700;
+    }
+
+    .bg-invoice-blue {
+        background-color: var(--report-blue) !important;
+    }
+
+    .border-bottom-gold {
+        border-bottom: 3px solid var(--invoice-gold) !important;
+    }
+
+    .border-bottom-blue {
+        border-bottom: 3px solid var(--report-blue) !important;
+    }
+
+    .text-blue {
+        color: var(--report-blue);
+    }
+
+    .status-text {
+        text-transform: uppercase;
+        font-weight: 600;
+        font-size: 0.85rem;
     }
 
     @@media print {
@@ -124,35 +169,40 @@
 
         .bg-invoice-blue {
             -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            background-color: #1a2a40 !important;
+            background-color: #2c3e50 !important;
             color: white !important;
         }
     }
 </style>
 
 @code {
-    private List<Order> ordersList = new List<Order>();
-    private decimal totalMonth;
-    private string monthName = "";
-    private int reportYear;
-    private int lunaRaport;
+    [Parameter] public string StartStr { get; set; } = "";
+    [Parameter] public string EndStr { get; set; } = "";
+    [Parameter] public string? StatusStr { get; set; } = null; 
+
+    private List<Order> ordersList = new();
+    private decimal totalVolume;
+    private string displayPeriod = "";
 
     protected override async Task OnInitializedAsync()
     {
-        var dataRef = DateTime.Now.AddMonths(-1);
-        var start = new DateTime(dataRef.Year, dataRef.Month, 1);
-        var end = start.AddMonths(1).AddSeconds(-1);
-        
-        monthName = dataRef.ToString("MMMM", new System.Globalization.CultureInfo("en-US"));
-        reportYear = dataRef.Year;
-        lunaRaport = dataRef.Month;
+        if (DateTime.TryParse(StartStr, out var start) && DateTime.TryParse(EndStr, out var end))
+        {
+            var endOfDay = end.Date.AddDays(1).AddTicks(-1);
+            displayPeriod = $"{start:dd/MM/yyyy} - {end:dd/MM/yyyy}";
 
-        ordersList = await DbContext.Order
-            .Where(o => o.OrderDate >= start && o.OrderDate <= end)
-            .Include(o => o.OrderItems)
-            .OrderByDescending(o => o.OrderDate).ToListAsync();
+            using var context = await DbFactory.CreateDbContextAsync();
 
-        totalMonth = ordersList.Sum(o => o.OrderItems.Sum(oi => (decimal)(oi.Quantity * (oi.UnitPrice ))));
+            var query = context.Order
+                .Where(o => o.OrderDate >= start.Date && o.OrderDate <= endOfDay);
+
+            if (!string.IsNullOrEmpty(StatusStr) && Enum.TryParse<OrderStatus>(StatusStr, out var statusEnum))
+            {
+                query = query.Where(o => o.Status == statusEnum);
+            }
+
+            ordersList = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
+            totalVolume = ordersList.Sum(o => o.TotalAmount);
+        }
     }
 }

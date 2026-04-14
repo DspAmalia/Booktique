@@ -1,0 +1,170 @@
+﻿@page "/admin/dashboard/orders"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager NavManager
+@attribute [Authorize(Roles = "Manager")]
+@rendermode InteractiveServer
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-brown fw-bold">Orders <span class="text-primary">Management</span></h2>
+        <a href="/admin/dashboard" class="btn btn-outline-secondary btn-sm rounded-pill">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-white rounded-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="small fw-bold text-muted">START DATE</label>
+                <input type="date" class="form-control" @bind="startDate" />
+            </div>
+            <div class="col-md-2">
+                <label class="small fw-bold text-muted">END DATE</label>
+                <input type="date" class="form-control" @bind="endDate" />
+            </div>
+            <div class="col-md-3">
+                <label class="small fw-bold text-muted">FILTER BY STATUS</label>
+                <select class="form-select" @bind="selectedStatus">
+                    <option value="">All Statuses</option>
+                    @foreach (var status in Enum.GetValues<OrderStatus>())
+                    {
+                        <option value="@status">@status</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100 rounded-pill" @onclick="ApplyFilters">
+                    <i class="bi bi-filter"></i> Filter
+                </button>
+            </div>
+            <div class="col-md-3 text-end">
+                <button class="btn btn-dark rounded-pill px-4 shadow-sm w-100" @onclick="GoToPrintOrders">
+                    <i class="bi bi-printer me-2"></i> Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="p-3 bg-light rounded-3 border-start border-primary border-4 shadow-sm">
+                <div class="small text-muted text-uppercase">Total in View</div>
+                <div class="h3 fw-bold">@(filteredOrders?.Count ?? 0)</div>
+            </div>
+        </div>
+        @if (selectedStatus == null)
+        {
+            <div class="col-md-4">
+                <div class="p-3 bg-light rounded-3 border-start border-warning border-4 shadow-sm">
+                    <div class="small text-muted text-uppercase">Pending Orders (Total)</div>
+                    <div class="h3 fw-bold">@(filteredOrders?.Count(o => o.Status == OrderStatus.Pending) ?? 0)</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Order ID</th>
+                        <th>Date</th>
+                        <th>Customer ID</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (filteredOrders == null)
+                    {
+                        <tr><td colspan="5" class="text-center py-5">Loading data...</td></tr>
+                    }
+                    else if (!filteredOrders.Any())
+                    {
+                        <tr><td colspan="5" class="text-center py-5 text-muted">No orders found for this selection.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var order in filteredOrders)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">#@order.OrderId</td>
+                                <td>@order.OrderDate.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>User #@order.UserId</td>
+                                <td>
+                                    <span class="badge @GetStatusClass(order.Status.ToString()) rounded-pill px-3 py-2">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4 fw-bold">@order.TotalAmount.ToString("N2") RON</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private DateTime startDate = DateTime.Now.AddMonths(-1);
+    private DateTime endDate = DateTime.Now;
+
+    private OrderStatus? selectedStatus;
+
+    private List<Order>? filteredOrders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ApplyFilters();
+    }
+
+    private async Task ApplyFilters()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        var start = startDate.Date;
+        var end = endDate.Date.AddDays(1).AddTicks(-1);
+
+        var query = context.Order
+            .Where(o => o.OrderDate >= start && o.OrderDate <= end);
+
+        if (selectedStatus.HasValue)
+        {
+            query = query.Where(o => o.Status == selectedStatus.Value);
+        }
+
+        filteredOrders = await query
+            .OrderByDescending(o => o.OrderDate)
+            .ToListAsync();
+
+        StateHasChanged();
+    }
+
+    private void GoToPrintOrders()
+    {
+        var start = startDate.ToString("yyyy-MM-dd");
+        var end = endDate.ToString("yyyy-MM-dd");
+
+        var statusParam = selectedStatus.HasValue ? selectedStatus.Value.ToString() : "";
+
+        NavManager.NavigateTo($"/admin/reports/orders/{start}/{end}/{statusParam}");
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Confirmed" => "bg-primary text-white",
+            "Shipped" => "bg-info text-white",
+            "Delivered" => "bg-success text-white",
+            "Cancelled" => "bg-danger text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+}

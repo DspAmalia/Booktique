@@ -1,0 +1,324 @@
+﻿@page "/admin/dashboard/inventory"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Booktique.Models.MainModels
+@inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject NavigationManager NavManager
+@attribute [Authorize(Roles = "Manager")]
+@rendermode InteractiveServer
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-brown fw-bold">Global <span class="text-sepia">Inventory</span></h2>
+        <a href="/admin/dashboard" class="btn btn-outline-brown btn-sm rounded-pill shadow-sm">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    @* TABS *@
+    <ul class="nav nav-pills nav-fill gap-2 p-1 small bg-white border rounded-5 shadow-sm mb-4">
+        <li class="nav-item">
+            <button class="nav-link rounded-5 py-3 fw-bold @(activeTab == "library" ? "active btn-brown" : "text-muted")"
+                    @onclick='() => SwitchTab("library")'>
+                <i class="bi bi-book me-2"></i> NEW LIBRARY BOOKS
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link rounded-5 py-3 fw-bold @(activeTab == "used" ? "active btn-antique" : "text-muted")"
+                    @onclick='() => SwitchTab("used")'>
+                <i class="bi bi-recycle me-2"></i> ANTIQUE SHOP
+            </button>
+        </li>
+    </ul>
+
+    @* FILTERS *@
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-white rounded-4 border-start border-brown-thick border-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="small fw-bold text-brown-muted">SEARCH BY TITLE OR AUTHOR</label>
+                <input type="text" class="form-control border-sepia shadow-sm" @bind="searchTerm" @bind:event="oninput" placeholder="Search..." />
+            </div>
+
+            <div class="col-md-3">
+                <label class="small fw-bold text-brown-muted">@(activeTab == "library" ? "STOCK STATUS" : "CONDITION")</label>
+                <select class="form-select border-sepia shadow-sm" @bind="statusFilter">
+                    <option value="all">All Items</option>
+                    @if (activeTab == "library")
+                    {
+                        <option value="low">Low Stock (&lt; 5)</option>
+                        <option value="out">Out of Stock</option>
+                    }
+                    else
+                    {
+                        <option value="Mint">Mint (Pristine)</option>
+                        <option value="Fine">Fine (Light wear)</option>
+                        <option value="Good">Good (Aged but intact)</option>
+                        <option value="Fair">Fair (Significant wear)</option>
+                        <option value="Poor">Poor (Fragile/Damaged)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button class="btn btn-brown w-100 rounded-pill fw-bold shadow-sm" @onclick="ApplyFilters">
+                    <i class="bi bi-filter me-1"></i> Filter
+                </button>
+            </div>
+            <div class="col-md-2 text-end">
+                <button class="btn btn-dark-brown rounded-pill shadow-sm w-100 fw-bold" @onclick="GoToPrint">
+                    <i class="bi bi-printer me-2"></i> Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @* TABLE *@
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden border-sepia-light">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-sepia-light">
+                    <tr>
+                        <th class="ps-4 text-brown">ID</th>
+                        <th class="text-brown">Book Details</th>
+                        <th class="text-center text-brown">@(activeTab == "library" ? "Stock" : "Condition")</th>
+                        <th class="text-end pe-4 text-brown">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (filteredBooks == null)
+                    {
+                        <tr><td colspan="4" class="text-center py-5">Loading inventory...</td></tr>
+                    }
+                    else if (!filteredBooks.Any())
+                    {
+                        <tr><td colspan="4" class="text-center py-5 text-muted italic">No items found in our collection.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var book in filteredBooks)
+                        {
+                            <tr>
+                                <td class="ps-4 small fw-bold text-sepia">#@book.BookId</td>
+                                <td>
+                                    <div class="fw-bold text-brown">@book.BookTitle</div>
+                                    <div class="small text-muted">@book.BookAuthor</div>
+                                    @if (activeTab == "used")
+                                    {
+                                        <div class="badge bg-antique-light text-brown border border-antique-small mt-1" style="font-size: 0.7rem;">
+                                            Seller: #@book.SellerId
+                                        </div>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (activeTab == "library")
+                                    {
+                                        <span class="badge rounded-pill @(book.BookStock <= 5 ? "bg-danger" : "bg-brown")">
+                                            @book.BookStock units
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill px-3 fw-bold @GetConditionBadgeClass(book.Condition)">
+                                            @book.Condition
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4 fw-bold text-brown-price">
+                                    @book.BookPrice?.ToString("N2") <span class="small">RON</span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --book-brown: #5a3e2b;
+        --book-sepia: #8c6d51;
+        --book-sepia-light: #f4f1ee;
+        --book-antique: #b08968;
+        --book-antique-light: #ede0d4;
+    }
+
+    .text-brown {
+        color: var(--book-brown);
+    }
+
+    .text-sepia {
+        color: var(--book-sepia);
+    }
+
+    .text-brown-muted {
+        color: #7d6b5d;
+    }
+
+    .text-brown-price {
+        color: #3d2b1f;
+        font-size: 1.05rem;
+    }
+
+    .bg-sepia-light {
+        background-color: var(--book-sepia-light);
+    }
+
+    .bg-brown {
+        background-color: var(--book-brown);
+    }
+
+    .bg-antique-light {
+        background-color: var(--book-antique-light);
+    }
+
+    .border-sepia {
+        border-color: var(--book-sepia) !important;
+    }
+
+    .border-antique {
+        border-color: var(--book-antique) !important;
+    }
+
+    .btn-brown {
+        background-color: var(--book-brown);
+        color: white;
+        border: none;
+    }
+
+        .btn-brown:hover {
+            background-color: #432e20;
+            color: white;
+        }
+
+    .btn-dark-brown {
+        background-color: #3d2b1f;
+        color: #f4f1ee;
+    }
+
+        .btn-dark-brown:hover {
+            background-color: #2b1e15;
+            color: white;
+        }
+
+    .btn-outline-brown {
+        border-color: var(--book-brown);
+        color: var(--book-brown);
+        border-radius: 50px;
+    }
+
+        .btn-outline-brown:hover {
+            background-color: var(--book-brown);
+            color: white;
+        }
+
+    .btn-antique {
+        background-color: var(--book-antique) !important;
+        color: white !important;
+    }
+
+    .nav-pills .nav-link.active {
+        box-shadow: 0 4px 12px rgba(90, 62, 43, 0.2);
+    }
+
+    .border-brown-thick {
+        border-left: 6px solid var(--book-brown) !important;
+    }
+
+    .italic {
+        font-style: italic;
+    }
+
+    /* Condition Badge Colors */
+    .badge-mint {
+        background-color: #2d6a4f;
+        color: white;
+    }
+
+    .badge-fine {
+        background-color: #52b788;
+        color: white;
+    }
+
+    .badge-good {
+        background-color: var(--book-antique);
+        color: white;
+    }
+
+    .badge-fair {
+        background-color: #d4a373;
+        color: white;
+    }
+
+    .badge-poor {
+        background-color: #bc4749;
+        color: white;
+    }
+
+    .badge-default {
+        background-color: #adb5bd;
+        color: white;
+    }
+</style>
+
+@code {
+    private string activeTab = "library";
+    private string searchTerm = "";
+    private string statusFilter = "all";
+    private List<Book>? filteredBooks;
+
+    protected override async Task OnInitializedAsync() => await ApplyFilters();
+
+    private async Task SwitchTab(string tab)
+    {
+        activeTab = tab;
+        statusFilter = "all";
+        searchTerm = "";
+        await ApplyFilters();
+    }
+
+    private string GetConditionBadgeClass(string? condition) => condition switch
+    {
+        "Mint" => "badge-mint",
+        "Fine" => "badge-fine",
+        "Good" => "badge-good",
+        "Fair" => "badge-fair",
+        "Poor" => "badge-poor",
+        _ => "badge-default"
+    };
+
+    private async Task ApplyFilters()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        var query = activeTab == "library"
+            ? context.Book.Where(b => b.SellerId == null)
+            : context.Book.Where(b => b.SellerId != null);
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(b => b.BookTitle.Contains(searchTerm) || b.BookAuthor.Contains(searchTerm));
+        }
+
+        if (statusFilter != "all")
+        {
+            if (activeTab == "library")
+            {
+                if (statusFilter == "low") query = query.Where(b => b.BookStock <= 5 && b.BookStock > 0);
+                if (statusFilter == "out") query = query.Where(b => b.BookStock == 0);
+            }
+            else
+            {
+                query = query.Where(b => b.Condition == statusFilter);
+            }
+        }
+
+        filteredBooks = await query.OrderBy(b => b.BookTitle).ToListAsync();
+    }
+
+    private void GoToPrint()
+    {
+        NavManager.NavigateTo($"/admin/reports/inventory/{activeTab}/{statusFilter}");
+    }
+}

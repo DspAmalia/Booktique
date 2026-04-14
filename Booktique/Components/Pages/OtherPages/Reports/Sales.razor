@@ -1,12 +1,13 @@
-﻿@page "/admin/reports/sales"
+﻿@page "/admin/reports/sales/{StartStr}/{EndStr}"
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @inject BooktiqueContext DbContext
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Manager")]
+@inject IDbContextFactory<BooktiqueContext> DbFactory
 @rendermode InteractiveServer
 
 <div class="container py-4 no-print text-end">
-    <a href="/admin/dashboard" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
+    <a href="/admin/dashboard/sales" class="btn btn-sm btn-outline-secondary me-2 ">BACK</a>
     <button class="btn btn-warning px-4 fw-bold shadow-sm" onclick="window.print()">
         <i class="bi bi-printer me-2"></i> PRINT USER LIST
     </button>
@@ -25,7 +26,7 @@
         <div class="col-5 text-end">
             <h2 class="invoice-title">SALES REPORT</h2>
             <div class="invoice-meta mt-3">
-                <p><strong>PERIOD:</strong> @monthName @reportYear</p>
+                <p><strong>PERIOD:</strong> @displayPeriod</p>
                 <p><strong>GEN. DATE:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</p>
             </div>
         </div>
@@ -155,27 +156,42 @@
 
 @code {
     private decimal revenue;
-    private string monthName = "";
-    private int reportYear;
     private List<SalesRow> salesDetails = new List<SalesRow>();
+
+    [Parameter] public string StartStr { get; set; } = "";
+    [Parameter] public string EndStr { get; set; } = "";
+
+    private string displayPeriod = "";
 
     protected override async Task OnInitializedAsync()
     {
-        var dataRef = DateTime.Now.AddMonths(-1);
-        var start = new DateTime(dataRef.Year, dataRef.Month, 1);
-        var end = start.AddMonths(1).AddSeconds(-1);
-        monthName = dataRef.ToString("MMMM", new System.Globalization.CultureInfo("en-US"));
-        reportYear = dataRef.Year;
+        if (DateTime.TryParse(StartStr, out var start) && DateTime.TryParse(EndStr, out var end))
+        {
+            var endOfDay = end.Date.AddDays(1).AddTicks(-1);
+            displayPeriod = $"{start:dd MMM yyyy} - {end:dd MMM yyyy}";
 
-        var orders = await DbContext.Order.Where(o => o.OrderDate >= start && o.OrderDate <= end)
-            .Include(o => o.OrderItems).ThenInclude(oi => oi.Book).ToListAsync();
+            using var context = await DbFactory.CreateDbContextAsync();
 
-        var allItems = orders.SelectMany(o => o.OrderItems).ToList();
-        revenue = allItems.Sum(oi => (decimal)(oi.Quantity * (oi.UnitPrice)));
+            var orders = await context.Order
+                .Where(o => o.OrderDate >= start.Date && o.OrderDate <= endOfDay)
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Book)
+                .ToListAsync();
 
-        salesDetails = allItems.GroupBy(oi => oi.Book?.BookTitle ?? "Unknown")
-            .Select(g => new SalesRow { Title = g.Key, Qty = g.Sum(i => i.Quantity), Total = g.Sum(i => (decimal)(i.Quantity * (i.UnitPrice))) })
-            .OrderByDescending(x => x.Total).ToList();
+            var allItems = orders.SelectMany(o => o.OrderItems).ToList();
+
+            revenue = allItems.Sum(oi => (decimal)(oi.Quantity * oi.UnitPrice));
+
+            salesDetails = allItems.GroupBy(oi => oi.Book?.BookTitle ?? "Digital Product / Unknown")
+                .Select(g => new SalesRow
+                    {
+                        Title = g.Key,
+                        Qty = g.Sum(i => i.Quantity),
+                        Total = g.Sum(i => (decimal)(i.Quantity * i.UnitPrice))
+                    })
+                .OrderByDescending(x => x.Total)
+                .ToList();
+        }
     }
     public class SalesRow { public string Title { get; set; } = ""; public int Qty { get; set; } public decimal Total { get; set; } }
 }

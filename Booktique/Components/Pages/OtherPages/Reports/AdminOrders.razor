@@ -240,11 +240,11 @@
                 var notification = new Notification
                     {
                         UserId = dbOrder.UserId,
-                        OrderId = dbOrder.OrderId, // <--- ACEASTA ESTE LINIA CARE LIPSEA!
+                        OrderId = dbOrder.OrderId, 
                         Message = $"Statusul comenzii tale #{dbOrder.OrderId} a fost actualizat în: {newStatus}.",
                         CreatedAt = DateTime.Now,
                         IsRead = false,
-                        TargetUrl = $"/my-orders/{dbOrder.OrderId}" // Recomandat: URL direct către comandă
+                        TargetUrl = $"/my-orders/{dbOrder.OrderId}" 
                     };
 
                 context.Notification.Add(notification);

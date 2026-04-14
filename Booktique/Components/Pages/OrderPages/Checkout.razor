@@ -314,8 +314,8 @@
     private bool showGiftModal = false;
 
     // --- LOGICA PUNCTE DE LOIALITATE ---
-    private int userPoints = 0; // Punctele totale citite din DB
-    private bool usePoints = false; // Starea switch-ului (Bifat/Nebifat)
+    private int userPoints = 0; 
+    private bool usePoints = false; 
 
     // Calculăm reducerea: 10 puncte = 1 Leu
     private decimal calculatedDiscount => usePoints ? (userPoints / 10m) : 0;
@@ -474,9 +474,8 @@
                     var notification = new Notification
                         {
                             UserId = userIdInt,
-                            // MODIFICARE AICI: Atribuim obiectul întreg, nu doar ID-ul
                             Order = o,
-                            OrderId = o.OrderId, // Îl lăsăm și pe acesta pentru siguranță
+                            OrderId = o.OrderId, 
                             Message = $"Comanda ta #{o.OrderId} a fost plasată cu succes.",
                             CreatedAt = DateTime.Now,
                             IsRead = false,
