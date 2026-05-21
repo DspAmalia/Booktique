@@ -3,7 +3,12 @@
 
 /* _content/Booktique/Components/Layout/MainLayout.razor.rz.scp.css */
 html[b-65vb9xm36g], body[b-65vb9xm36g] {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    background-image: linear-gradient(rgba(253, 246, 238, 0.88), rgba(253, 246, 238, 0.88)), url('https://i.pinimg.com/1200x/33/99/ac/3399ac1d819b89bdb962b893c9554a41.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
 .page[b-65vb9xm36g] {

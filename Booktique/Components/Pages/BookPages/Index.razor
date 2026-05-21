@@ -15,25 +15,26 @@
 
 @* --- HERO SECTION REIMAGINED --- *@
 <div class="container mt-4 mb-5">
-    <div class="hero-wrapper hero-card-shadow">
-        <div class="row align-items-center g-0">
+    <div class="hero-wrapper position-relative overflow-hidden">
+        <div class="hero-bg-shapes"></div>
+        <div class="row align-items-center g-0 position-relative" style="z-index: 2;">
             <div class="col-lg-7 p-5">
-                <div class="hero-content text-start">
-                    <span class="badge rounded-pill bg-accent-soft text-brown mb-3 px-3 py-2">
-                        <i class="bi bi-stars me-2"></i>Curated for Book Lovers
+                <div class="hero-content text-start animate-fade-in">
+                    <span class="badge rounded-pill bg-accent-soft text-terracotta mb-3 px-3 py-2 fw-bold">
+                        <i class="bi bi-stars me-2 text-accent-gold"></i>Curated for Book Lovers
                     </span>
-                    <h1 class="display-3 fw-bold mb-3 text-brown-dark">
-                        Your Next <span class="text-accent-yellow">Adventure</span> <br /> Awaits
+                    <h1 class="display-3 fw-black mb-3 text-brown-dark hero-title">
+                        Your Next <span class="text-gold-gradient">Adventure</span> <br /> Awaits
                     </h1>
-                    <p class="lead mb-5 text-muted-brown">
+                    <p class="lead mb-4 text-muted-brown">
                         Explore our handpicked collection of stories, from timeless classics to modern masterpieces.
                         Find the book that speaks to your soul.
                     </p>
 
-                    <div class="search-container-modern shadow-lg">
+                    <div class="search-container-modern shadow-sm">
                         <i class="bi bi-search ms-3 text-muted"></i>
                         <input type="text" @bind="searchText" @bind:event="oninput"
-                               placeholder="Search by title or author..."
+                               placeholder="Search by title, author, category..."
                                class="search-input-modern" />
                         @if (!string.IsNullOrEmpty(searchText))
                         {
@@ -53,10 +54,10 @@
 
                     <div class="floating-badge shadow-lg">
                         <div class="d-flex align-items-center">
-                            <div class="icon-circle me-2"><i class="bi bi-book"></i></div>
+                            <div class="icon-circle me-2"><i class="bi bi-book-half"></i></div>
                             <div>
-                                <div class="fw-bold">10k+</div>
-                                <div class="very-small">Books</div>
+                                <div class="fw-bold text-brown-dark">10k+</div>
+                                <div class="very-small text-muted">Books</div>
                             </div>
                         </div>
                     </div>
@@ -81,7 +82,6 @@
                 </div>
             </div>
 
-            @* Containerul care permite scroll-ul *@
             <div class="top-books-scroll-container">
                 <div class="top-books-scroll">
                     @for (int i = 0; i < topSellingBooks.Count; i++)
@@ -238,13 +238,16 @@
         --brown-muted: #7d6352;
         --accent: #f0a500;
         --accent-soft: rgba(240, 165, 0, 0.15);
-        --bg-soft: #fdf6ee; 
-        --hero-container-bg: #eaddcf;
-        --hero-container-accent: #decbb7;
+        --hero-container-bg: rgba(234, 221, 207, 0.85);
+        --hero-container-accent: rgba(222, 203, 183, 0.85);
     }
 
     body {
-        background-color: var(--bg-soft);
+        background-image: linear-gradient(rgba(253, 246, 238, 0.88), rgba(253, 246, 238, 0.88)), url('https://i.pinimg.com/1200x/33/99/ac/3399ac1d819b89bdb962b893c9554a41.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
     }
 
     .hero-wrapper {
@@ -253,13 +256,54 @@
         overflow: hidden;
         border: 1px solid rgba(90, 62, 43, 0.12);
         box-shadow: 0 25px 50px -12px rgba(90, 62, 43, 0.15);
+        backdrop-filter: blur(8px);
     }
 
     .bg-accent-soft {
         background-color: var(--accent-soft) !important;
     }
-    .text-brown { color: var(--brown-dark); }
-    .text-muted-brown { color: var(--brown-muted); font-size: 1.1rem; }
+
+    .text-brown-dark {
+        color: var(--brown-dark);
+    }
+
+    .text-muted-brown {
+        color: var(--brown-muted);
+    }
+
+    .text-terracotta {
+        color: var(--terracotta);
+    }
+
+    .text-accent-gold {
+        accent-color: var(--accent);
+    }
+
+    .fw-black {
+        font-weight: 800;
+    }
+
+    /* --- CLASA MODIFICATĂ PENTRU ADVENTURE AURIU METALIC --- */
+    .text-gold-gradient {
+        background: linear-gradient(135deg, #cc9933 0%, #f3c675 50%, #996600 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+        position: relative;
+        font-weight: 800;
+    }
+
+    .text-gold-gradient::after {
+        content: '';
+        position: absolute;
+        bottom: 5px;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #cc9933, transparent);
+        z-index: -1;
+        border-radius: 4px;
+    }
 
     .search-container-modern {
         background: white;
@@ -356,10 +400,11 @@
     }
 
     .top-sales-wrapper {
-        background: #fff;
+        background: rgba(255, 255, 255, 0.9);
         border-radius: 30px;
         border: 2px solid var(--accent) !important;
         box-shadow: 0 10px 30px rgba(240, 165, 0, 0.1) !important;
+        backdrop-filter: blur(4px);
     }
 
     .icon-badge-large {
@@ -458,11 +503,12 @@
     }
 
     .filters-sidebar {
-        background: #ffffff;
+        background: rgba(255, 255, 255, 0.9);
         border-radius: 24px;
         border: 1px solid rgba(90, 62, 43, 0.08);
         position: sticky;
         top: 20px;
+        backdrop-filter: blur(4px);
     }
 
     .filter-label {

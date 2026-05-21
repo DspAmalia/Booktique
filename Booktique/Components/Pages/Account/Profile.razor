@@ -14,7 +14,7 @@
 <PageTitle>My Profile | Booktique</PageTitle>
 
 <div class="profile-page-wrapper">
-    <div class="container py-5">
+    <div class="container">
         @if (user == null)
         {
             <div class="text-center py-5">
@@ -24,52 +24,53 @@
         }
         else
         {
-            <div class="row g-4">
+            <div class="row g-4 justify-content-center align-items-stretch">
                 @* Coloana din Stânga: Profil și Info *@
                 <div class="col-lg-4">
-                    <div class="profile-card shadow-lg border-0">
-                        <div class="avatar-section">
-                            <div class="avatar-wrapper shadow">
-                                <img src="@(string.IsNullOrEmpty(user.ProfilePicture) ? defaultAvatar : user.ProfilePicture)"
-                                     alt="Profile Picture" class="profile-avatar-img" />
-                                <button class="change-avatar-btn" @onclick="ToggleAvatarPicker">
-                                    <i class="bi bi-camera-fill"></i>
-                                </button>
+                    <div class="profile-card shadow-lg border-0 h-100 d-flex flex-column justify-content-between pb-3">
+                        <div>
+                            <div class="avatar-section">
+                                <div class="avatar-wrapper shadow">
+                                    <img src="@(string.IsNullOrEmpty(user.ProfilePicture) ? defaultAvatar : user.ProfilePicture)"
+                                         alt="Profile Picture" class="profile-avatar-img" />
+                                    <button class="change-avatar-btn" @onclick="ToggleAvatarPicker">
+                                        <i class="bi bi-camera-fill"></i>
+                                    </button>
+                                </div>
+                                <h3 class="mt-3 fw-bold text-brown mb-1 fs-4">@user.UserName</h3>
+                                <span class="badge rounded-pill bg-light text-brown border px-3">@user.Role</span>
                             </div>
-                            <h3 class="mt-3 fw-bold text-brown">@user.UserName</h3>
-                            <span class="badge rounded-pill bg-light text-brown border px-3">@user.Role</span>
-                        </div>
 
-                        <div class="info-section mt-4 px-3">
-                            <div class="info-item border-bottom py-2 d-flex justify-content-between align-items-center">
-                                <span class="text-muted"><i class="bi bi-envelope me-2"></i>Email</span>
-                                <span class="fw-medium text-truncate ms-2" style="max-width: 150px;">@user.UserEmail</span>
+                            <div class="info-section mt-3 px-3">
+                                <div class="info-item border-bottom py-2 d-flex justify-content-between align-items-center">
+                                    <span class="text-muted"><i class="bi bi-envelope me-2"></i>Email</span>
+                                    <span class="fw-medium text-truncate ms-2" style="max-width: 180px;">@user.UserEmail</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="actions-section mt-4 d-grid gap-2 p-3">
-                            <button class="btn btn-warning shadow-sm fw-bold" @onclick="EditProfile">
-                                <i class="bi bi-pencil-square me-2"></i>Edit Information
-                            </button>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-outline-secondary w-100" @onclick="Logout">
-                                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                            <div class="actions-section mt-3 d-grid gap-2 px-3 py-1">
+                                <button class="btn btn-warning shadow-sm fw-bold py-2" @onclick="EditProfile">
+                                    <i class="bi bi-pencil-square me-2"></i>Edit Information
                                 </button>
-                                <button class="btn btn-outline-danger w-100" @onclick="Delete">
-                                    <i class="bi bi-trash me-1"></i>Delete
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-secondary w-100 py-2" @onclick="Logout">
+                                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                                    </button>
+                                    <button class="btn btn-outline-danger w-100 py-2" @onclick="Delete">
+                                        <i class="bi bi-trash me-1"></i>Delete
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         <div class="badges-section mt-4 px-3 text-center">
-                            <h6 class="fw-bold text-brown mb-3 small text-uppercase letter-spacing-1">Achievements</h6>
-                            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                            <h6 class="fw-bold text-brown mb-2 small text-uppercase letter-spacing-1">Achievements</h6>
+                            <div class="d-flex flex-wrap gap-2 justify-content-center">
                                 @foreach (var badge in Badges)
                                 {
                                     bool isUnlocked = booksCount >= badge.RequiredBooks;
                                     int missing = badge.RequiredBooks - booksCount;
 
-                                    // Textul care apare când ții mouse-ul pe badge
                                     string tooltip = isUnlocked
                                     ? $"{badge.Name}: {badge.Description}"
                                     : $"Locked: Read {missing} more books to unlock {badge.Name}";
@@ -93,123 +94,127 @@
 
                 @* Coloana din Dreapta: Statistici și Raft *@
                 <div class="col-lg-8">
-                    <div class="stats-card shadow-lg border-0 p-4 h-100">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div>
-                                <h2 class="mb-0 fw-bold text-brown">Reading Journey</h2>
-                                <p class="text-muted mb-0">
-                                    Status:
-                                    <span class="badge bg-warning text-dark">
-                                        @(booksCount > 10 ? "Avid Reader" : "Bookworm")
-                                    </span>
-                                </p>
+                    <div class="stats-card shadow-lg border-0 p-4 h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h2 class="mb-0 fw-bold text-brown fs-3">Reading Journey</h2>
+                                    <p class="text-muted mb-0 small">
+                                        Status:
+                                        <span class="badge bg-warning text-dark">
+                                            @(booksCount > 10 ? "Avid Reader" : "Bookworm")
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="fs-2">🏆</span>
+                                </div>
                             </div>
-                            <div class="text-end">
-                                <span class="fs-1">🏆</span>
-                            </div>
-                        </div>
 
-                        @* Grid Statistici Rapide *@
-                        <div class="row g-3 mb-4 text-center">
-                            <div class="col-6 col-md-4">
-                                <div class="p-3 border rounded bg-light shadow-sm">
-                                    <h4 class="fw-bold text-brown mb-0">@booksCount</h4>
-                                    <small class="text-muted">Books</small>
+                            @* Grid Statistici Rapide *@
+                            <div class="row g-3 mb-4 text-center">
+                                <div class="col-6 col-md-4">
+                                    <div class="p-3 border rounded bg-light shadow-sm">
+                                        <h4 class="fw-bold text-brown mb-0 fs-3">@booksCount</h4>
+                                        <small class="text-muted">Books</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="p-3 border rounded bg-light shadow-sm">
+                                        <h4 class="fw-bold text-brown mb-0 fs-3">@reviewsCount</h4>
+                                        <small class="text-muted">Reviews</small>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column align-items-center justify-content-center" style="min-height: 86px;">
+                                        @if (CurrentRank != null)
+                                        {
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="fs-4">@CurrentRank.Icon</span>
+                                                <h4 class="fw-bold mb-0 fs-5 @(booksCount >= 50 ? "text-warning shadow-text" : "text-brown")">
+                                                    @CurrentRank?.Name
+                                                </h4>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <h4 class="fw-bold text-muted mb-0 fs-5">Novice</h4>
+                                        }
+                                        <small class="text-muted">Current Rank</small>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-4">
-                                <div class="p-3 border rounded bg-light shadow-sm">
-                                    <h4 class="fw-bold text-brown mb-0">@reviewsCount</h4>
-                                    <small class="text-muted">Reviews</small>
+
+                            @* Logică Progres *@
+                            @{
+                                int readingGoal = 20;
+                                int percentage = (booksCount * 100) / readingGoal;
+                                int displayPercentage = Math.Min(percentage, 100);
+                                int currentMonth = DateTime.Now.Month;
+                                int expectedBooksSoFar = (readingGoal / 12) * currentMonth;
+                                int diff = booksCount - expectedBooksSoFar;
+                            }
+
+                            <div class="challenge-container p-3 rounded-3 bg-white border mb-4 shadow-sm">
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="fw-bold">@DateTime.Now.Year Reading Challenge</span>
+                                    <span class="text-brown fw-bold">@booksCount / @readingGoal books</span>
                                 </div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column align-items-center justify-content-center" style="min-height: 85px;">
-                                    @if (CurrentRank != null)
+                                <div class="progress" style="height: 14px; background-color: #e9ecef; border-radius: 10px;">
+                                    <div class="progress-bar bg-warning"
+                                         role="progressbar"
+                                         style="width: @(displayPercentage)% ; transition: width 1s ease-in-out;"
+                                         aria-valuenow="@displayPercentage"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+
+                                <small class="mt-2 d-block text-muted">
+                                    @if (booksCount >= readingGoal)
                                     {
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="fs-4">@CurrentRank.Icon</span>
-                                            <h4 class="fw-bold mb-0 @(booksCount >= 50 ? "text-warning shadow-text" : "text-brown")">
-                                                @CurrentRank?.Name
-                                            </h4>
-                                        </div>
+                                        <span class="text-success fw-bold">🏆 Goal Achieved! You're a legend!</span>
+                                    }
+                                    else if (diff > 0)
+                                    {
+                                        <span>You're @diff books ahead of schedule! Keep it up! 🔥</span>
+                                    }
+                                    else if (diff < 0)
+                                    {
+                                        <span>You're @Math.Abs(diff) books behind. Time to read! 📖</span>
                                     }
                                     else
                                     {
-                                        <h4 class="fw-bold text-muted mb-0">Novice</h4>
+                                        <span>You're right on track! 🚀</span>
                                     }
-                                    <small class="text-muted">Current Rank</small>
-                                </div>
+                                </small>
                             </div>
                         </div>
 
-                        @* Logică Progres *@
-                        @{
-                            int readingGoal = 20;
-                            int percentage = (booksCount * 100) / readingGoal;
-                            int displayPercentage = Math.Min(percentage, 100);
-                            int currentMonth = DateTime.Now.Month;
-                            int expectedBooksSoFar = (readingGoal / 12) * currentMonth;
-                            int diff = booksCount - expectedBooksSoFar;
-                        }
-
-                        <div class="challenge-container p-3 rounded-3 bg-white border mb-4 shadow-sm">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="fw-bold">@DateTime.Now.Year Reading Challenge</span>
-                                <span class="text-brown fw-bold">@booksCount / @readingGoal books</span>
-                            </div>
-                            <div class="progress" style="height: 15px; background-color: #e9ecef; border-radius: 10px;">
-                                <div class="progress-bar bg-warning"
-                                     role="progressbar"
-                                     style="width: @(displayPercentage)% ; transition: width 1s ease-in-out;"
-                                     aria-valuenow="@displayPercentage"
-                                     aria-valuemin="0"
-                                     aria-valuemax="100">
-                                </div>
-                            </div>
-
-                            <small class="mt-2 d-block">
-                                @if (booksCount >= readingGoal)
-                                {
-                                    <span class="text-success fw-bold">🏆 Goal Achieved! You're a legend!</span>
-                                }
-                                else if (diff > 0)
-                                {
-                                    <span class="text-muted">You're @diff books ahead of schedule! Keep it up! 🔥</span>
-                                }
-                                else if (diff < 0)
-                                {
-                                    <span class="text-muted">You're @Math.Abs(diff) books behind. Time to read! 📖</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">You're right on track! 🚀</span>
-                                }
-                            </small>
-                        </div>
-
-                        <h5 class="fw-bold mb-3"><i class="bi bi-bookshelf me-2"></i>Your Virtual Bookshelf</h5>
-                        <div class="shelf-wrapper">
-                            <div class="book-shelf d-flex gap-3 px-2">
-                                @if (userBooks != null && userBooks.Any())
-                                {
-                                    @foreach (var book in userBooks)
+                        <div>
+                            <h5 class="fw-bold mb-2 text-brown fs-6"><i class="bi bi-bookshelf me-2"></i>Your Virtual Bookshelf</h5>
+                            <div class="shelf-wrapper">
+                                <div class="book-shelf d-flex gap-2 px-2">
+                                    @if (userBooks != null && userBooks.Any())
                                     {
-                                        <div class="shelf-book shadow"
-                                             @onclick="@(() => NavigationManager.NavigateTo($"/books/details?bookid={book.BookId}"))"
-                                             title="@book.BookTitle by @book.BookAuthor">
-                                            <img src="@book.BookCoverPath" alt="@book.BookTitle" />
+                                        @foreach (var book in userBooks)
+                                        {
+                                            <div class="shelf-book shadow"
+                                                 @onclick="@(() => NavigationManager.NavigateTo($"/books/details?bookid={book.BookId}"))"
+                                                 title="@book.BookTitle by @book.BookAuthor">
+                                                <img src="@book.BookCoverPath" alt="@book.BookTitle" />
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center w-100 py-3" style="border: 2px dashed #d2a679; border-radius: 10px;">
+                                            <p class="text-muted mb-0 small">Your shelf is empty. Time for a new adventure! 📚</p>
                                         </div>
                                     }
-                                }
-                                else
-                                {
-                                    <div class="text-center w-100 py-4" style="border: 2px dashed #d2a679; border-radius: 10px;">
-                                        <p class="text-muted mb-0">Your shelf is empty. Time for a new adventure! 📚</p>
-                                    </div>
-                                }
+                                </div>
+                                <div class="shelf-wood"></div>
                             </div>
-                            <div class="shelf-wood"></div>
                         </div>
                     </div>
                 </div>
@@ -250,13 +255,27 @@
         --brown-hover: #4a3324;
         --cream-bg: #fdf6ee;
     }
+
     body {
-        background-color: var(--cream-bg);
+        background-image: linear-gradient(rgba(253, 246, 238, 0.88), rgba(253, 246, 238, 0.88)), url('https://i.pinimg.com/1200x/33/99/ac/3399ac1d819b89bdb962b893c9554a41.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+        overflow: hidden; 
     }
 
     .profile-page-wrapper {
-        min-height: 100vh;
+        height: calc(100vh - 70px);
+        display: flex;
+        align-items: center; 
+        justify-content: center; 
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 1200px;
     }
 
     .text-brown {
@@ -265,23 +284,23 @@
 
     .profile-card, .stats-card {
         background: white;
-        border-radius: 20px;
+        border-radius: 18px;
         overflow: hidden;
     }
 
     .avatar-section {
         background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
-        padding: 3rem 1rem 1rem;
+        padding: 1.5rem 1rem 0.5rem;
         text-align: center;
     }
 
     .avatar-wrapper {
         position: relative;
-        width: 150px;
-        height: 150px;
+        width: 135px; 
+        height: 135px;
         margin: 0 auto;
         border-radius: 50%;
-        border: 5px solid white;
+        border: 4px solid white;
     }
 
     .profile-avatar-img {
@@ -293,14 +312,14 @@
 
     .change-avatar-btn {
         position: absolute;
-        bottom: 5px;
-        right: 5px;
+        bottom: 4px;
+        right: 4px;
         background: var(--brown-primary);
         color: white;
-        border: 3px solid white;
+        border: 2px solid white;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 35px;
+        height: 35px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -367,14 +386,14 @@
 
     .book-shelf {
         align-items: flex-end;
-        height: 170px;
+        height: 155px; /* Oferă spațiu pentru cărți puțin mai mari */
         overflow-x: auto;
         scrollbar-width: thin;
     }
 
     .shelf-book {
-        width: 100px;
-        height: 140px;
+        width: 95px; /* Cărți puțin mai mari și mai clare */
+        height: 135px;
         flex-shrink: 0;
         transition: 0.3s;
         cursor: pointer;
@@ -384,24 +403,24 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 2px 5px 5px 2px;
+            border-radius: 2px 4px 4px 2px;
         }
 
         .shelf-book:hover {
-            transform: translateY(-10px) rotate(-3deg);
+            transform: translateY(-7px) rotate(-2deg);
         }
 
     .shelf-wood {
-        height: 12px;
+        height: 11px;
         background: linear-gradient(to bottom, #d2a679, #86592d);
         border-radius: 5px;
     }
 
     .badge-item {
         position: relative;
-        width: 70px; /* Lățime fixă */
-        height: 70px; /* Înălțime egală cu lățimea */
-        border-radius: 50%; /* Le face perfect rotunde */
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -413,37 +432,35 @@
         box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
     }
 
-        /* Badge Deblocat */
         .badge-item.unlocked {
             background: white;
-            border-color: #ffc107; /* Culoarea aurie a warning-ului din site */
-            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+            border-color: #ffc107;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.18);
         }
 
             .badge-item.unlocked:hover {
                 transform: scale(1.1) rotate(5deg);
-                box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+                box-shadow: 0 7px 17px rgba(255, 193, 7, 0.28);
                 z-index: 10;
             }
 
-        /* Badge Blocat */
         .badge-item.locked {
             filter: grayscale(1) opacity(0.5);
             background: #e9ecef;
-            border-style: dashed; /* Arată că "lipsește" ceva */
+            border-style: dashed;
         }
 
     .badge-icon {
-        font-size: 1.6rem;
+        font-size: 1.4rem;
         line-height: 1;
     }
 
     .badge-name {
-        font-size: 0.55rem;
+        font-size: 0.5rem;
         font-weight: 800;
         color: var(--brown-primary);
         text-transform: uppercase;
-        margin-top: 2px;
+        margin-top: 1px;
     }
 
     .lock-overlay {
@@ -452,10 +469,10 @@
         right: 0;
         background: #5a3e2b;
         color: white;
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         border-radius: 50%;
-        font-size: 10px;
+        font-size: 9px;
         display: flex;
         align-items: center;
         justify-content: center;
