@@ -10,6 +10,7 @@
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject ChatNotificationService NotificationService
 
 <div class="page">
     <main>
@@ -36,10 +37,21 @@
                             <i class="bi bi-star"></i> Subscriptions
                         </NavLink>
                     </AuthorizeView>
+
                     @if (isSubscribed)
                     {
-                        <NavLink class="nav-horizontal-link" href="/chat">
-                            <i class="bi bi-chat-dots"></i> Messenger
+                        @* Adăugăm position-relative pe NavLink pentru a alinia corect bulina *@
+                        <NavLink class="nav-horizontal-link position-relative d-inline-flex align-items-center" href="/chat">
+                            <i class="bi bi-chat-dots me-1"></i> Messenger
+
+                            @* Dacă există mesaje necitite în serviciu, afișăm badge-ul live *@
+                            @if (NotificationService.TotalUnreadCount > 0)
+                            {
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm"
+                                      style="font-size: 0.65rem; padding: 0.25em 0.45em; transform: translate(-10%, -30%) !important; z-index: 10;">
+                                    @NotificationService.TotalUnreadCount
+                                </span>
+                            }
                         </NavLink>
                     }
                     @if (currentSubscriptionLevel == 2)
@@ -69,9 +81,9 @@
                     <Authorized>
                         <div class="dropdown ms-2">
                             <a class="nav-horizontal-link position-relative"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false">
+                               type="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
                                 <i class="bi bi-bell"></i>
                                 @if (unreadCount > 0)
                                 {
@@ -163,7 +175,7 @@
 </div>
 
 <style>
-
+    /* Stilurile tale CSS neschimbate rămân aici... */
     .checkbox {
         opacity: 0;
         position: absolute;
@@ -205,10 +217,9 @@
         transform: translateX(24px);
     }
 
-
     .top-row {
-        min-height: 4.5rem; 
-        height: auto; 
+        min-height: 4.5rem;
+        height: auto;
         background-color: #ceb9a6 !important;
         border-bottom: 1px solid rgba(0,0,0,0.1);
         position: sticky;
@@ -217,21 +228,21 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.5rem 1rem; 
-        flex-wrap: wrap; 
+        padding: 0.5rem 1rem;
+        flex-wrap: wrap;
         gap: 10px;
     }
 
     .nav-horizontal-link, .user-pill, .login-pill {
-        flex-shrink: 0; 
+        flex-shrink: 0;
     }
 
     @@media (max-width: 576px) {
         .top-row {
             padding: 0.5rem 0.5rem;
-            justify-content: center; 
+            justify-content: center;
         }
-        
+
         .nav-horizontal-link {
             padding: 0.5rem 0.5rem;
             font-size: 0.9rem;
@@ -253,30 +264,30 @@
         box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
         border-radius: 12px;
         margin-top: 10px !important;
-        padding: 8px !important; 
+        padding: 8px !important;
     }
 
-    .dropdown-menu.show {
-        visibility: visible;
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-    }
+        .dropdown-menu.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
 
     .dropdown-item {
         padding: 0.6rem 1.2rem;
         border-radius: 8px;
-        margin: 0; 
-        width: 100%; 
+        margin: 0;
+        width: 100%;
         transition: background-color 0.2s;
-        color: #3d2b1f ; 
+        color: #3d2b1f;
         font-weight: 500;
     }
 
-    .dropdown-item:hover {
-        background-color: rgba(206, 185, 166, 0.2); 
-        color: #3d2b1f; 
-    }
+        .dropdown-item:hover {
+            background-color: rgba(206, 185, 166, 0.2);
+            color: #3d2b1f;
+        }
 
     .dropdown-divider {
         margin: 0.5rem 1rem;
@@ -299,15 +310,15 @@
         gap: 6px;
     }
 
-    .nav-horizontal-link:hover {
-        color: #3d2b1f !important; 
-        background-color: rgba(61, 43, 31, 0.05); 
-    }
+        .nav-horizontal-link:hover {
+            color: #3d2b1f !important;
+            background-color: rgba(61, 43, 31, 0.05);
+        }
 
-    .nav-horizontal-link.active {
-        color: #0d6efd;
-        background-color: rgba(13, 110, 253, 0.08);
-    }
+        .nav-horizontal-link.active {
+            color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.08);
+        }
 
     .nav-icon-btn {
         width: 42px;
@@ -323,10 +334,10 @@
         position: relative;
     }
 
-    .nav-icon-btn:hover {
-        background-color: #f1f3f5;
-        color: #3d2b1f; 
-    }
+        .nav-icon-btn:hover {
+            background-color: #f1f3f5;
+            color: #3d2b1f;
+        }
 
     .admin-theme {
         color: #6c5ce7;
@@ -347,19 +358,19 @@
     .user-pill {
         background: #f8f9fa;
         border: 1px solid #e9ecef;
-        padding: 2px 12px 2px 2px !important; 
+        padding: 2px 12px 2px 2px !important;
         border-radius: 50px;
         display: flex;
         align-items: center;
         gap: 8px;
-        height: 38px; 
+        height: 38px;
     }
 
     .user-avatar-nav {
         width: 32px !important;
         height: 32px !important;
         border-radius: 50% !important;
-        object-fit: cover; 
+        object-fit: cover;
         display: block;
         overflow: hidden;
     }
@@ -375,7 +386,7 @@
         justify-content: center;
         font-weight: bold;
         font-size: 0.85rem;
-        flex-shrink: 0; 
+        flex-shrink: 0;
     }
 
     .user-pill:hover {
@@ -400,6 +411,7 @@
             opacity: 0;
             transform: translateY(10px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -409,9 +421,10 @@
 
 @code {
     private bool isSubscribed = false;
-    private string? profilePictureUrl; 
+    private string? profilePictureUrl;
     private List<Notification> userNotifications = new();
     private int unreadCount = 0;
+    private int currentSubscriptionLevel = 0;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -430,6 +443,8 @@
         if (int.TryParse(userIdStr, out int userId))
         {
             await using var ctx = await DbFactory.CreateDbContextAsync();
+
+            // 1. Încarcă notificările normale de comenzi (ce aveai deja)
             userNotifications = await ctx.Notification
                 .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt)
@@ -437,10 +452,17 @@
                 .ToListAsync();
 
             unreadCount = userNotifications.Count(n => !n.IsRead);
+
+            // 2. ATENȚIE AICI: Extragem numărul de mesaje necitite din tabelul de Chat și actualizăm Serviciul Global!
+            // Schimbă "ChatMessages" sau proprietățile cu numele exacte din baza ta de date
+            int unreadChatMessages = await ctx.Set<ChatMessage>()
+                .Where(m => m.ReceiverId == userId && !m.IsRead)
+                .CountAsync();
+
+            // Împingem valoarea în serviciu. Asta va face ca `NotificationService.TotalUnreadCount` să aibă valoarea reală.
+            NotificationService.UpdateUnreadCount(unreadChatMessages);
         }
     }
-
-    private int currentSubscriptionLevel = 0; 
 
     private async Task CheckSubscriptionStatus()
     {
@@ -495,10 +517,12 @@
     protected override void OnInitialized()
     {
         cartService.OnChange += StateHasChanged;
+        NotificationService.OnChange += StateHasChanged;
     }
 
     public void Dispose()
     {
         cartService.OnChange -= StateHasChanged;
+        NotificationService.OnChange -= StateHasChanged;
     }
 }

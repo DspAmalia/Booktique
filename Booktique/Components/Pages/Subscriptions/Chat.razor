@@ -8,6 +8,7 @@
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
 @rendermode InteractiveServer
 
 <PageTitle>Booktique Messenger</PageTitle>
@@ -26,22 +27,44 @@
                         {
                             @foreach (var user in users)
                             {
-                                <div class="user-item @(selectedUserId == user.UserId.ToString() ? "active" : "")"
-                                     @onclick="() => UpdateSelectedUser(user.UserId.ToString())">
-                                    <div class="user-avatar">
-                                        @if (!string.IsNullOrEmpty(user.ProfilePicture))
-                                        {
-                                            <img src="@user.ProfilePicture" alt="@user.UserName" class="rounded-circle shadow-sm" style="width: 100%; height: 100%; object-fit: cover;" />
-                                        }
-                                        else
-                                        {
-                                            @user.UserName.Substring(0, 1).ToUpper()
-                                        }
+                                @* Preluăm numărul de mesaje necitite pentru acest utilizator *@
+                                var unreadCount = unreadMessagesCounts.ContainsKey(user.UserId) ? unreadMessagesCounts[user.UserId] : 0;
+
+                                <div class="user-item @(selectedUserId == user.UserId ? "active" : "") d-flex align-items-center justify-content-between"
+                                     @onclick="() => UpdateSelectedUser(user.UserId)">
+                                    
+                                    <div class="d-flex align-items-center flex-grow-1 min-w-0">
+                                        <div class="user-avatar position-relative">
+                                            @if (!string.IsNullOrEmpty(user.ProfilePicture))
+                                            {
+                                                <img src="@user.ProfilePicture" alt="@user.UserName" class="rounded-circle shadow-sm" style="width: 100%; height: 100%; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                @user.UserName.Substring(0, 1).ToUpper()
+                                            }
+                                            
+                                            @* Bulină roșie mică pe avatar dacă are mesaje necitite *@
+                                            @if (unreadCount > 0)
+                                            {
+                                                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle animate-pulse"></span>
+                                            }
+                                        </div>
+                                        <div class="user-details ms-2 flex-grow-1 text-truncate">
+                                            <div class="fw-bold @(unreadCount > 0 ? "text-dark fw-extrabold" : "text-secondary")">@user.UserName</div>
+                                            <div class="small text-truncate @(unreadCount > 0 ? "text-orange font-weight-bold" : "text-muted")">
+                                                @(unreadCount > 0 ? $"{unreadCount} new messages" : "Click to start chatting")
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="user-details">
-                                        <div class="fw-bold text-dark">@user.UserName</div>
-                                        <div class="small text-muted text-truncate">Click to start chatting</div>
-                                    </div>
+
+                                    @* Badge cu numărul exact de mesaje necitite *@
+                                    @if (unreadCount > 0)
+                                    {
+                                        <span class="badge rounded-pill bg-orange px-2 py-1 shadow-sm small-badge">
+                                            @unreadCount
+                                        </span>
+                                    }
                                 </div>
                             }
                         }
@@ -53,7 +76,7 @@
                 </div>
 
                 <div class="col-md-8 d-flex flex-column chat-content">
-                    @if (string.IsNullOrEmpty(selectedUserId))
+                    @if (selectedUserId == null)
                     {
                         <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted p-5 bg-light">
                             <i class="bi bi-chat-heart display-1 text-orange mb-3 opacity-25"></i>
@@ -67,7 +90,7 @@
                             <div class="d-flex align-items-center">
                                 <div class="user-avatar me-2 bg-orange text-white">
                                     @{
-                                        var selectedUser = users.FirstOrDefault(u => u.UserId.ToString() == selectedUserId);
+                                        var selectedUser = users.FirstOrDefault(u => u.UserId == selectedUserId);
                                         if (selectedUser != null && !string.IsNullOrEmpty(selectedUser.ProfilePicture))
                                         {
                                             <img src="@selectedUser.ProfilePicture" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;" />
@@ -79,7 +102,7 @@
                                     }
                                 </div>
                                 <h6 class="mb-0 fw-bold text-brown">
-                                    @users.FirstOrDefault(u => u.UserId.ToString() == selectedUserId)?.UserName
+                                    @users.FirstOrDefault(u => u.UserId == selectedUserId)?.UserName
                                 </h6>
                             </div>
                             <span class="badge @(hubConnection?.State == HubConnectionState.Connected ? "bg-success" : "bg-danger") rounded-pill">
@@ -88,26 +111,81 @@
                         </div>
 
                         <div class="chat-window p-4" id="chatWindow">
+                            @{
+                                DateTime? lastDate = null;
+                            }
                             @foreach (var msg in chatMessages)
                             {
-                                <div class="message-container @(msg.IsOwnMessage ? "message-right" : "message-left")">
+                                var localTime = msg.Timestamp.ToLocalTime();
+                                
+                                @if (lastDate == null || lastDate.Value.Date != localTime.Date)
+                                {
+                                    lastDate = localTime;
+                                    <div class="chat-date-separator text-center my-3">
+                                        <span class="badge bg-light text-muted border px-3 py-2 rounded-pill small shadow-sm">
+                                            <i class="bi bi-calendar3 me-1"></i> @localTime.ToString("dd MMMM yyyy")
+                                        </span>
+                                    </div>
+                                }
+
+                                <div @key="msg.Timestamp.Ticks + msg.Text" class="message-container @(msg.IsOwnMessage ? "message-right" : "message-left")">
                                     <div class="message-bubble @(msg.IsOwnMessage ? "bubble-mine shadow-sm" : "bubble-other shadow-sm")">
                                         @if (!msg.IsOwnMessage)
                                         {
                                             <span class="message-user">@msg.User</span>
                                         }
-                                        <div class="message-text">@msg.Text</div>
+                                        
+                                        @if (msg.Text != null && msg.Text.StartsWith("[BOOK_CLUB]"))
+                                        {
+                                            
+                                                var parts = msg.Text.Replace("[BOOK_CLUB]", "").Split('|');
+                                                var bookTitle = parts.Length > 0 ? parts[0] : "Book";
+                                                var bookAuthor = parts.Length > 1 ? parts[1] : "";
+                                                var bookComment = parts.Length > 2 ? parts[2] : "";
+                                            
+                                            <div class="book-share-card p-2 my-1 bg-white text-dark rounded border border-warning shadow-xs" style="min-width: 220px;">
+                                                <div class="fw-bold text-brown small">
+                                                    <i class="bi bi-book-half text-orange me-1"></i> Book Club
+                                                </div>
+                                                <div class="my-1 fw-bold fs-6 text-dark text-truncate" title="@bookTitle">
+                                                    @bookTitle
+                                                </div>
+                                                <div class="text-muted small mb-2" style="font-style: italic;">
+                                                    by @bookAuthor
+                                                </div>
+                                                <div class="p-2 bg-light rounded text-secondary small border-start border-3 border-warning" style="font-style: italic;">
+                                                    "@bookComment"
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="message-text">@msg.Text</div>
+                                        }
+                                        
+                                        <div class="message-time d-flex align-items-center justify-content-end opacity-75 mt-1" style="font-size: 0.68rem; min-width: 50px;">
+                                            <span>@localTime.ToString("HH:mm")</span>
+                                            @* Afișăm bifa de Read / Unread doar la mesajele mele trimise *@
+                                            @if (msg.IsOwnMessage)
+                                            {
+                                                <i class="bi @(msg.IsRead ? "bi-check2-all text-info" : "bi-check2") ms-1" style="font-size: 0.85rem;" title="@(msg.IsRead ? "Read" : "Sent (Unread)")"></i>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             }
                         </div>
 
-                        <div class="p-3 border-top bg-white">
+                        <div class="p-3 border-top bg-white chat-input-bar">
                             <div class="input-group">
+                                <button class="btn btn-outline-brown rounded-pill-start px-3" type="button" @onclick="OpenBookModal" title="Recomend a book">
+                                    <i class="bi bi-book text-orange" style="font-size: 1.2rem;"></i>
+                                </button>
+                                
                                 <input @bind="messageInput"
                                        @bind:event="oninput"
                                        @onkeyup="HandleKeyUp"
-                                       class="form-control rounded-pill-start border-2 border-end-0 border-light px-4"
+                                       class="form-control border-2 border-end-0 border-light px-3"
                                        placeholder="Type your message here..." />
                                 <button class="btn btn-orange rounded-pill-end px-4"
                                         @onclick="Send"
@@ -122,6 +200,46 @@
         </div>
     </div>
 </div>
+
+@if (isBookModalOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+                <div class="modal-header bg-brown text-white" style="border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-journal-bookmark-fill text-orange me-2"></i>Book Club</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseBookModal"></button>
+                </div>
+                <div class="modal-body p-4" style="background-color: #fdf6ee;">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-brown">Choose the book from the shop</label>
+                        <select class="form-select border-2 border-light" @bind="selectedBookId">
+                            <option value="0">-- Select a Book --</option>
+                            @foreach (var book in availableBooks)
+                            {
+                                <option value="@book.Id">@book.Title (by @book.Author)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-brown">Your comm / Thoughts about the book</label>
+                        <textarea class="form-control border-2 border-light" rows="3" 
+                                  placeholder="What did you like about this book? What do you want to talk about?" 
+                                  @bind="bookCommentInput"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light" style="border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" @onclick="CloseBookModal">Close</button>
+                    <button type="button" class="btn btn-orange rounded-pill px-4" 
+                            disabled="@(selectedBookId == 0 || string.IsNullOrWhiteSpace(bookCommentInput))" 
+                            @onclick="SendBookRecommendation">
+                        <i class="bi bi-share-fill me-1"></i> Share in chat
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <style>
     :root {
@@ -150,16 +268,26 @@
         background-color: var(--brown-primary) !important;
     }
 
+    .btn-outline-brown {
+        color: var(--brown-primary);
+        border: 2px solid #f1e6d8;
+        border-right: none;
+        background: #fdf6ee;
+    }
+    .btn-outline-brown:hover {
+        background: #f1e6d8;
+    }
+
     .btn-orange {
         background-color: var(--orange-accent);
         color: white;
         border: none;
     }
 
-        .btn-orange:hover {
-            background-color: #d49200;
-            color: white;
-        }
+    .btn-orange:hover {
+        background-color: #d49200;
+        color: white;
+    }
 
     .text-orange {
         color: var(--orange-accent);
@@ -175,8 +303,6 @@
     }
 
     .user-item {
-        display: flex;
-        align-items: center;
         padding: 12px 15px;
         margin-bottom: 5px;
         border-radius: 12px;
@@ -184,13 +310,32 @@
         transition: 0.2s;
     }
 
-        .user-item:hover {
-            background-color: #f8f1e9;
-        }
+    .user-item:hover {
+        background-color: #f8f1e9;
+    }
 
-        .user-item.active {
-            background-color: #f1e6d8;
-        }
+    .user-item.active {
+        background-color: #f1e6d8;
+    }
+
+    .fw-extrabold {
+        font-weight: 800 !important;
+    }
+
+    .small-badge {
+        font-size: 0.72rem;
+        padding: 4px 8px !important;
+    }
+
+    .animate-pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(220, 53, 69, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
 
     .user-avatar {
         width: 40px;
@@ -202,7 +347,11 @@
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        margin-right: 12px;
+    }
+
+    .chat-content {
+        height: 100%;
+        overflow: hidden;
     }
 
     .chat-window {
@@ -211,6 +360,16 @@
         background-color: var(--chat-bg);
         display: flex;
         flex-direction: column;
+    }
+
+    .chat-input-bar {
+        position: relative;
+        z-index: 10;
+    }
+
+    .chat-date-separator {
+        position: relative;
+        z-index: 1;
     }
 
     .message-container {
@@ -279,11 +438,18 @@
     private HubConnection? hubConnection;
     private List<User> users = new();
     private readonly object _messageLock = new();
-    private List<ChatMessage> chatMessages = new();
-    private string? selectedUserId;
+    private List<LocalMessage> chatMessages = new(); 
+    private int? selectedUserId; 
     private string? messageInput;
-    private string? currentUserId;
+    private int? currentUserId; 
     private string? currentUserName;
+
+    private Dictionary<int, int> unreadMessagesCounts = new();
+
+    private bool isBookModalOpen = false;
+    private List<BookDummy> availableBooks = new(); 
+    private int selectedBookId = 0;
+    private string bookCommentInput = string.Empty;
 
     [SupplyParameterFromQuery]
     public string? targetUserId { get; set; }
@@ -296,103 +462,261 @@
     private bool IsButtonDisabled =>
         hubConnection?.State != HubConnectionState.Connected ||
         string.IsNullOrWhiteSpace(messageInput) ||
-        string.IsNullOrEmpty(selectedUserId);
+        selectedUserId == null;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        var userIdStr = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                         ?? authState.User.FindFirst("UserId")?.Value;
+
+        if (int.TryParse(userIdStr, out int parsedCurrentId))
+        {
+            currentUserId = parsedCurrentId;
+        }
+
         currentUserName = authState.User.Identity?.Name ?? "Anonim";
 
         using var context = DbFactory.CreateDbContext();
         users = await context.User
-            .Where(u => u.IsSubscribed != SubscriptionLevel.None && u.UserId.ToString() != currentUserId)
+            .Where(u => u.IsSubscribed != SubscriptionLevel.None && u.UserId != currentUserId)
             .ToListAsync();
+
+        if (currentUserId.HasValue)
+        {
+            var unreadGroups = await context.ChatMessage
+                .Where(m => m.ReceiverId == currentUserId.Value && !m.IsRead)
+                .GroupBy(m => m.SenderId)
+                .Select(g => new { SenderId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            unreadMessagesCounts = new Dictionary<int, int>();
+
+            foreach (var group in unreadGroups)
+            {
+                if (group.SenderId.HasValue)
+                {
+                    unreadMessagesCounts[group.SenderId.Value] = group.Count;
+                }
+                else if (group.SenderId is int staticId) 
+                {
+                    unreadMessagesCounts[staticId] = group.Count;
+                }
+            }
+        }
+
+        try 
+        {
+            availableBooks = await context.Book
+                .Select(b => new BookDummy { Id = b.BookId, Title = b.BookTitle, Author = b.BookAuthor })
+                .ToListAsync();
+        }
+        catch {
+            availableBooks = new List<BookDummy> {
+                new() { Id = 1, Title = "Mândrie și Prejudecată", Author = "Jane Austen" },
+                new() { Id = 2, Title = "1984", Author = "George Orwell" }
+            };
+        }
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<string, string, string>("ReceiveMessage", (senderId, userName, text) =>
+        hubConnection.On<string, string, string>("ReceiveMessage", async (senderId, userName, text) =>
+    {
+    if (int.TryParse(senderId, out int parsedSenderId))
+    {
+        if (parsedSenderId == currentUserId)
         {
-            if (senderId == currentUserId) return;
+            return;
+        }
+
+        // Caz 1: Sunt deja în fereastra cu cel care trimite mesajul (este un mesaj primit live de la partener)
+        if (parsedSenderId == selectedUserId)
+        {
+            var now = DateTime.UtcNow;
+
+            using (var dbContext = DbFactory.CreateDbContext())
+            {
+                var liveMsg = new ChatMessage
+                    {
+                        SenderId = parsedSenderId,
+                        ReceiverId = currentUserId!.Value,
+                        Text = text,
+                        Timestamp = now,
+                        IsRead = true
+                    };
+                dbContext.ChatMessage.Add(liveMsg);
+                await dbContext.SaveChangesAsync();
+            }
 
             lock (_messageLock)
             {
-                chatMessages.Add(new ChatMessage
+                chatMessages.Add(new LocalMessage
                     {
                         User = userName,
                         Text = text,
-                        IsOwnMessage = false
+                        IsOwnMessage = false,
+                        Timestamp = now,
+                        IsRead = true
                     });
             }
-            InvokeAsync(StateHasChanged);
-        });
+            await InvokeAsync(StateHasChanged);
+            await ScrollToBottom();
+        }
+        // Caz 2: Sunt pe pagină, dar am fereastra deschisă cu altcineva -> crește contorul de notificări pentru partener
+        else
+        {
+            if (unreadMessagesCounts.ContainsKey(parsedSenderId))
+                unreadMessagesCounts[parsedSenderId]++;
+            else
+                unreadMessagesCounts[parsedSenderId] = 1;
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    });
 
         await hubConnection.StartAsync();
 
-        if (!string.IsNullOrEmpty(currentUserId))
+        if (currentUserId.HasValue)
         {
-            await hubConnection.InvokeAsync("RegisterUser", currentUserId);
-        }
-
-        if (!string.IsNullOrEmpty(targetUserId) && !string.IsNullOrEmpty(initialMessage) && !hasAutoSent)
-        {
-            selectedUserId = targetUserId;
-            messageInput = initialMessage;
-
-            await Task.Delay(500);
-
-            await Send();
-            hasAutoSent = true;
-
-            Navigation.NavigateTo("/chat", replace: true);
+            await hubConnection.InvokeAsync("RegisterUser", currentUserId.Value.ToString());
         }
     }
 
-    private async Task UpdateSelectedUser(string userId)
+    private async Task UpdateSelectedUser(int userId)
     {
         selectedUserId = userId;
+        
+        using var context = DbFactory.CreateDbContext();
+        
+        // Când selectez utilizatorul, marchez toate mesajele primite de la el ca fiind CITITE (IsRead = true)
+        var unreadDbMessages = await context.ChatMessage
+            .Where(m => m.SenderId == selectedUserId && m.ReceiverId == currentUserId && !m.IsRead)
+            .ToListAsync();
+
+        if (unreadDbMessages.Any())
+        {
+            foreach (var msg in unreadDbMessages)
+            {
+                msg.IsRead = true;
+            }
+            await context.SaveChangesAsync();
+        }
+
+        // Resetez contorul local din dicționar ca să dispară notificarea din sidebar
+        if (unreadMessagesCounts.ContainsKey(userId))
+        {
+            unreadMessagesCounts[userId] = 0;
+        }
+        
+        var dbMessages = await context.ChatMessage
+            .Include(m => m.Sender)
+            .Where(m => (m.SenderId == currentUserId && m.ReceiverId == selectedUserId) ||
+                        (m.SenderId == selectedUserId && m.ReceiverId == currentUserId))
+            .OrderBy(m => m.Timestamp)
+            .ToListAsync();
+
         lock (_messageLock)
         {
-            chatMessages.Clear();
+            chatMessages = dbMessages.Select(m => new LocalMessage
+            {
+                Text = m.Text,
+                IsOwnMessage = m.SenderId == currentUserId,
+                User = m.SenderId == currentUserId ? "Eu" : (m.Sender?.UserName ?? "Cititor"),
+                Timestamp = m.Timestamp,
+                IsRead = m.IsRead
+            }).ToList();
         }
+        
         await InvokeAsync(StateHasChanged);
+        await ScrollToBottom();
     }
 
     private async Task Send()
     {
-        if (hubConnection is not null && !string.IsNullOrEmpty(selectedUserId) && !string.IsNullOrWhiteSpace(messageInput))
+        if (hubConnection is not null && selectedUserId.HasValue && !string.IsNullOrWhiteSpace(messageInput) && currentUserId.HasValue)
         {
-            try
+            await ProcessAndSendMessage(messageInput);
+            messageInput = "";
+        }
+    }
+
+    private async Task ProcessAndSendMessage(string textContent)
+    {
+        try
+        {
+            var now = DateTime.UtcNow; 
+
+            using (var context = DbFactory.CreateDbContext())
             {
-                var textToSend = messageInput;
-
-                await hubConnection.InvokeAsync("SendPrivateMessage",
-                    selectedUserId,
-                    textToSend,
-                    currentUserId,
-                    currentUserName);
-
-                lock (_messageLock)
+                var newDbMessage = new ChatMessage
                 {
-                    chatMessages.Add(new ChatMessage
-                        {
-                            User = "Eu",
-                            Text = textToSend,
-                            IsOwnMessage = true
-                        });
-                }
+                    SenderId = currentUserId!.Value,
+                    ReceiverId = selectedUserId!.Value,
+                    Text = textContent,
+                    Timestamp = now,
+                    IsRead = false
+                };
+                context.ChatMessage.Add(newDbMessage);
+                await context.SaveChangesAsync();
+            }
 
-                messageInput = "";
-                await InvokeAsync(StateHasChanged);
-            }
-            catch (Exception ex)
+            await hubConnection!.InvokeAsync("SendPrivateMessage",
+                selectedUserId.Value.ToString(),
+                textContent,
+                currentUserId.Value.ToString(),
+                currentUserName);
+
+            lock (_messageLock)
             {
-                Console.WriteLine($"Eroare trimitere: {ex.Message}");
+                chatMessages.Add(new LocalMessage
+                {
+                    User = "Eu",
+                    Text = textContent,
+                    IsOwnMessage = true,
+                    Timestamp = now,
+                    IsRead = false
+                });
             }
+
+            await InvokeAsync(StateHasChanged);
+            await ScrollToBottom();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Eroare trimitere sau salvare: {ex.Message}");
+        }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        try
+        {
+            await Task.Delay(50);
+            await JS.InvokeVoidAsync("eval", "document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;");
+        }
+        catch {}
+    }
+
+    private void OpenBookModal() => isBookModalOpen = true;
+    private void CloseBookModal()
+    {
+        isBookModalOpen = false;
+        selectedBookId = 0;
+        bookCommentInput = string.Empty;
+    }
+
+    private async Task SendBookRecommendation()
+    {
+        var book = availableBooks.FirstOrDefault(b => b.Id == selectedBookId);
+        if (book != null && !string.IsNullOrWhiteSpace(bookCommentInput))
+        {
+            string specialMessage = $"[BOOK_CLUB]{book.Title}|{book.Author}|{bookCommentInput}";
+            await ProcessAndSendMessage(specialMessage);
+            CloseBookModal();
         }
     }
 
@@ -406,10 +730,19 @@
         if (hubConnection is not null) await hubConnection.DisposeAsync();
     }
 
-    public class ChatMessage
+    public class LocalMessage
     {
         public string User { get; set; } = "";
         public string Text { get; set; } = "";
         public bool IsOwnMessage { get; set; }
+        public DateTime Timestamp { get; set; } 
+        public bool IsRead { get; set; } 
+    }
+
+    public class BookDummy
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Author { get; set; } = "";
     }
 }

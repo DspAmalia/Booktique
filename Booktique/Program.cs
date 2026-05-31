@@ -47,6 +47,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<FavoriteService>();
 builder.Services.AddScoped<AIService>();
 builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<ChatNotificationService>();
 
 //builder.Services.AddRadzenComponents();
 

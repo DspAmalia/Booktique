@@ -20,5 +20,6 @@ public class BooktiqueContext : DbContext
     public DbSet<Booktique.Models.MainModels.OrderItem> OrderItem { get; set; } = default!;
     public DbSet<Booktique.Models.MainModels.Order> Order { get; set; } = default!;
     public DbSet<Booktique.Models.MainModels.Notification> Notification { get; set; } = default!;
+    public DbSet<Booktique.Models.MainModels.ChatMessage> ChatMessage { get; set; } = default!;
 
 }
