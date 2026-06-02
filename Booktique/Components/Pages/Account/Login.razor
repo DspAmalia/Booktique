@@ -26,6 +26,7 @@
                 <EditForm Model="@Model" OnValidSubmit="Authenticate" FormName="loginForm">
                     <DataAnnotationsValidator />
 
+                    @* Câmpul pentru Username *@
                     <div class="mb-3">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-person text-brown"></i></span>
@@ -33,13 +34,7 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-envelope text-brown"></i></span>
-                            <InputText @bind-Value="Model.UserEmail" class="form-control border-start-0 ps-0" placeholder="Email" />
-                        </div>
-                    </div>
-
+                    @* Câmpul pentru Parolă *@
                     <div class="mb-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-lock text-brown"></i></span>
@@ -144,7 +139,6 @@
         color: var(--brown-primary);
     }
 
-    /* Input focus style */
     .form-control:focus {
         border-color: var(--brown-primary);
         box-shadow: none;
@@ -166,8 +160,10 @@
 
     private async Task Authenticate()
     {
+        // Pasul 1: Căutăm utilizatorul exclusiv după UserName
         var user = appContext.User.FirstOrDefault(x => x.UserName == Model.UserName);
 
+        // Pasul 2: Verificăm dacă utilizatorul există și parola se potrivește
         if (user is null || user.Password != Model.Password)
         {
             errorMessage = "Invalid credentials. Please try again.";

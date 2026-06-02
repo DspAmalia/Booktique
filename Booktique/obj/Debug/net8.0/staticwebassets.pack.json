@@ -25,6 +25,10 @@
       "PackagePath": "staticwebassets\\images\\logo.png"
     },
     {
+      "Id": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\previews\\pacatul meu.pdf",
+      "PackagePath": "staticwebassets\\previews\\pacatul meu.pdf"
+    },
+    {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Booktique.Microsoft.AspNetCore.StaticWebAssets.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
     },

@@ -47,6 +47,25 @@
         }
         document.addEventListener("DOMContentLoaded", initMap);
     </script>
+    <script>
+        window.clearBrowserCacheAndStorage = function () {
+            // 1. Golește stocările text
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 2. Forțează ștergerea cookie-urilor accesibile din JS prin setarea unei date din trecut
+            document.cookie.split(";").forEach(function (c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+
+            // 3. Curăță cache-ul de aplicație (dacă există)
+            if ('caches' in window) {
+                caches.keys().then(function (names) {
+                    for (let name of names) caches.delete(name);
+                });
+            }
+        };
+    </script>
 </body>
 
 </html>

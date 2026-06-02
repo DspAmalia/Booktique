@@ -8,7 +8,7 @@ namespace Booktique.Models.ViewModels
         public string? UserName { get; set; }
 
         
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Provide Email")]
+        
         public string? UserEmail { get; set; }
 
         

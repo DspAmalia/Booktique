@@ -86,6 +86,14 @@
                                         </button>
                                     </div>
                                 </div>
+
+                                <div class="col-md-12 mt-3">
+                                    <label class="form-label fw-bold small">PDF Preview Path / URL</label>
+                                    <InputText @bind-Value="Book.BookPreviewPath" class="form-control rounded-pill px-3" placeholder="/previews/gatsby_preview.pdf sau un link extern" />
+                                    <div class="form-text text-muted small mt-1 ps-2">
+                                        <i class="bi bi-info-circle me-1 text-orange"></i> Add the file path saved in <code>wwwroot/previews/</code> or a valid URL of the PDF.
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

@@ -94,8 +94,8 @@
                             <div class="d-flex gap-3 mt-5 pt-4 border-top border-dark-subtle">
                                 @if (currentUserId != book.SellerId.ToString())
                                 {
-                                    <a href="/chat?targetUserId=@book.SellerId&initialMessage=Greetings! I am inquiring about: @book.BookTitle"
-                                       class="btn-wax-seal px-4 py-2 text-decoration-none">
+                                    <a href="/chat?targetUserId=@book.SellerId&initialMessage=Greetings, @(book.Seller?.UserName ?? "Curator")! I am interested in the volume: @book.BookTitle" 
+                                    class="btn-wax-seal px-4 py-2 text-decoration-none">
                                         <i class="bi bi-envelope-paper me-2"></i>Inquire Curator
                                     </a>
                                 }
@@ -283,6 +283,25 @@
         .btn-scroll-edit:hover {
             background: #2c1e14;
             color: #e2d7c5;
+        }
+
+    .btn-ink-sm {
+        background-color: #5a3e2b;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        font-family: 'Cinzel', serif;
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .btn-ink-sm:hover {
+            background-color: #f0a500;
+            color: white;
+            transform: translateY(-2px);
         }
 </style>
 

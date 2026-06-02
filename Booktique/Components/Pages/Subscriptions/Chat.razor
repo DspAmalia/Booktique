@@ -61,7 +61,7 @@
                                     @* Badge cu numărul exact de mesaje necitite *@
                                     @if (unreadCount > 0)
                                     {
-                                        <span class="badge rounded-pill bg-orange px-2 py-1 shadow-sm small-badge">
+                                        <span class="badge rounded-pill bg-brown px-2 py-1 shadow-sm small-badge">
                                             @unreadCount
                                         </span>
                                     }
@@ -165,7 +165,7 @@
                                         
                                         <div class="message-time d-flex align-items-center justify-content-end opacity-75 mt-1" style="font-size: 0.68rem; min-width: 50px;">
                                             <span>@localTime.ToString("HH:mm")</span>
-                                            @* Afișăm bifa de Read / Unread doar la mesajele mele trimise *@
+                                            @* bifa de Read / Unread doar la mesajele mele trimise *@
                                             @if (msg.IsOwnMessage)
                                             {
                                                 <i class="bi @(msg.IsRead ? "bi-check2-all text-info" : "bi-check2") ms-1" style="font-size: 0.85rem;" title="@(msg.IsRead ? "Read" : "Sent (Unread)")"></i>
@@ -178,7 +178,7 @@
 
                         <div class="p-3 border-top bg-white chat-input-bar">
                             <div class="input-group">
-                                <button class="btn btn-outline-brown rounded-pill-start px-3" type="button" @onclick="OpenBookModal" title="Recomend a book">
+                                <button class="btn btn-outline-brown rounded-pill-start px-3" type="button" @onclick="OpenBookModal" title="Recommend a book">
                                     <i class="bi bi-book text-orange" style="font-size: 1.2rem;"></i>
                                 </button>
                                 
@@ -717,6 +717,38 @@
             string specialMessage = $"[BOOK_CLUB]{book.Title}|{book.Author}|{bookCommentInput}";
             await ProcessAndSendMessage(specialMessage);
             CloseBookModal();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (!hasAutoSent && !string.IsNullOrEmpty(targetUserId) && int.TryParse(targetUserId, out int targetId))
+            {
+                hasAutoSent = true;
+
+                await UpdateSelectedUser(targetId);
+
+                if (!string.IsNullOrWhiteSpace(initialMessage))
+                {
+                    for (int i = 0; i < 10 && (hubConnection == null || hubConnection.State != HubConnectionState.Connected); i++)
+                    {
+                        await Task.Delay(200);
+                    }
+
+                    if (hubConnection?.State == HubConnectionState.Connected && currentUserId.HasValue)
+                    {
+                        await ProcessAndSendMessage(initialMessage);
+
+                        Navigation.NavigateTo("/chat", replace: true);
+                    }
+                    else
+                    {
+                        hasAutoSent = false;
+                    }
+                }
+            }
         }
     }
 

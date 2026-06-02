@@ -62,6 +62,10 @@ namespace Booktique.Migrations
                         .HasColumnType("int")
                         .HasColumnName("BookNumberPag");
 
+                    b.Property<string>("BookPreviewPath")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("BookPreviewPath");
+
                     b.Property<decimal>("BookPrice")
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("BookPrice");

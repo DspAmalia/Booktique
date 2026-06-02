@@ -75,6 +75,9 @@ namespace Booktique.Models.MainModels
         [Column("BookCoverPath")]
         public string? BookCoverPath { get; set; }
 
+        [Column("BookPreviewPath")]
+        public string? BookPreviewPath { get; set; }
+
         [Required]
         [Range(0, 5)]
         [Column("BookRating")]

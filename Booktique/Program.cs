@@ -29,8 +29,15 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.Cookie.Name = "auth_token";
         options.LoginPath = "/login";
-        options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
         options.AccessDeniedPath = "/access-denied";
+
+        options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
+
+
+        options.Cookie.HttpOnly = false;
+
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
     });
 
 builder.Services.AddAuthentication().AddGoogle(googleOptions =>
