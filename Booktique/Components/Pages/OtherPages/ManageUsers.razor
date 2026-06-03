@@ -3,7 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
 @inject IDbContextFactory<BooktiqueContext> DbFactory
-@attribute [Authorize(Roles = "Administrator")]
+@attribute [Authorize(Roles = "Administrator, Manager")]
 @rendermode InteractiveServer
 
 <PageTitle>User Management | Booktique</PageTitle>

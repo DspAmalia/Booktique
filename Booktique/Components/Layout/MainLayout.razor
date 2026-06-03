@@ -65,7 +65,7 @@
 
             <div class="d-flex align-items-center gap-2">
 
-                <AuthorizeView Roles="Manager">
+                <AuthorizeView Roles="Manager, Admin">
                     <a class="nav-horizontal-link admin-theme" href="/admin/dashboard" title="Dashboard">
                         <i class="bi bi-speedometer2"></i>
                     </a>
@@ -126,7 +126,11 @@
                                 }
                             </ul>
                         </div>
+                        
+                    </Authorized>
+                </AuthorizeView>
 
+                <AuthorizeView Roles="Administrator, User, Manager">
                         <a class="nav-horizontal-link position-relative" href="/cart" title="Cart">
                             <i class="bi bi-cart3"></i>
                             @if (cartService.Items.Any())
@@ -134,7 +138,6 @@
                                 <span class="cart-badge">@cartService.Items.Sum(i => i.Quantity)</span>
                             }
                         </a>
-                    </Authorized>
                 </AuthorizeView>
 
                 <AuthorizeView>
