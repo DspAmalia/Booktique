@@ -1178,3 +1178,11 @@ C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Stripe.net.d
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.AspNetCore.Http.Connections.Client.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Client.dll
 C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Client.Core.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\ClosedXML.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\ClosedXML.Parser.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\DocumentFormat.OpenXml.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\DocumentFormat.OpenXml.Framework.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\ExcelNumberFormat.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\RBush.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\SixLabors.Fonts.dll
+C:\Users\Ami\Desktop\Booktique\Booktique\Booktique\bin\Debug\net8.0\System.IO.Packaging.dll

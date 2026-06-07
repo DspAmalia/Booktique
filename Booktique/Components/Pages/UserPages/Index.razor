@@ -14,87 +14,89 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2>User <strong>Management</strong></h2>
-            <p class="text-muted">Overview of all registered members in Booktique</p>
+            <h2 class="fw-bold text-brown mb-1">User <span class="text-dark">Management</span></h2>
+            <p class="text-muted small mb-0">Overview and control of all registered members in Booktique</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="users/create" class="btn btn-warning rounded-pill px-4 shadow-sm">
+            <a href="users/create" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">
                 <i class="bi bi-person-plus-fill me-2"></i>Create New
             </a>
-            <a href="/admin/dashboard" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+            <a href="/admin/dashboard" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm fw-bold">
                 <i class="bi bi-arrow-left me-2"></i>Back
             </a>
         </div>
     </div>
-    <hr />
-    <div class="card shadow border-0 rounded-4 overflow-hidden">
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden custom-card">
         <div class="card-body p-0">
             <QuickGrid Class="table align-middle mb-0 custom-grid" Items="context.User">
 
-                <TemplateColumn Title="Profile" Class="col-profile">
-                    <img src="@(string.IsNullOrEmpty(context.ProfilePicture) ? "https://www.shutterstock.com/image-illustration/man-open-book-illustration-element-260nw-1103282219.jpg" : context.ProfilePicture)"
-                         class="rounded-circle border shadow-sm"
-                         style="width: 35px; height: 35px; object-fit: cover;" />
+                <TemplateColumn Title="Profile" Class="col-profile text-center">
+                    <div class="avatar-wrapper d-inline-block">
+                        <img src="@(string.IsNullOrEmpty(context.ProfilePicture) ? "https://www.shutterstock.com/image-illustration/man-open-book-illustration-element-260nw-1103282219.jpg" : context.ProfilePicture)"
+                             class="rounded-circle border border-2 border-white shadow-sm"
+                             style="width: 40px; height: 40px; object-fit: cover;" />
+                    </div>
                 </TemplateColumn>
 
                 <PropertyColumn Title="Username" Property="user => user.UserName" Sortable="true" Class="fw-bold text-brown" />
 
-                <PropertyColumn Title="Email" Property="user => user.UserEmail" Sortable="true" />
+                <PropertyColumn Title="Email" Property="user => user.UserEmail" Sortable="true" Class="text-muted" />
 
                 <TemplateColumn Title="Role" Sortable="true">
                     @{
-                        string roleClass;
-                        string icon;
-
+                        string roleClass, icon;
                         switch (context.Role)
                         {
                             case "Administrator":
-                                roleClass = "bg-warning text-dark shadow-sm"; // Galben
+                                roleClass = "bg-warning-subtle text-warning-dark border-warning-subtle";
                                 icon = "bi-shield-fill-check";
                                 break;
                             case "Manager":
-                                roleClass = "bg-danger shadow-sm"; // Roșu
-                                icon = "bi-shield-lock";
+                                roleClass = "bg-danger-subtle text-danger border-danger-subtle";
+                                icon = "bi-shield-lock-fill";
                                 break;
                             default:
-                                roleClass = "bg-brown"; // Maro 
-                                icon = "bi-person";
+                                roleClass = "bg-light text-secondary border-secondary-subtle";
+                                icon = "bi-person-fill";
                                 break;
                         }
                     }
-                    <span class="badge @roleClass rounded-pill">@context.Role</span>
+                    <span class="badge @roleClass border rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center">
+                        <i class="bi @icon me-1.5"></i> @context.Role
+                    </span>
                 </TemplateColumn>
 
-                <TemplateColumn Title="Subscription Plan" Sortable="true" Class="col-subscribed">
+                <TemplateColumn Title="Subscription Plan" Sortable="true">
                     @switch (context.IsSubscribed)
                     {
                         case SubscriptionLevel.Yearly:
-                            <span class="badge rounded-pill bg-warning text-dark">
-                                <i class="bi bi-star-fill me-1"></i> Yearly Premium
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-dark border border-warning-subtle px-3 py-2 fw-semibold d-inline-flex align-items-center">
+                                <i class="bi bi-star-fill me-1.5 text-warning"></i> Yearly Premium
                             </span>
                             break;
 
                         case SubscriptionLevel.Monthly:
-                            <span class="badge rounded-pill bg-info text-white">
-                                <i class="bi bi-calendar-check-fill me-1"></i> Monthly
+                            <span class="badge rounded-pill bg-info-subtle text-info-dark border border-info-subtle px-3 py-2 fw-semibold d-inline-flex align-items-center">
+                                <i class="bi bi-calendar-check-fill me-1.5 text-info"></i> Monthly
                             </span>
                             break;
 
                         case SubscriptionLevel.None:
                         default:
-                            <span class="badge rounded-pill bg-light text-muted border">
-                                <i class="bi bi-x-circle me-1"></i> No Active Plan
+                            <span class="badge rounded-pill bg-light text-muted border px-3 py-2 fw-normal d-inline-flex align-items-center">
+                                <i class="bi bi-x-circle me-1.5 text-secondary"></i> No Active Plan
                             </span>
                             break;
                     }
                 </TemplateColumn>
 
-                <TemplateColumn Title="Actions" Class="text-end pe-4">
-                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                        <a href="@($"users/details?userid={context.UserId}")" class="btn btn-sm btn-light border" title="Details">
+                <TemplateColumn Title="Actions" Align="Align.End" Class="pe-4">
+                    <div class="btn-group shadow-sm rounded-pill overflow-hidden border">
+                        <a href="@($"users/details?userid={context.UserId}")" class="btn btn-sm btn-white action-btn" title="Details">
                             <i class="bi bi-eye-fill text-primary"></i>
                         </a>
-                        <a href="@($"users/delete?userid={context.UserId}")" class="btn btn-sm btn-light border" title="Delete">
+                        <a href="@($"users/delete?userid={context.UserId}")" class="btn btn-sm btn-white action-btn border-start" title="Delete">
                             <i class="bi bi-trash-fill text-danger"></i>
                         </a>
                     </div>
@@ -116,6 +118,8 @@
     :root {
         --brown-primary: #5a3e2b;
         --cream-bg: #fdf6ee;
+        --warning-dark: #856404;
+        --info-dark: #0c5460;
     }
 
     body {
@@ -126,52 +130,98 @@
         color: var(--brown-primary);
     }
 
-    .bg-brown {
-        background-color: var(--brown-primary);
-    }
-
     .btn-warning {
         color: white;
+        background-color: var(--brown-primary);
+        border-color: var(--brown-primary);
+    }
+
+        .btn-warning:hover {
+            background-color: #473122;
+            border-color: #473122;
+            color: white;
+        }
+
+    .text-warning-dark {
+        color: var(--warning-dark);
+    }
+
+    .text-info-dark {
+        color: var(--info-dark);
+    }
+
+    .me-1\.5 {
+        margin-right: 0.375rem !important;
+    }
+
+    /* Stiluri Custom Grid & Card */
+    .custom-card {
+        border: 1px solid rgba(90, 62, 43, 0.08) !important;
     }
 
     .custom-grid {
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
     }
 
+    /* Corectare headere din QuickGrid */
     ::deep .table thead th {
-        background-color: #f8f9fa !important;
-        color: #888 !important;
-        font-size: 0.7rem !important;
+        background-color: #fcf9f5 !important;
+        color: #7a6e65 !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
         text-transform: uppercase !important;
-        letter-spacing: 1px !important;
-        padding: 12px 15px !important;
-        border-bottom: 2px solid #eee !important;
-        text-align: left !important; 
+        letter-spacing: 0.8px !important;
+        padding: 16px 20px !important;
+        border-bottom: 2px solid rgba(90, 62, 43, 0.1) !important;
     }
 
-        ::deep .table thead th:last-child {
-            text-align: right !important;
+    /* Stiluri Rânduri & Hover */
+    ::deep .table tbody tr {
+        transition: all 0.2s ease-in-out;
+    }
+
+        ::deep .table tbody tr:hover {
+            background-color: #fbf3e9 !important;
+            transform: scale(1.002);
         }
 
     ::deep .table tbody td {
-        padding: 12px 15px !important;
-        border-bottom: 1px solid #f1f1f1 !important;
-        vertical-align: middle !important;
-        text-align: left !important; 
+        padding: 14px 20px !important;
+        border-bottom: 1px solid rgba(90, 62, 43, 0.05) !important;
+        font-size: 0.9rem;
     }
 
     .col-profile {
-        width: 80px;
+        width: 90px;
     }
 
-    .badge {
-        padding: 0.5em 0.9em;
-        font-size: 0.75rem;
+    .avatar-wrapper img {
+        transition: transform 0.2s;
     }
+
+    ::deep .table tbody tr:hover .avatar-wrapper img {
+        transform: scale(1.1);
+    }
+
+    /* Butoane Acțiuni */
+    .btn-white {
+        background-color: #ffffff;
+        border: none;
+    }
+
+    .action-btn {
+        padding: 6px 12px;
+        transition: background-color 0.2s;
+    }
+
+        .action-btn:hover {
+            background-color: #f8f9fa;
+        }
 
     ::deep .quickgrid {
-        display: table; 
+        display: table;
         width: 100%;
     }
 </style>

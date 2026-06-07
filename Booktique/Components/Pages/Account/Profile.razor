@@ -111,34 +111,41 @@
                                 </div>
                             </div>
 
-                            @* Grid Statistici Rapide *@
-                            <div class="row g-3 mb-4 text-center">
-                                <div class="col-6 col-md-4">
-                                    <div class="p-3 border rounded bg-light shadow-sm">
+                            @* Grid Statistici Rapide actualizat la 4 coloane *@
+                            <div class="row g-2 mb-4 text-center">
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column justify-content-center h-100">
                                         <h4 class="fw-bold text-brown mb-0 fs-3">@booksCount</h4>
                                         <small class="text-muted">Books</small>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-4">
-                                    <div class="p-3 border rounded bg-light shadow-sm">
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column justify-content-center h-100">
                                         <h4 class="fw-bold text-brown mb-0 fs-3">@reviewsCount</h4>
                                         <small class="text-muted">Reviews</small>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column align-items-center justify-content-center" style="min-height: 86px;">
+                                @* Căsuța nouă pentru Puncte de Fidelitate *@
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column justify-content-center h-100">
+                                        <h4 class="fw-bold text-success mb-0 fs-3">🌟 @loyaltyPoints</h4>
+                                        <small class="text-muted">Loyalty Points</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column align-items-center justify-content-center h-100">
                                         @if (CurrentRank != null)
                                         {
-                                            <div class="d-flex align-items-center gap-2">
-                                                <span class="fs-4">@CurrentRank.Icon</span>
-                                                <h4 class="fw-bold mb-0 fs-5 @(booksCount >= 50 ? "text-warning shadow-text" : "text-brown")">
+                                            <div class="d-flex align-items-center gap-1">
+                                                <span class="fs-5">@CurrentRank.Icon</span>
+                                                <h4 class="fw-bold mb-0 style-rank-text @(booksCount >= 50 ? "text-warning shadow-text" : "text-brown")">
                                                     @CurrentRank?.Name
                                                 </h4>
                                             </div>
                                         }
                                         else
                                         {
-                                            <h4 class="fw-bold text-muted mb-0 fs-5">Novice</h4>
+                                            <h4 class="fw-bold text-muted mb-0 fs-6">Novice</h4>
                                         }
                                         <small class="text-muted">Current Rank</small>
                                     </div>
@@ -262,7 +269,7 @@
         background-position: center;
         background-attachment: fixed;
         background-repeat: no-repeat;
-        overflow: hidden; 
+        overflow: hidden;
     }
 
     .container {
@@ -288,7 +295,7 @@
 
     .avatar-wrapper {
         position: relative;
-        width: 135px; 
+        width: 135px;
         height: 135px;
         margin: 0 auto;
         border-radius: 50%;
@@ -378,13 +385,13 @@
 
     .book-shelf {
         align-items: flex-end;
-        height: 155px; /* Oferă spațiu pentru cărți puțin mai mari */
+        height: 155px;
         overflow-x: auto;
         scrollbar-width: thin;
     }
 
     .shelf-book {
-        width: 95px; /* Cărți puțin mai mari și mai clare */
+        width: 95px;
         height: 135px;
         flex-shrink: 0;
         transition: 0.3s;
@@ -474,6 +481,17 @@
     .letter-spacing-1 {
         letter-spacing: 1px;
     }
+
+    /* Stil adăugat pentru a preveni textul prea mare la rang pe ecrane mici */
+    .style-rank-text {
+        font-size: 0.85rem;
+    }
+
+    @@media (min-width: 576px) {
+        .style-rank-text {
+            font-size: 1rem;
+        }
+    }
 </style>
 
 @code {
@@ -482,6 +500,7 @@
     private List<Book> userBooks = new();
     private int booksCount = 0;
     private int reviewsCount = 0;
+    private int loyaltyPoints = 0; // Noua variabilă pentru puncte
 
     private string defaultAvatar = "https://cdn-icons-png.flaticon.com/512/1903/1903172.png";
 
@@ -498,7 +517,6 @@
         "https://cdn-icons-png.flaticon.com/512/2232/2232688.png"
     };
 
-    // Proprietate care returnează ultimul badge deblocat
     private BadgeModel? CurrentRank => Badges
         .Where(b => booksCount >= b.RequiredBooks)
         .OrderByDescending(b => b.RequiredBooks)
@@ -521,6 +539,9 @@
             NavigationManager.NavigateTo("/notfound");
             return;
         }
+
+        // Aici preluăm punctele de fidelitate.
+        loyaltyPoints = user.LoyaltyPoints;
 
         userBooks = await DbContext.Order
             .Where(o => o.UserId == user.UserId)
@@ -566,11 +587,11 @@
     }
 
     private List<BadgeModel> Badges = new()
-{
-    new BadgeModel { Name = "Newbie", Icon = "🌱", RequiredBooks = 1, Description = "Your first journey begins!" },
-    new BadgeModel { Name = "Reader", Icon = "📖", RequiredBooks = 5, Description = "5 books collected!" },
-    new BadgeModel { Name = "Bibliophile", Icon = "📚", RequiredBooks = 10, Description = "Double digits! 10 books." },
-    new BadgeModel { Name = "Book Wyrm", Icon = "🐉", RequiredBooks = 20, Description = "Hoarding 20+ treasures!" },
-    new BadgeModel { Name = "Legend", Icon = "👑", RequiredBooks = 50, Description = "A true Master of Stories." }
-};
+    {
+        new BadgeModel { Name = "Newbie", Icon = "🌱", RequiredBooks = 1, Description = "Your first journey begins!" },
+        new BadgeModel { Name = "Reader", Icon = "📖", RequiredBooks = 5, Description = "5 books collected!" },
+        new BadgeModel { Name = "Bibliophile", Icon = "📚", RequiredBooks = 10, Description = "Double digits! 10 books." },
+        new BadgeModel { Name = "Book Wyrm", Icon = "🐉", RequiredBooks = 20, Description = "Hoarding 20+ treasures!" },
+        new BadgeModel { Name = "Legend", Icon = "👑", RequiredBooks = 50, Description = "A true Master of Stories." }
+    };
 }

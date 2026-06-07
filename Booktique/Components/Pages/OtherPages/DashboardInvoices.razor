@@ -1,0 +1,282 @@
+﻿@page "/admin/invoices"
+@using ClosedXML.Excel
+@using System.IO
+@using Booktique.Models.MainModels
+@using Microsoft.EntityFrameworkCore
+@inject IJSRuntime JS
+@inject IDbContextFactory<BooktiqueContext> DbContextFactory
+@rendermode InteractiveServer
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-brown mb-1">Order Invoice Tracking</h3>
+            <p class="text-muted small mb-0">Automatically generated (Card Payment = Automatically Paid, Cash on Delivery = Unpaid (unless status is Delivered)).</p>
+        </div>
+        <button class="btn btn-success rounded-pill fw-bold px-4 py-2 shadow-sm" @onclick="ExportToExcel">
+            <i class="bi bi-file-earmark-excel-fill me-2"></i> Export to Excel
+        </button>
+    </div>
+
+    <!-- --- STATISTIC CARDS --- -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-3 me-3">
+                        <i class="bi bi-wallet2 fs-4"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Total Invoiced</small>
+                        <h4 class="fw-bold text-dark mb-0">@TotalFacturat.ToString("#,##0.00") lei</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 bg-success bg-opacity-10 text-success rounded-3 me-3">
+                        <i class="bi bi-check-circle fs-4"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Total Collected (Card)</small>
+                        <h4 class="fw-bold text-success mb-0">@TotalIncasat.ToString("#,##0.00") lei</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-3 me-3">
+                        <i class="bi bi-exclamation-circle fs-4"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Outstanding Balance</small>
+                        <h4 class="fw-bold text-danger mb-0">@TotalRestant.ToString("#,##0.00") lei</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- FILTERS AND TABLE --- -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-brown">Invoices / Orders List</span>
+            <div class="btn-group btn-group-sm rounded-pill p-1 bg-light">
+                <button class="btn rounded-pill px-3 @(selectedFilter == "All" ? "btn-warning text-white shadow-sm" : "text-muted")" @onclick='() => ChangeFilter("All")'>All</button>
+                <button class="btn rounded-pill px-3 @(selectedFilter == "Paid" ? "btn-success text-white shadow-sm" : "text-muted")" @onclick='() => ChangeFilter("Paid")'>Paid (Card)</button>
+                <button class="btn rounded-pill px-3 @(selectedFilter == "Unpaid" ? "btn-danger text-white shadow-sm" : "text-muted")" @onclick='() => ChangeFilter("Unpaid")'>Unpaid (COD)</button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted small uppercase">
+                    <tr>
+                        <th class="ps-4">Series / Invoice No.</th>
+                        <th>City / Phone</th>
+                        <th>Order Date</th>
+                        <th>Payment Method</th>
+                        <th class="text-end">Net Amount</th>
+                        <th class="text-end">VAT (21%)</th>
+                        <th class="text-end">Grand Total</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (FilteredInvoices.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-folder-x fs-2 d-block mb-2"></i>
+                                No invoices found.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var invoice in FilteredInvoices)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">@invoice.InvoiceNumber</td>
+                                <td>
+                                    <div class="fw-bold">@invoice.City</div>
+                                    <small class="text-muted">@invoice.PhoneNumber</small>
+                                </td>
+                                <td>@invoice.IssueDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="bi @(invoice.PaymentMethod.Contains("Card", StringComparison.OrdinalIgnoreCase) ? "bi-credit-card text-primary" : "bi-truck text-warning") me-1"></i>
+                                        @invoice.PaymentMethod
+                                    </span>
+                                </td>
+                                <td class="text-end">@invoice.NetAmount.ToString("#,##0.00") lei</td>
+                                <td class="text-end text-muted">@invoice.VatAmount.ToString("#,##0.00") lei</td>
+                                <td class="text-end fw-bold text-brown">@invoice.TotalAmount.ToString("#,##0.00") lei</td>
+                                <td class="text-center">
+                                    @if (invoice.Status == "Paid")
+                                    {
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 small">Paid</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 small">Unpaid</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string selectedFilter = "All";
+    private List<InvoiceViewWrapper> invoices = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInvoicesAsync();
+    }
+
+    private async Task LoadInvoicesAsync()
+    {
+        // 1. Fetch data from Database
+        using (var context = await DbContextFactory.CreateDbContextAsync())
+        {
+            var ordersFromDb = await context.Order
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            invoices = ordersFromDb.Select(o =>
+            {
+                // Evaluate invoice status based on business rules:
+                string facturaStatus = "Unpaid";
+
+                if (o.Status == OrderStatus.Delivered)
+                {
+                    // If order is delivered, it is considered paid (both for COD and Card)
+                    facturaStatus = "Paid";
+                }
+                else
+                {
+                    // If not delivered yet, it is marked as Paid ONLY if paid online via Card
+                    facturaStatus = o.PaymentMethod.Contains("Card", StringComparison.OrdinalIgnoreCase) ? "Paid" : "Unpaid";
+                }
+
+                return new InvoiceViewWrapper
+                    {
+                        InvoiceNumber = $"BQT-{o.OrderDate:yyyy}-{o.OrderId.ToString("D5")}",
+                        City = o.City,
+                        PhoneNumber = o.PhoneNumber,
+                        IssueDate = o.OrderDate,
+                        PaymentMethod = o.PaymentMethod,
+                        TotalAmount = o.TotalAmount,
+
+                        NetAmount = o.TotalAmount / 1.21m,
+                        VatAmount = o.TotalAmount - (o.TotalAmount / 1.21m),
+
+                        Status = facturaStatus
+                    };
+            }).ToList();
+        }
+
+        // 2. Demo Mockup Data updated with the English terms
+        if (invoices.Count == 0)
+        {
+            invoices = new List<InvoiceViewWrapper>()
+            {
+                new InvoiceViewWrapper { InvoiceNumber = "BQT-2026-00001", City = "Bucharest (Demo)", PhoneNumber = "0722111222", IssueDate = DateTime.Now.AddDays(-3), PaymentMethod = "Online Card Payment", TotalAmount = 119.00m, NetAmount = 98.35m, VatAmount = 20.65m, Status = "Paid" },
+                new InvoiceViewWrapper { InvoiceNumber = "BQT-2026-00002", City = "Cluj-Napoca (Demo)", PhoneNumber = "0733444555", IssueDate = DateTime.Now.AddDays(-2), PaymentMethod = "Cash on Delivery", TotalAmount = 59.50m, NetAmount = 49.17m, VatAmount = 10.33m, Status = "Unpaid" },
+                new InvoiceViewWrapper { InvoiceNumber = "BQT-2026-00003", City = "Brasov (Demo)", PhoneNumber = "0766123123", IssueDate = DateTime.Now.AddDays(-1), PaymentMethod = "Cash on Delivery (Delivered)", TotalAmount = 238.00m, NetAmount = 196.69m, VatAmount = 41.31m, Status = "Paid" }
+            };
+        }
+    }
+
+    private decimal TotalFacturat => invoices.Sum(i => i.TotalAmount);
+    private decimal TotalIncasat => invoices.Where(i => i.Status == "Paid").Sum(i => i.TotalAmount);
+    private decimal TotalRestant => invoices.Where(i => i.Status == "Unpaid").Sum(i => i.TotalAmount);
+
+    private List<InvoiceViewWrapper> FilteredInvoices => selectedFilter == "All"
+        ? invoices
+        : invoices.Where(i => i.Status == selectedFilter).ToList();
+
+    private void ChangeFilter(string filter)
+    {
+        selectedFilter = filter;
+    }
+
+    private async Task ExportToExcel()
+    {
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.Worksheets.Add("Order Invoices");
+
+            string[] headers = { "Invoice Number", "Destination City", "Phone Number", "Order Date", "Payment Method", "Net Amount", "VAT (21%)", "Grand Total", "Invoice Status" };
+            for (int i = 0; i < headers.Length; i++) worksheet.Cell(1, i + 1).Value = headers[i];
+
+            var headerRow = worksheet.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#F1E6D8");
+
+            int rowIdx = 2;
+            foreach (var inv in FilteredInvoices)
+            {
+                worksheet.Cell(rowIdx, 1).Value = inv.InvoiceNumber;
+                worksheet.Cell(rowIdx, 2).Value = inv.City;
+                worksheet.Cell(rowIdx, 3).Value = inv.PhoneNumber;
+                worksheet.Cell(rowIdx, 4).Value = inv.IssueDate.ToString("dd.MM.yyyy HH:mm");
+                worksheet.Cell(rowIdx, 5).Value = inv.PaymentMethod;
+                worksheet.Cell(rowIdx, 6).Value = inv.NetAmount;
+                worksheet.Cell(rowIdx, 7).Value = inv.VatAmount;
+                worksheet.Cell(rowIdx, 8).Value = inv.TotalAmount;
+                worksheet.Cell(rowIdx, 9).Value = inv.Status == "Paid" ? "Paid" : "Unpaid";
+
+                worksheet.Cell(rowIdx, 6).Style.NumberFormat.Format = "#,##0.00";
+                worksheet.Cell(rowIdx, 7).Style.NumberFormat.Format = "#,##0.00";
+                worksheet.Cell(rowIdx, 8).Style.NumberFormat.Format = "#,##0.00";
+                rowIdx++;
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                var base64String = Convert.ToBase64String(stream.ToArray());
+                var fileName = $"Booktique_Invoices_{DateTime.Now:yyyyMMdd}.xlsx";
+
+                var jsCode = $@"
+                    (function() {{
+                        const link = document.createElement('a');
+                        link.download = '{fileName}';
+                        link.href = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64String}';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }})();
+                ";
+
+                await JS.InvokeVoidAsync("eval", jsCode);
+            }
+        }
+    }
+
+    public class InvoiceViewWrapper
+    {
+        public string InvoiceNumber { get; set; }
+        public string City { get; set; }
+        public string PhoneNumber { get; set; }
+        public DateTime IssueDate { get; set; }
+        public string PaymentMethod { get; set; }
+        public decimal NetAmount { get; set; }
+        public decimal VatAmount { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string Status { get; set; }
+    }
+}
