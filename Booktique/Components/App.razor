@@ -27,6 +27,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="_content/Blazor.Bootstrap/blazor.bootstrap.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    @* pentru harta *@
     <script>
         function initMap() {
             var mapContainer = document.getElementById('map');
@@ -47,6 +49,8 @@
         }
         document.addEventListener("DOMContentLoaded", initMap);
     </script>
+
+    @* pentru stergere cache *@
     <script>
         window.clearBrowserCacheAndStorage = function () {
             // 1. Golește stocările text
@@ -66,6 +70,8 @@
             }
         };
     </script>
+
+    @* pentru export in excel *@
     <script>
         window.downloadFileFromBytes = (fileName, byteBase64) => {
             const link = document.createElement('a');
@@ -74,6 +80,34 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        };
+    </script>
+
+    <script>
+        window.desktopNotifications = {
+            requestPermission: async function () {
+                if (!("Notification" in window)) {
+                    console.log("Acest browser nu suportă notificări pe desktop.");
+                    return false;
+                }
+
+                if (Notification.permission === "granted") {
+                    return true;
+                }
+
+                if (Notification.permission !== "denied") {
+                    const permission = await Notification.requestPermission();
+                    return permission === "granted";
+                }
+
+                return false;
+            },
+
+            showNotification: function (title, options) {
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification(title, options);
+                }
+            }
         };
     </script>
 </body>
