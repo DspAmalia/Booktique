@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
+@using MiniExcelLibs
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -11,10 +12,35 @@
 
 <div class="main-wrapper py-4">
     <div class="container">
-        <div>
-            <h2>Add <strong>New Book</strong></h2>
-            <p class="text-muted small">Complete all fields below. Use "Update Preview" to check the cover image.</p>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h2>Add <strong>New Book</strong></h2>
+                <p class="text-muted small">Complete all fields below. Use "Update Preview" to check the cover image.</p>
+            </div>
+            
+            <div>
+                <label class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm" for="excel-upload-input" style="cursor: pointer;">
+                    @if (isImporting)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        <span>Importing...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-file-earmark-excel me-2"></i><span>Import from Excel</span>
+                    }
+                </label>
+                <InputFile Id="excel-upload-input" OnChange="HandleExcelImport" accept=".xlsx" style="display: none;" disabled="@isImporting" />
+            </div>
         </div>
+
+        @if (!string.IsNullOrEmpty(importStatusMessage))
+        {
+            <div class="alert @importStatusClass mt-3 border-0 shadow-sm animate-fade-in" style="border-radius: 12px;">
+                @importStatusMessage
+            </div>
+        }
+
         <hr />
         <div class="glass-card shadow-lg border-0 overflow-hidden bg-white">
             <EditForm Model="Book" OnValidSubmit="AddBook" FormName="createBook">
@@ -109,7 +135,6 @@
                                 </button>
                             </div>
 
-                            @* --- CÂMPUL NOU ADAUGAT PENTRU PDF PREVIEW --- *@
                             <div class="col-md-12 mt-3">
                                 <label class="form-label fw-bold small">PDF Preview Path / URL</label>
                                 <InputText @bind-Value="Book.BookPreviewPath" class="form-control rounded-pill px-3" placeholder="/previews/gatsby_preview.pdf sau un link extern" />
@@ -192,10 +217,10 @@
         border: none;
     }
 
-        .btn-warning:hover {
-            background-color: #d69400;
-            transform: translateY(-2px);
-        }
+    .btn-warning:hover {
+        background-color: #d69400;
+        transform: translateY(-2px);
+    }
 
     .preview-container {
         width: 100%;
@@ -210,11 +235,11 @@
         border: 2px dashed #dee2e6;
     }
 
-        .preview-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    .preview-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
     .placeholder-box {
         height: 100%;
@@ -227,17 +252,28 @@
         white-space: nowrap;
         text-overflow: ellipsis;
     }
+
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-3px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 
 @code {
     private Book Book { get; set; } = new();
+    private bool isImporting = false;
+    private string importStatusMessage = "";
+    private string importStatusClass = "";
 
     protected override void OnInitialized()
     {
         Book.BookYear = DateTime.Now.Year;
         Book.BookStock = 1;
         Book.BookRating = 0;
-
         Book.SellerId = null;
     }
 
@@ -254,5 +290,90 @@
         context.Book.Add(Book);
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/");
+    }
+
+    private async Task HandleExcelImport(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        isImporting = true;
+        importStatusMessage = "Reading Excel file and saving to database...";
+        importStatusClass = "alert-info";
+        StateHasChanged();
+
+        try
+        {
+            using var memoryStream = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            var importedBooks = memoryStream.Query<Book>().ToList();
+
+            if (importedBooks != null && importedBooks.Any())
+            {
+                await using var context = await DbFactory.CreateDbContextAsync();
+
+                // Filtrăm din start rândurile complet fantomă din Excel (unde nu există nici titlu, nici autor)
+                var validBooks = importedBooks
+                    .Where(b => !string.IsNullOrWhiteSpace(b.BookTitle) || !string.IsNullOrWhiteSpace(b.BookAuthor))
+                    .ToList();
+
+                if (!validBooks.Any())
+                {
+                    importStatusMessage = "No valid book data found in the Excel file.";
+                    importStatusClass = "alert-warning";
+                    return;
+                }
+
+                foreach (var b in validBooks)
+                {
+                    b.SellerId = null;
+                    b.Seller = null!;
+
+                    // 1. REPARARE TEXTE OBLIGATORII (Evită erorile NULL pe coloanele cu [Required])
+                    b.BookTitle = b.BookTitle?.Trim() ?? "Untitled Book";
+                    b.BookAuthor = b.BookAuthor?.Trim() ?? "Unknown Author";
+                    b.BookDescription = b.BookDescription?.Trim() ?? "No description available.";
+                    b.BookPublishingHouse = b.BookPublishingHouse?.Trim() ?? "Independent"; 
+                    b.BookCategory = b.BookCategory?.Trim() ?? "General";
+                    b.BookLanguage = b.BookLanguage?.Trim() ?? "Romanian";
+
+                    // 2. REPARARE NUMERE OBLIGATORII
+                    if (b.BookStock == null || b.BookStock < 0) b.BookStock = 1;
+                    if (b.BookRating == null) b.BookRating = 0;
+                    if (b.BookNumberPag == null || b.BookNumberPag <= 0) b.BookNumberPag = 100; // Valoare generică dacă e null
+                    if (b.BookPrice == null || b.BookPrice <= 0) b.BookPrice = 10; // Preț generic de siguranță
+                    if (b.BookYear == 0) b.BookYear = DateTime.Now.Year;
+
+                    if (b.DatePosted == default)
+                    {
+                        b.DatePosted = DateTime.Now;
+                    }
+                }
+
+                await context.Book.AddRangeAsync(validBooks);
+                int count = await context.SaveChangesAsync();
+
+                importStatusMessage = $"Success! Successfully imported {count} books from {file.Name}.";
+                importStatusClass = "alert-success";
+            }
+            else
+            {
+                importStatusMessage = "The Excel file seems to be empty or formatting is incorrect.";
+                importStatusClass = "alert-warning";
+            }
+        }
+        catch (Exception ex)
+        {
+            var innerError = ex.InnerException != null ? $" -> {ex.InnerException.Message}" : "";
+            importStatusMessage = $"Error during import: {ex.Message}{innerError}";
+            importStatusClass = "alert-danger";
+        }
+        finally
+        {
+            isImporting = false;
+            StateHasChanged();
+        }
     }
 }

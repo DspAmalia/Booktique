@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "78mFyaiUYTcn8nKw9PmkSltkRDGmkPKmrCAdJGmZ070WErFEgFhHr9LNbINYwS63M3bi1rApWcZY+mo9JTV5ng==",
+  "dgSpecHash": "kQVrwDtb88U/Kklyod0M8BIfHVr1I/Cvegx19sE5YJZ6YhZi43eAZ09OjH1gW8EDHlreKsDEO3fNcIl2tavF4w==",
   "success": true,
   "projectFilePath": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\Booktique.csproj",
   "expectedPackageFiles": [
@@ -139,6 +139,7 @@
     "C:\\Users\\Ami\\.nuget\\packages\\microsoft.visualstudio.web.codegeneration.templating\\8.0.23\\microsoft.visualstudio.web.codegeneration.templating.8.0.23.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\microsoft.visualstudio.web.codegeneration.utils\\8.0.23\\microsoft.visualstudio.web.codegeneration.utils.8.0.23.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\microsoft.visualstudio.web.codegenerators.mvc\\8.0.23\\microsoft.visualstudio.web.codegenerators.mvc.8.0.23.nupkg.sha512",
+    "C:\\Users\\Ami\\.nuget\\packages\\miniexcel\\1.45.0\\miniexcel.1.45.0.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
     "C:\\Users\\Ami\\.nuget\\packages\\nuget.common\\6.11.0\\nuget.common.6.11.0.nupkg.sha512",

@@ -271,10 +271,6 @@
         color: var(--brown-muted);
     }
 
-    .text-terracotta {
-        color: var(--terracotta);
-    }
-
     .text-accent-gold {
         accent-color: var(--accent);
     }
@@ -283,7 +279,6 @@
         font-weight: 800;
     }
 
-    /* --- CLASA MODIFICATĂ PENTRU ADVENTURE AURIU METALIC --- */
     .text-gold-gradient {
         background: linear-gradient(135deg, #cc9933 0%, #f3c675 50%, #996600 100%);
         -webkit-background-clip: text;
@@ -293,17 +288,17 @@
         font-weight: 800;
     }
 
-    .text-gold-gradient::after {
-        content: '';
-        position: absolute;
-        bottom: 5px;
-        left: 0;
-        width: 100%;
-        height: 5px;
-        background: linear-gradient(90deg, #cc9933, transparent);
-        z-index: -1;
-        border-radius: 4px;
-    }
+        .text-gold-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #cc9933, transparent);
+            z-index: -1;
+            border-radius: 4px;
+        }
 
     .search-container-modern {
         background: white;
@@ -316,11 +311,11 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .search-container-modern:focus-within {
-        transform: scale(1.02);
-        box-shadow: 0 15px 30px rgba(90, 62, 43, 0.1) !important;
-        border-color: var(--accent);
-    }
+        .search-container-modern:focus-within {
+            transform: scale(1.02);
+            box-shadow: 0 15px 30px rgba(90, 62, 43, 0.1) !important;
+            border-color: var(--accent);
+        }
 
     .search-input-modern {
         border: none;
@@ -340,11 +335,11 @@
         transition: all 0.3s;
     }
 
-    .btn-search-go:hover {
-        background: var(--accent);
-        color: white;
-        transform: translateY(-2px);
-    }
+        .btn-search-go:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
 
     .hero-image-container {
         padding: 30px;
@@ -391,12 +386,23 @@
         justify-content: center;
     }
 
-    .very-small { font-size: 0.75rem; color: #888; }
+    .very-small {
+        font-size: 0.75rem;
+        color: #888;
+    }
 
     @@keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-15px); }
-        100% { transform: translateY(0px); }
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-15px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
     }
 
     .top-sales-wrapper {
@@ -421,30 +427,31 @@
 
     .top-books-scroll-container {
         width: 100%;
-        overflow-x: auto; 
+        overflow-x: auto;
         padding-bottom: 20px;
-        scrollbar-width: thin; 
+        scrollbar-width: thin;
         scrollbar-color: var(--accent) transparent;
     }
 
-    .top-books-scroll-container::-webkit-scrollbar {
-        height: 6px;
-    }
-    .top-books-scroll-container::-webkit-scrollbar-thumb {
-        background: var(--accent);
-        border-radius: 10px;
-    }
+        .top-books-scroll-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .top-books-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
 
     .top-books-scroll {
         display: flex;
         gap: 5rem;
         padding: 30px 40px 40px 100px;
-        min-width: max-content; 
+        min-width: max-content;
     }
 
     .top-book-item {
         position: relative;
-        flex: 0 0 auto; 
+        flex: 0 0 auto;
     }
 
     .rank-number {
@@ -462,7 +469,7 @@
     .top-book-card {
         position: relative;
         width: 190px;
-        height: 280px; 
+        height: 280px;
         border-radius: 15px;
         overflow: hidden;
         cursor: pointer;
@@ -471,9 +478,9 @@
         background: #fff;
     }
 
-    .top-book-card:hover {
-        transform: translateY(-15px) rotate(2deg);
-    }
+        .top-book-card:hover {
+            transform: translateY(-15px) rotate(2deg);
+        }
 
     .top-book-img-wrapper {
         width: 100%;
@@ -540,9 +547,11 @@
         transition: all 0.3s;
     }
 
+    /* --- SECȚIUNEA REVIZUITĂ PENTRU ALINIERE ȘI RESPONSIVENESS IN PAGINĂ --- */
     .books-grid {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        /* Folosim auto-fill cu minmax ca să adaptăm numărul de coloane la lățimea ecranului și să NU mai iasă din pagină */
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 1.5rem;
         padding-bottom: 50px;
     }
@@ -550,33 +559,41 @@
     .book-card {
         background: #fff;
         border-radius: 12px;
-        overflow: hidden; 
+        overflow: hidden;
         transition: all 0.4s ease;
         height: 100%;
         position: relative;
         border: 1px solid transparent;
+        display: flex;
+        flex-direction: column;
     }
 
     .book-card-wrapper {
         transition: transform 0.3s ease;
     }
 
-    .book-card-wrapper:hover {
-        transform: translateY(-10px);
-    }
+        .book-card-wrapper:hover {
+            transform: translateY(-10px);
+        }
 
     .book-img-container {
         position: relative;
-        height: 300px;
+        width: 100%;
+        /* Stabilim un raport de aspect fix 2:3 pentru a asigura dimensiuni perfect identice la imagini */
+        aspect-ratio: 2 / 3;
         background: #fff;
     }
 
     .book-img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
+        width: 100%;
+        height: 100%;
+        /* Ocupă tot containerul uniform, eliminând diferențele de înălțime dintre coperți */
+        object-fit: cover;
         display: block;
-        margin: auto;
+    }
+
+    .book-info {
+        flex-grow: 1;
     }
 
     .wishlist-btn {
@@ -610,15 +627,15 @@
         font-weight: 800;
     }
 
-    @@media (max-width: 1200px) {
-        .books-grid { grid-template-columns: repeat(4, 1fr); }
+    .btn-outline-brown {
+        border-color: #5a3e2b;
+        color: #5a3e2b;
     }
-    @@media (max-width: 992px) {
-        .books-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @@media (max-width: 768px) {
-        .books-grid { grid-template-columns: repeat(2, 1fr); }
-    }
+
+        .btn-outline-brown:hover {
+            background-color: #5a3e2b;
+            color: white;
+        }
 </style>
 
 @code {
@@ -650,8 +667,8 @@
             var query = books.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(searchText))
-                query = query.Where(b => b.BookTitle.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                                         b.BookAuthor.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(b => (b.BookTitle != null && b.BookTitle.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
+                                         (b.BookAuthor != null && b.BookAuthor.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
 
             if (!string.IsNullOrEmpty(selectedCategory))
                 query = query.Where(b => b.BookCategory == selectedCategory);
@@ -679,14 +696,14 @@
         var publicBooks = allBooks.Where(b => b.SellerId == null || b.SellerId == 0).ToList();
         books = Shuffle(publicBooks);
 
-        categories = publicBooks.Select(b => b.BookCategory).Distinct().OrderBy(c => c).ToList();
+        categories = publicBooks.Where(b => b.BookCategory != null).Select(b => b.BookCategory!).Distinct().OrderBy(c => c).ToList();
         years = publicBooks.Select(b => b.BookYear.ToString()).Distinct().OrderByDescending(y => y).ToList();
 
         var topIds = await context.OrderItem
         .GroupBy(oi => oi.BookId)
         .Select(group => new { BookId = group.Key, TotalSold = group.Sum(oi => oi.Quantity) })
         .OrderByDescending(x => x.TotalSold)
-        .Take(5) 
+        .Take(5)
         .Select(x => x.BookId)
         .ToListAsync();
 

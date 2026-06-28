@@ -17,6 +17,7 @@
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.8",
           "Microsoft.EntityFrameworkCore.Tools": "9.0.8",
           "Microsoft.VisualStudio.Web.CodeGeneration.Design": "8.0.23",
+          "MiniExcel": "1.45.0",
           "Radzen.Blazor": "8.3.4",
           "Stripe.net": "50.0.0"
         },
@@ -1849,6 +1850,14 @@
           }
         }
       },
+      "MiniExcel/1.45.0": {
+        "runtime": {
+          "lib/net8.0/MiniExcel.dll": {
+            "assemblyVersion": "1.45.0.0",
+            "fileVersion": "1.45.0.0"
+          }
+        }
+      },
       "Mono.TextTemplating/3.0.0": {
         "dependencies": {
           "System.CodeDom": "6.0.0"
@@ -3217,6 +3226,13 @@
       "sha512": "sha512-gbLf1ZYurykj5FjGkVYasKRv/R6gwHD2bE7PGeUXdD1mr5mWW2uiPv5P86DWTTlGp6TCNcGiVHOOlusgWiEPiw==",
       "path": "microsoft.visualstudio.web.codegenerators.mvc/8.0.23",
       "hashPath": "microsoft.visualstudio.web.codegenerators.mvc.8.0.23.nupkg.sha512"
+    },
+    "MiniExcel/1.45.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VsBtvXyhfPcbtNliuD9IMNqfBW01kRQl2/tA7JRIGjj82rcKNrz9Gfpn1FW8euXw91gkINWZuQv+n6XUURB3XA==",
+      "path": "miniexcel/1.45.0",
+      "hashPath": "miniexcel.1.45.0.nupkg.sha512"
     },
     "Mono.TextTemplating/3.0.0": {
       "type": "package",
