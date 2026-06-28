@@ -79,17 +79,22 @@
                                 <Authorized>
                                     <button class="btn btn-brown flex-grow-1 rounded-pill fw-bold py-2"
                                             @onclick="HandleAddToCart"
-                                            disabled="@(book.BookStock == 0)">
+                                            disabled="@(book.BookStock == 0 || isAdded)">
 
                                         @if (book.BookStock == 0)
                                         {
                                             <i class="bi bi-exclamation-circle me-2"></i>
                                             <span>Sold Out</span>
                                         }
+                                        else if (isAdded)
+                                        {
+                                            <i class="bi bi-cart-check-fill text-warning me-2"></i>
+                                            <span>In Cart</span>
+                                        }
                                         else
                                         {
-                                            <i class="bi @(isAdded ? "bi-cart-check-fill text-warning" : "bi-cart-plus") me-2"></i>
-                                            @(isAdded ? "In Cart" : "Add to Cart")
+                                            <i class="bi bi-cart-plus me-2"></i>
+                                            <span>Add to Cart</span>
                                         }
                                     </button>
                                     <button class="btn btn-favorite-circle" @onclick="ToggleFavorite">
@@ -465,6 +470,9 @@
             pageTitle = book.BookTitle;
             reviews = book.Reviews.OrderByDescending(r => r.CreatedAt).ToList();
 
+            // Verificăm dacă produsul este deja în coș în acest moment
+            isAdded = cartService.Items.Any(item => item.BookId == BookId);
+
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var userName = authState.User.Identity?.Name;
             if (!string.IsNullOrEmpty(userName))
@@ -484,11 +492,21 @@
 
             authorBooks = await context.Book
                 .Where(b => b.BookAuthor == book.BookAuthor && b.BookId != book.BookId)
-                .OrderByDescending(b => b.BookYear) 
+                .OrderByDescending(b => b.BookYear)
                 .Take(4)
                 .ToListAsync();
         }
         cartService.OnChange += StateHasChanged;
+    }
+
+    private void HandleAddToCart()
+    {
+        // Verificare de siguranță: dacă este deja adăugat, nu mai permitem rularea logicii
+        if (book != null && !isAdded)
+        {
+            cartService.AddToCart(book);
+            isAdded = true;
+        }
     }
 
     private async Task HandleValidSubmit()
@@ -566,15 +584,6 @@
             isFavorite = false;
         }
         await context.SaveChangesAsync();
-    }
-
-    private void HandleAddToCart()
-    {
-        if (book != null)
-        {
-            cartService.AddToCart(book);
-            isAdded = true;
-        }
     }
 
     public void Dispose() => cartService.OnChange -= StateHasChanged;

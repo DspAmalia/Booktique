@@ -58,7 +58,14 @@
         </tfoot>
     </table>
 
-    <div class="row mt-5 pt-5">
+    <div class="row">
+        <div class="col-12 text-end">
+            <p class="mt-4 small text-muted">Total Unique Items in Report: <strong>@salesDetails?.Count</strong></p>
+            <p class="small text-muted">Total Products Sold (Qty): <strong>@salesDetails?.Sum(item => item.Qty)</strong></p>
+        </div>
+    </div>
+
+    <div class="row mt-5 pt-4">
         <div class="col-6">
             <p class="mb-1 small text-muted">Authorized Financial Manager</p>
             <div class="border-bottom border-dark my-4" style="height:40px; width: 250px;"></div>

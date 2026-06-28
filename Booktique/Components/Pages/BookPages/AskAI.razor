@@ -264,6 +264,8 @@
     private string? lastInteractionDate;
     private bool hasLoadedHistory = false;
 
+    private bool shouldScroll = false;
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -284,8 +286,12 @@
         if (firstRender && !hasLoadedHistory)
         {
             hasLoadedHistory = true;
+            await ScrollToBottom();
+        }
 
-            await InvokeAsync(StateHasChanged);
+        if (shouldScroll)
+        {
+            shouldScroll = false;
             await ScrollToBottom();
         }
     }
@@ -295,28 +301,32 @@
         if (string.IsNullOrWhiteSpace(userQuestion))
             return;
 
-        messages.Add(("user", userQuestion));
+        var questionToSend = userQuestion;
+
+        messages.Add(("user", questionToSend));
+        userQuestion = string.Empty;
+
         isTyping = true;
         typingDots = "";
         typingToken = new CancellationTokenSource();
+        shouldScroll = true;
 
         _ = AnimateTypingDots(typingToken.Token);
         await InvokeAsync(StateHasChanged);
+
         await Task.Delay(1500);
 
-        var response = await AIService.GetRecommendation(userQuestion, currentUserId);
+        var response = await AIService.GetRecommendation(questionToSend, currentUserId);
 
         typingToken.Cancel();
         isTyping = false;
         typingDots = "";
 
         messages.Add(("ai", response));
-        userQuestion = string.Empty;
-
         lastInteractionDate = DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
+        shouldScroll = true;
         await InvokeAsync(StateHasChanged);
-        await ScrollToBottom();
     }
 
     private async Task AnimateTypingDots(CancellationToken token)
@@ -335,7 +345,14 @@
 
     private async Task ScrollToBottom()
     {
-        await JS.InvokeVoidAsync("scrollToBottom", chatBoxRef);
+        try
+        {
+            await JS.InvokeVoidAsync("scrollToBottom", chatBoxRef);
+        }
+        catch
+        {
+            // Prevenim erori în cazul în care JS-ul este apelat într-un moment nepotrivit al ciclului de viață Blazor
+        }
     }
 
     private async Task HandleKeyUp(KeyboardEventArgs e)

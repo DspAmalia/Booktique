@@ -41,13 +41,17 @@ namespace Booktique.Models.Services
                     ImagePath = book.BookCoverPath,
                     Price = (decimal)book.BookPrice,
                     Quantity = 1,
+                    BookStock = (int)book.BookStock,
                     SellerId = book.SellerId,
                     SellerName = book.Seller?.UserName
                 });
             }
             else
             {
-                item.Quantity++;
+                if (item.Quantity < item.BookStock)
+                {
+                    item.Quantity++;
+                }
             }
             await SaveCartAsync();
             NotifyDataChanged();
@@ -67,7 +71,7 @@ namespace Booktique.Models.Services
                     Items.Remove(item);
                 }
 
-                await SaveCartAsync(); // Salvează modificarea în localStorage
+                await SaveCartAsync();
                 NotifyDataChanged();
             }
         }
@@ -77,10 +81,12 @@ namespace Booktique.Models.Services
             var item = Items.FirstOrDefault(i => i.BookId == bookId);
             if (item != null)
             {
-                item.Quantity++;
-
-                await SaveCartAsync(); // Salvează modificarea în localStorage
-                NotifyDataChanged();
+                if (item.Quantity < item.BookStock)
+                {
+                    item.Quantity++;
+                    await SaveCartAsync();
+                    NotifyDataChanged();
+                }
             }
         }
 
@@ -118,6 +124,9 @@ namespace Booktique.Models.Services
         public decimal Price { get; set; }
         public int Quantity { get; set; } = 1;
         public string ImagePath { get; set; } = "";
+
+        public int BookStock { get; set; }
+
         public int? SellerId { get; set; }
         public string? SellerName { get; set; }
     }

@@ -11,7 +11,7 @@
 <div class="container mt-5 mb-5">
     <div class="row">
         @* Coloana Stângă: Detalii Livrare *@
-        <div class="col-lg-7">
+        <div class="col-lg-7 mb-4 mb-lg-0">
             <div class="card shadow-sm border-0 p-4 rounded-4 bg-white">
                 <h3 class="text-brown fw-bold mb-4"><i class="bi bi-truck me-2"></i>Shipping Details</h3>
 
@@ -62,10 +62,10 @@
 
         @* Coloana Dreaptă: Sumar Comandă *@
         <div class="col-lg-5">
-            <div class="card shadow-sm border-0 p-4 rounded-4 bg-light sticky-top" style="top: 20px;">
+            <div class="card shadow-sm border-0 p-4 rounded-4 bg-light sticky-top" style="top: 20px; height: auto;">
                 <h4 class="fw-bold mb-4">Order Summary</h4>
 
-                <div class="cart-items-preview mb-4" style="max-height: 300px; overflow-y: auto;">
+                <div class="cart-items-preview mb-4">
                     @foreach (var item in cartService.Items)
                     {
                         <div class="d-flex align-items-center mb-3">
@@ -77,24 +77,16 @@
                             <span class="fw-bold small">@(item.Price * item.Quantity) lei</span>
                         </div>
                     }
-                    
-                    @* Notificare Mystery Book *@
+
                     @if (!isEligibleForMysteryBook)
-
                     {
-
                         decimal remaining = 200 - cartService.Items.Sum(i => i.Price * i.Quantity);
-
                         <div class="alert alert-info border-0 rounded-4 shadow-sm mb-4">
-
                             <i class="bi bi-gift-fill me-2"></i>
-
                             Add <strong>@remaining lei</strong> more to your cart to unlock a <strong>FREE Mystery Book!</strong>
-
                         </div>
-
                     }
-                    
+
                     @if (selectedMysteryBook != null)
                     {
                         <div class="d-flex align-items-center mb-3 p-2 rounded-3 border border-success bg-white position-relative shadow-sm animate__animated animate__fadeInUp">
@@ -108,88 +100,99 @@
                             </button>
                         </div>
                     }
+                </div>
 
                 <hr />
-                    <div class="loyalty-box p-3 rounded-4 mb-3 border border-warning">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-0 fw-bold text-brown"><i class="bi bi-star-fill text-warning me-2"></i>Loyalty Points</h6>
-                                <small class="text-secondary">Available: <strong>@userPoints</strong> pts</small>
-                            </div>
-                            @if (userPoints >= 1)
-                            {
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input custom-switch" type="checkbox" @bind="usePoints" id="pointsSwitch">
-                                    <label class="form-check-label small fw-bold text-brown" for="pointsSwitch">Use Points</label>
-                                </div>
-                            }
+                <div class="loyalty-box p-3 rounded-4 mb-3 border border-warning">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0 fw-bold text-brown"><i class="bi bi-star-fill text-warning me-2"></i>Loyalty Points</h6>
+                            <small class="text-secondary">Available: <strong>@userPoints</strong> pts</small>
                         </div>
-                        @if (usePoints)
+                        @if (userPoints >= 1)
                         {
-                            <div class="mt-2 pt-2 border-top border-dashed d-flex justify-content-between text-success small fw-bold">
-                                <span>Discount (10 pts = 1 leu):</span>
-                                <span>-@calculatedDiscount lei</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input custom-switch" type="checkbox" @bind="usePoints" id="pointsSwitch">
+                                <label class="form-check-label small fw-bold text-brown" for="pointsSwitch">Use Points</label>
                             </div>
                         }
                     </div>
+                    @if (usePoints)
+                    {
+                        <div class="mt-2 pt-2 border-top border-dashed d-flex justify-content-between text-success small fw-bold">
+                            <span>Discount (10 pts = 1 leu):</span>
+                            <span>-@calculatedDiscount lei</span>
+                        </div>
+                    }
+                </div>
 
-                    <hr />
-                    <div class="d-flex justify-content-between fs-5 fw-bold text-brown mb-4">
-                        <span>Total Payment:</span>
-                        <span class="text-orange">@FinalTotal lei</span>
-                    </div>
+                <hr />
+                <div class="d-flex justify-content-between fs-5 fw-bold text-brown mb-4">
+                    <span>Total Payment:</span>
+                    <span class="text-orange">@FinalTotal lei</span>
+                </div>
 
-                    @* <div class="text-danger small">
-                        DEBUG:
-                        Nume: @(!string.IsNullOrWhiteSpace(fullName)) |
-                        Tel: @(phoneNumber.Length >= 10) |
-                        Plata: @(paymentMethod != null)
-                    </div> *@
-
+                @* Butonul de Finalizare *@
                 <button class="btn btn-warning w-100 fw-bold py-3 shadow rounded-pill btn-finalize"
                         @onclick="FinalizeOrder"
-                        disabled="@(!IsFormValid)">
-                    <i class="bi bi-lock-fill me-1"></i> @(paymentMethod == "Card" ? "PAY AND FINISH" : "PLACE ORDER")
+                        disabled="@(!IsFormValid || isProcessing)">
+                    @if (isProcessing)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>PROCESSING...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-lock-fill me-1"></i> @(paymentMethod == "Card" ? "PAY AND FINISH" : "PLACE ORDER")
+                    }
                 </button>
 
-                @if (!IsFormValid)
+                @* Alerte Status Formular *@
+                @if (!IsFormValid && !isProcessing)
                 {
                     <div class="alert alert-secondary mt-3 py-2 small border-0 text-center">
                         Please fill in all details to finalize.
+                    </div>
+                }
+
+                @* Afișare Erori Direct pe Ecran *@
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger mt-3 py-2 small text-center shadow-sm">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> @errorMessage
                     </div>
                 }
             </div>
         </div>
     </div>
 
-        @* MODAL PENTRU CADOU *@
-        @if (showGiftModal)
-        {
-            <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6);" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 rounded-4 shadow-lg">
-                        <div class="modal-header border-0 bg-success text-white rounded-top-4">
-                            <h5 class="modal-title fw-bold"><i class="bi bi-gift me-2"></i>You've unlocked a Mystery Gift!</h5>
-                        </div>
-                        <div class="modal-body text-center p-5">
-                            <p class="mb-4">Since your order is over <strong>200 lei</strong>, please pick one of these mystery boxes:</p>
+    @* MODAL PENTRU CADOU *@
+    @if (showGiftModal)
+    {
+        <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6);" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 rounded-4 shadow-lg">
+                    <div class="modal-header border-0 bg-success text-white rounded-top-4">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-gift me-2"></i>You've unlocked a Mystery Gift!</h5>
+                    </div>
+                    <div class="modal-body text-center p-5">
+                        <p class="mb-4">Since your order is over <strong>200 lei</strong>, please pick one of these mystery boxes:</p>
 
-                            <div class="d-flex justify-content-around py-3">
-                                @for (int i = 0; i < 3; i++)
-                                {
-                                    int index = i;
-                                    <div class="gift-box-wrapper text-center" @onclick="() => RevealGift(index)">
-                                        <div class="gift-box-icon pulse-animation">🎁</div>
-                                        <span class="small text-muted">Box #@(index + 1)</span>
-                                    </div>
-                                }
-                            </div>
+                        <div class="d-flex justify-content-around py-3">
+                            @for (int i = 0; i < 3; i++)
+                            {
+                                int index = i;
+                                <div class="gift-box-wrapper text-center" @onclick="() => RevealGift(index)">
+                                    <div class="gift-box-icon pulse-animation">🎁</div>
+                                    <span class="small text-muted">Box #@(index + 1)</span>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
             </div>
-        }
-</div>
+        </div>
+    }
 </div>
 
 <style>
@@ -245,63 +248,64 @@
     }
 
     .gift-box-wrapper {
-    cursor: pointer;
-    transition: transform 0.3s ease;
-}
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
 
-.gift-box-wrapper:hover {
-    transform: scale(1.15);
-}
+        .gift-box-wrapper:hover {
+            transform: scale(1.15);
+        }
 
-.gift-box-icon {
-    font-size: 3rem;
-    filter: drop-shadow(0 5px 10px rgba(40, 167, 69, 0.2));
-}
+    .gift-box-icon {
+        font-size: 3rem;
+        filter: drop-shadow(0 5px 10px rgba(40, 167, 69, 0.2));
+    }
 
-.pulse-animation {
-    animation: boxPulse 1.5s infinite ease-in-out;
-}
+    .pulse-animation {
+        animation: boxPulse 1.5s infinite ease-in-out;
+    }
 
-@@keyframes boxPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
+    @@keyframes boxPulse {
+        0% {
+            transform: scale(1);
+        }
 
-.revealed-gift-anim {
-    animation: fadeIn zoomIn 0.5s ease-out;
-}
+        50% {
+            transform: scale(1.05);
+        }
 
-.revealed-img {
-    width: 60px;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 5px;
-    border: 2px solid #28a745;
-}
+        100% {
+            transform: scale(1);
+        }
+    }
 
-.mystery-selection-container {
-    border: 2px dashed #28a745;
-    background: #f9fffb;
-}
-.animate__animated {
-    animation-duration: 0.5s;
-    animation-fill-mode: both;
-}
+    .animate__animated {
+        animation-duration: 0.5s;
+        animation-fill-mode: both;
+    }
 
-@@keyframes fadeInUp {
-    from { opacity: 0; transform: translate3d(0, 40px, 0); }
-    to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 40px, 0);
+        }
 
-.animate__fadeInUp { animation-name: fadeInUp; }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
 
-@@keyframes zoomIn {
-    from { opacity: 0; transform: scale(0.5); }
-    to { opacity: 1; transform: scale(1); }
-}
+    .animate__fadeInUp {
+        animation-name: fadeInUp;
+    }
+
+    .cart-items-preview {
+        height: auto;
+        max-height: none;
+        overflow-y: visible;
+    }
 </style>
-
 
 @code {
     // --- Date Formular ---
@@ -311,6 +315,10 @@
     private string shippingAddress = "";
     private string? paymentMethod = null;
 
+    // --- State-uri pentru Debug și UX ---
+    private string errorMessage = "";
+    private bool isProcessing = false;
+
     // --- Logica Mystery Book ---
     private bool isEligibleForMysteryBook = false;
     private Book? selectedMysteryBook = null;
@@ -318,16 +326,13 @@
     private bool showGiftModal = false;
 
     // --- LOGICA PUNCTE DE LOIALITATE ---
-    private int userPoints = 0; 
-    private bool usePoints = false; 
+    private int userPoints = 0;
+    private bool usePoints = false;
 
-    // Calculăm reducerea: 10 puncte = 1 Leu
     private decimal calculatedDiscount => usePoints ? (userPoints / 10m) : 0;
-
-    // Totalul final care scade reducerea doar dacă usePoints este true
     private decimal FinalTotal => Math.Max(0, cartService.Items.Sum(i => i.Price * i.Quantity) - calculatedDiscount);
 
-    // Validare formular (include condiția ca dacă e eligibil pt cadou, să-l fi ales deja)
+    // Am relaxat validarea stocului de cadouri ca să nu blocheze checkout-ul dacă baza de date dă rateu
     private bool IsFormValid =>
         !string.IsNullOrWhiteSpace(fullName) &&
         !string.IsNullOrWhiteSpace(phoneNumber) &&
@@ -335,29 +340,37 @@
         !string.IsNullOrWhiteSpace(city) &&
         !string.IsNullOrWhiteSpace(shippingAddress) &&
         !string.IsNullOrEmpty(paymentMethod) &&
-        (!isEligibleForMysteryBook || selectedMysteryBook != null);
+        (!isEligibleForMysteryBook || potentialGifts.Count == 0 || selectedMysteryBook != null);
 
     protected override async Task OnInitializedAsync()
     {
+        errorMessage = "";
         await LoadUserPoints();
         await CheckMysteryEligibility();
     }
 
     private async Task LoadUserPoints()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                            ?? user.FindFirst("UserId")?.Value;
-
-        if (int.TryParse(userIdString, out int userIdInt))
+        try
         {
-            using var ctx = await DbFactory.CreateDbContextAsync();
-            var dbUser = await ctx.User.FindAsync(userIdInt);
-            if (dbUser != null)
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                                ?? user.FindFirst("UserId")?.Value;
+
+            if (int.TryParse(userIdString, out int userIdInt))
             {
-                userPoints = dbUser.LoyaltyPoints;
+                using var ctx = await DbFactory.CreateDbContextAsync();
+                var dbUser = await ctx.User.FindAsync(userIdInt);
+                if (dbUser != null)
+                {
+                    userPoints = dbUser.LoyaltyPoints;
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading points: {ex.Message}");
         }
     }
 
@@ -370,7 +383,10 @@
             if (selectedMysteryBook == null)
             {
                 await PrepareGifts();
-                showGiftModal = true;
+                if (potentialGifts.Any())
+                {
+                    showGiftModal = true;
+                }
             }
         }
         else
@@ -382,8 +398,16 @@
 
     private async Task PrepareGifts()
     {
-        using var ctx = await DbFactory.CreateDbContextAsync();
-        potentialGifts = await ctx.Book.Where(b => b.BookStock > 0).OrderBy(r => Guid.NewGuid()).Take(3).ToListAsync();
+        try
+        {
+            using var ctx = await DbFactory.CreateDbContextAsync();
+            potentialGifts = await ctx.Book.Where(b => b.BookStock > 0).OrderBy(r => Guid.NewGuid()).Take(3).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading gifts: {ex.Message}");
+            potentialGifts = new List<Book>(); // Fallback prevent crash
+        }
     }
 
     private void RevealGift(int index)
@@ -404,12 +428,22 @@
 
     private async Task FinalizeOrder()
     {
-        if (!IsFormValid) return;
+        if (!IsFormValid || isProcessing) return;
+
+        isProcessing = true;
+        errorMessage = "";
+        StateHasChanged();
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var userIdString = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var userIdString = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                            ?? authState.User.FindFirst("UserId")?.Value;
 
-        if (!int.TryParse(userIdString, out int userIdInt)) return;
+        if (!int.TryParse(userIdString, out int userIdInt))
+        {
+            errorMessage = "Authentication Error: User ID not found. Try re-logging.";
+            isProcessing = false;
+            return;
+        }
 
         try
         {
@@ -421,7 +455,7 @@
                 var groupedItems = cartService.Items.GroupBy(i => i.SellerId).ToList();
                 var createdOrders = new List<Order>();
 
-                // 1. Pregătim și adăugăm comenzile
+                // 1. Creează comenzile și actualizează stocurile
                 foreach (var group in groupedItems)
                 {
                     var order = new Order
@@ -439,10 +473,24 @@
 
                     foreach (var item in group)
                     {
+                        // === ACTUALIZARE STOC PRODUS STANDARD ===
+                        var bookInDb = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == item.BookId);
+                        if (bookInDb != null)
+                        {
+                            if (bookInDb.BookStock < item.Quantity)
+                            {
+                                // Oprim tranzacția dacă cineva a cumpărat între timp și stocul e insuficient
+                                throw new Exception($"Stoc insuficient pentru cartea: '{bookInDb.BookTitle}'. Stoc rămas: {bookInDb.BookStock}.");
+                            }
+
+                            // Scădem cantitatea comandată din stoc
+                            bookInDb.BookStock -= item.Quantity;
+                        }
+
                         order.OrderItems.Add(new OrderItem { BookId = item.BookId, Quantity = item.Quantity, UnitPrice = item.Price });
                     }
 
-                    // Logica Mystery Book
+                    // Adăugare logică Mystery Gift (stocul pentru cadou se scade și el)
                     if ((group.Key == null || group.Key == 0) && isEligibleForMysteryBook && selectedMysteryBook != null)
                     {
                         var giftInDb = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == selectedMysteryBook.BookId);
@@ -457,29 +505,28 @@
                     createdOrders.Add(order);
                 }
 
-                // 2. Actualizare puncte
+                // 2. Actualizare Puncte Loialitate
                 var dbUser = await ctx.User.FindAsync(userIdInt);
                 if (dbUser != null)
                 {
                     if (usePoints)
                     {
                         int pointsUsed = (int)(calculatedDiscount * 10);
-                        dbUser.LoyaltyPoints -= pointsUsed;
+                        dbUser.LoyaltyPoints = Math.Max(0, dbUser.LoyaltyPoints - pointsUsed);
                     }
                     dbUser.LoyaltyPoints += (int)(FinalTotal / 10);
                 }
 
-                // SALVĂM 1: Trimitem comenzile spre DB (generăm OrderId-urile)
+                // Salvăm modificările (Comenzi, Stocuri cărți și Puncte User)
                 await ctx.SaveChangesAsync();
 
-                // 3. Creăm notificările folosind Obiectul Order, nu ID-ul direct
+                // 3. Generare Notificări
                 foreach (var o in createdOrders)
                 {
                     var notification = new Notification
                         {
                             UserId = userIdInt,
-                            Order = o,
-                            OrderId = o.OrderId, 
+                            OrderId = o.OrderId,
                             Message = $"Comanda ta #{o.OrderId} a fost plasată cu succes.",
                             CreatedAt = DateTime.Now,
                             IsRead = false,
@@ -488,9 +535,8 @@
                     ctx.Notification.Add(notification);
                 }
 
-                // SALVĂM 2: Trimitem notificările
+                // Salvăm notificările și dăm Commit definitiv în DB
                 await ctx.SaveChangesAsync();
-
                 await transaction.CommitAsync();
 
                 await cartService.ClearCart();
@@ -499,10 +545,17 @@
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                Console.WriteLine($"Eroare: {ex.Message}");
-                throw;
+                errorMessage = $"Database Error: {ex.Message} {(ex.InnerException != null ? "-> " + ex.InnerException.Message : "")}";
             }
         }
-        catch (Exception ex) { Console.WriteLine($"General Error: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            errorMessage = $"General Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
     }
 }

@@ -7,6 +7,8 @@
 @inject IDbContextFactory<BooktiqueContext> DbContextFactory
 @rendermode InteractiveServer
 
+<PageTitle>Invoice Tracking | Booktique</PageTitle>
+
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -18,7 +20,6 @@
         </button>
     </div>
 
-    <!-- --- STATISTIC CARDS --- -->
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
@@ -27,7 +28,7 @@
                         <i class="bi bi-wallet2 fs-4"></i>
                     </div>
                     <div>
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Total Invoiced</small>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Total Invoiced (Filtered)</small>
                         <h4 class="fw-bold text-dark mb-0">@TotalFacturat.ToString("#,##0.00") lei</h4>
                     </div>
                 </div>
@@ -40,7 +41,7 @@
                         <i class="bi bi-check-circle fs-4"></i>
                     </div>
                     <div>
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Total Collected (Card)</small>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Total Collected (Filtered)</small>
                         <h4 class="fw-bold text-success mb-0">@TotalIncasat.ToString("#,##0.00") lei</h4>
                     </div>
                 </div>
@@ -53,7 +54,7 @@
                         <i class="bi bi-exclamation-circle fs-4"></i>
                     </div>
                     <div>
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Outstanding Balance</small>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Outstanding Balance (Filtered)</small>
                         <h4 class="fw-bold text-danger mb-0">@TotalRestant.ToString("#,##0.00") lei</h4>
                     </div>
                 </div>
@@ -61,14 +62,25 @@
         </div>
     </div>
 
-    <!-- --- FILTERS AND TABLE --- -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-            <span class="fw-bold text-brown">Invoices / Orders List</span>
-            <div class="btn-group btn-group-sm rounded-pill p-1 bg-light">
-                <button class="btn rounded-pill px-3 @(selectedFilter == "All" ? "btn-warning text-white shadow-sm" : "text-muted")" @onclick='() => ChangeFilter("All")'>All</button>
-                <button class="btn rounded-pill px-3 @(selectedFilter == "Paid" ? "btn-success text-white shadow-sm" : "text-muted")" @onclick='() => ChangeFilter("Paid")'>Paid (Card)</button>
-                <button class="btn rounded-pill px-3 @(selectedFilter == "Unpaid" ? "btn-danger text-white shadow-sm" : "text-muted")" @onclick='() => ChangeFilter("Unpaid")'>Unpaid (COD)</button>
+        <div class="card-header bg-white border-0 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center align-items-stretch gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-bold text-brown">Invoices / Orders List</span>
+                <span class="badge bg-secondary rounded-pill small">@FilteredInvoices.Count results</span>
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
+                <div class="search-box position-relative">
+                    <i class="bi bi-search position-absolute top-50 start-3 translate-middle-y text-muted small"></i>
+                    <input type="text" class="form-control form-control-sm rounded-pill search-input"
+                           placeholder="Search invoice no. or city..." @bind="searchTerm" @bind:event="oninput" />
+                </div>
+
+                <div class="btn-group btn-group-sm rounded-pill p-1 bg-light border-0 shadow-sm filter-group">
+                    <button class="btn rounded-pill px-3 transition-all @(selectedFilter == "All" ? "btn-warning text-white shadow-sm" : "text-muted")" @onclick='() => ChangeFilter("All")'>All</button>
+                    <button class="btn rounded-pill px-3 transition-all @(selectedFilter == "Paid" ? "btn-success text-white shadow-sm" : "text-muted")" @onclick='() => ChangeFilter("Paid")'>Paid (Card)</button>
+                    <button class="btn rounded-pill px-3 transition-all @(selectedFilter == "Unpaid" ? "btn-danger text-white shadow-sm" : "text-muted")" @onclick='() => ChangeFilter("Unpaid")'>Unpaid (COD)</button>
+                </div>
             </div>
         </div>
 
@@ -92,7 +104,7 @@
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
                                 <i class="bi bi-folder-x fs-2 d-block mb-2"></i>
-                                No invoices found.
+                                No invoices found matching the criteria.
                             </td>
                         </tr>
                     }
@@ -135,8 +147,69 @@
     </div>
 </div>
 
+<style>
+    body {
+        background-color: #fdf6ee;
+    }
+
+    .text-brown {
+        color: #5a3e2b;
+    }
+
+    /* Aliniere și dimensionare corectă pentru Search Box */
+    .search-box {
+        min-width: 280px;
+    }
+
+    .search-input {
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        font-size: 0.85rem;
+        padding-left: 2.25rem !important; /* Spațiu dedicat pentru iconița de lupă */
+        height: 34px;
+    }
+
+        .search-input:focus {
+            border-color: #5a3e2b;
+            box-shadow: 0 0 0 0.25rem rgba(90, 62, 43, 0.15);
+        }
+
+    .start-3 {
+        left: 0.85rem !important;
+    }
+
+    /* Stiluri grup filtre */
+    .filter-group {
+        background-color: #f8f9fa !important;
+        height: 34px;
+        display: flex;
+        align-items: center;
+    }
+
+        .filter-group .btn {
+            font-size: 0.825rem;
+            font-weight: 500;
+            border: none;
+            padding: 0.25rem 0.85rem;
+        }
+
+    .btn-warning {
+        background-color: #5a3e2b;
+        border-color: #5a3e2b;
+    }
+
+        .btn-warning:hover {
+            background-color: #473122;
+            border-color: #473122;
+        }
+
+    .transition-all {
+        transition: all 0.2s ease-in-out;
+    }
+</style>
+
 @code {
     private string selectedFilter = "All";
+    private string searchTerm = "";
     private List<InvoiceViewWrapper> invoices = new();
 
     protected override async Task OnInitializedAsync()
@@ -146,7 +219,6 @@
 
     private async Task LoadInvoicesAsync()
     {
-        // 1. Fetch data from Database
         using (var context = await DbContextFactory.CreateDbContextAsync())
         {
             var ordersFromDb = await context.Order
@@ -155,17 +227,14 @@
 
             invoices = ordersFromDb.Select(o =>
             {
-                // Evaluate invoice status based on business rules:
                 string facturaStatus = "Unpaid";
 
                 if (o.Status == OrderStatus.Delivered)
                 {
-                    // If order is delivered, it is considered paid (both for COD and Card)
                     facturaStatus = "Paid";
                 }
                 else
                 {
-                    // If not delivered yet, it is marked as Paid ONLY if paid online via Card
                     facturaStatus = o.PaymentMethod.Contains("Card", StringComparison.OrdinalIgnoreCase) ? "Paid" : "Unpaid";
                 }
 
@@ -177,16 +246,13 @@
                         IssueDate = o.OrderDate,
                         PaymentMethod = o.PaymentMethod,
                         TotalAmount = o.TotalAmount,
-
                         NetAmount = o.TotalAmount / 1.21m,
                         VatAmount = o.TotalAmount - (o.TotalAmount / 1.21m),
-
                         Status = facturaStatus
                     };
             }).ToList();
         }
 
-        // 2. Demo Mockup Data updated with the English terms
         if (invoices.Count == 0)
         {
             invoices = new List<InvoiceViewWrapper>()
@@ -198,13 +264,32 @@
         }
     }
 
-    private decimal TotalFacturat => invoices.Sum(i => i.TotalAmount);
-    private decimal TotalIncasat => invoices.Where(i => i.Status == "Paid").Sum(i => i.TotalAmount);
-    private decimal TotalRestant => invoices.Where(i => i.Status == "Unpaid").Sum(i => i.TotalAmount);
+    private List<InvoiceViewWrapper> FilteredInvoices
+    {
+        get
+        {
+            var result = invoices.AsEnumerable();
 
-    private List<InvoiceViewWrapper> FilteredInvoices => selectedFilter == "All"
-        ? invoices
-        : invoices.Where(i => i.Status == selectedFilter).ToList();
+            if (selectedFilter != "All")
+            {
+                result = result.Where(i => i.Status == selectedFilter);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                result = result.Where(i =>
+                    (i.InvoiceNumber != null && i.InvoiceNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (i.City != null && i.City.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+
+            return result.ToList();
+        }
+    }
+
+    private decimal TotalFacturat => FilteredInvoices.Sum(i => i.TotalAmount);
+    private decimal TotalIncasat => FilteredInvoices.Where(i => i.Status == "Paid").Sum(i => i.TotalAmount);
+    private decimal TotalRestant => FilteredInvoices.Where(i => i.Status == "Unpaid").Sum(i => i.TotalAmount);
 
     private void ChangeFilter(string filter)
     {
@@ -269,14 +354,14 @@
 
     public class InvoiceViewWrapper
     {
-        public string InvoiceNumber { get; set; }
-        public string City { get; set; }
-        public string PhoneNumber { get; set; }
+        public string InvoiceNumber { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
         public DateTime IssueDate { get; set; }
-        public string PaymentMethod { get; set; }
+        public string PaymentMethod { get; set; } = string.Empty;
         public decimal NetAmount { get; set; }
         public decimal VatAmount { get; set; }
         public decimal TotalAmount { get; set; }
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 }

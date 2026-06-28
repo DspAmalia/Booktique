@@ -82,34 +82,6 @@
             document.body.removeChild(link);
         };
     </script>
-
-    <script>
-        window.desktopNotifications = {
-            requestPermission: async function () {
-                if (!("Notification" in window)) {
-                    console.log("Acest browser nu suportă notificări pe desktop.");
-                    return false;
-                }
-
-                if (Notification.permission === "granted") {
-                    return true;
-                }
-
-                if (Notification.permission !== "denied") {
-                    const permission = await Notification.requestPermission();
-                    return permission === "granted";
-                }
-
-                return false;
-            },
-
-            showNotification: function (title, options) {
-                if ("Notification" in window && Notification.permission === "granted") {
-                    new Notification(title, options);
-                }
-            }
-        };
-    </script>
 </body>
 
 </html>

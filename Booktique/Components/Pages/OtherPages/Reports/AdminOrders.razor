@@ -4,52 +4,68 @@
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @rendermode InteractiveServer
 
+<PageTitle>Order Management | Booktique</PageTitle>
+
 <div class="container-fluid py-4 min-vh-100">
-    <div class="d-flex justify-content-between align-items-center mb-4 px-3">
-        <h2 class="fw-bold text-dark m-0">Order Management</h2>
-        <div class="text-muted">Total Orders: @(allOrders?.Count ?? 0)</div>
+    <div class="mb-4 px-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="fw-bold text-dark m-0">Order Management</h2>
+            </div>
+            <div class="text-end">
+                <div class="text-muted fw-semibold">Total Orders: @CurrentTotalCount</div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-start">
+            <div class="search-box position-relative">
+                <i class="bi bi-search position-absolute top-50 start-3 translate-middle-y text-muted small ps-1"></i>
+                <input type="text" class="form-control rounded-pill shadow-sm ps-4"
+                       placeholder="Search by Order ID or City..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+        </div>
     </div>
 
     @if (allOrders == null)
     {
         <div class="d-flex justify-content-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
+            <div class="spinner-border text-warning" role="status"></div>
         </div>
     }
     else
     {
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 custom-card">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class=" text-white">
+                <table class="table table-hover align-middle mb-0 custom-table">
+                    <thead>
                         <tr>
-                            <th class="ps-3">ID</th>
+                            <th class="ps-4">ID</th>
                             <th>Order Date</th>
                             <th>Customer</th>
                             <th>Total Amount</th>
                             <th>Status</th>
                             <th>Change Status</th>
-                            <th class="text-end pe-3">Actions</th>
+                            <th class="text-end pe-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var order in allOrders)
+                        @foreach (var order in FilteredOrders)
                         {
                             <tr>
-                                <td class="ps-3 fw-bold text-warning">#@order.OrderId</td>
+                                <td class="ps-4 fw-bold text-brown">#@order.OrderId</td>
                                 <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
                                 <td>
                                     <div class="small fw-bold">User #@order.UserId</div>
-                                    <div class="text-muted small">@order.City</div>
+                                    <div class="text-muted small"><i class="bi bi-geo-alt-fill me-1"></i>@order.City</div>
                                 </td>
-                                <td class="fw-bold">@order.TotalAmount.ToString("N2") RON</td>
+                                <td class="fw-bold text-brown">@order.TotalAmount.ToString("N2") RON</td>
                                 <td>
                                     <span class="badge rounded-pill @GetStatusClass(order.Status)">
                                         @order.Status
                                     </span>
                                 </td>
                                 <td>
-                                    <select class="form-select form-select-sm border-light shadow-sm"
+                                    <select class="form-select form-select-sm border shadow-sm rounded-pill"
                                             style="width: 140px;"
                                             @onchange="(e) => UpdateStatus(order, e)">
                                         @foreach (var status in Enum.GetValues<OrderStatus>())
@@ -58,9 +74,9 @@
                                         }
                                     </select>
                                 </td>
-                                <td class="text-end pe-3">
-                                    <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" @onclick="() => ShowDetails(order)">
-                                        View Details
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-warning btn-sm rounded-pill px-3 shadow-sm text-white fw-bold action-btn" @onclick="() => ShowDetails(order)">
+                                        <i class="bi bi-eye-fill me-1"></i>View Details
                                     </button>
                                 </td>
                             </tr>
@@ -79,31 +95,31 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-white border-bottom-0 pt-4 px-4">
-                    <h5 class="modal-title fw-bold">Order Summary #@selectedOrder.OrderId</h5>
+                    <h5 class="modal-title fw-bold text-dark">Order Summary #@selectedOrder.OrderId</h5>
                     <button type="button" class="btn-close" @onclick="CloseModal"></button>
                 </div>
                 <div class="modal-body px-4">
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3">
-                                <h6 class="text-uppercase text-muted small fw-bold">Shipping Info</h6>
-                                <p class="mb-0">@selectedOrder.ShippingAddress</p>
-                                <p class="mb-0 fw-bold">@selectedOrder.City</p>
-                                <p class="mb-0">Tel: @selectedOrder.PhoneNumber</p>
+                            <div class="p-3 bg-light rounded-3 border">
+                                <h6 class="text-uppercase text-muted small fw-bold"><i class="bi bi-truck me-1"></i>Shipping Info</h6>
+                                <p class="mb-1 text-dark">@selectedOrder.ShippingAddress</p>
+                                <p class="mb-1 fw-bold text-brown">@selectedOrder.City</p>
+                                <p class="mb-0 text-muted small">Tel: @selectedOrder.PhoneNumber</p>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3 h-100">
-                                <h6 class="text-uppercase text-muted small fw-bold">Payment & Date</h6>
-                                <p class="mb-0">Method: <span class="badge bg-secondary">@selectedOrder.PaymentMethod</span></p>
-                                <p class="mb-0">Date: @selectedOrder.OrderDate.ToString("f")</p>
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <h6 class="text-uppercase text-muted small fw-bold"><i class="bi bi-credit-card me-1"></i>Payment & Date</h6>
+                                <p class="mb-1 text-dark">Method: <span class="badge bg-secondary rounded-pill">@selectedOrder.PaymentMethod</span></p>
+                                <p class="mb-0 text-muted small">Date: @selectedOrder.OrderDate.ToString("f")</p>
                             </div>
                         </div>
                     </div>
 
-                    <h6 class="fw-bold mb-3">Purchased Items</h6>
+                    <h6 class="fw-bold mb-3 text-dark">Purchased Items</h6>
                     <div class="table-responsive">
-                        <table class="table table-borderless">
+                        <table class="table table-borderless align-middle">
                             <thead class="text-muted small border-bottom">
                                 <tr>
                                     <th>Item Name</th>
@@ -115,21 +131,21 @@
                             <tbody>
                                 @foreach (var item in selectedOrder.OrderItems)
                                 {
-                                    <tr class="border-bottom-0">
+                                    <tr>
                                         <td class="fw-bold text-dark">@(item.Book?.BookTitle ?? "Digital Product")</td>
-                                        <td class="text-center">@item.Quantity</td>
-                                        <td class="text-end">@item.UnitPrice.ToString("N2")</td>
-                                        <td class="text-end fw-bold">@(item.Quantity * item.UnitPrice) RON</td>
+                                        <td class="text-center fw-semibold">@item.Quantity</td>
+                                        <td class="text-end text-muted">@item.UnitPrice.ToString("N2") RON</td>
+                                        <td class="text-end fw-bold text-brown">@(item.Quantity * item.UnitPrice).ToString("N2") RON</td>
                                     </tr>
                                 }
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom">
-                    <div class="me-auto">
-                        <span class="text-muted">Total: </span>
-                        <span class="h4 fw-bold text-warning mb-0">@selectedOrder.TotalAmount.ToString("N2") RON</span>
+                <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted me-1">Total Amount:</span>
+                        <span class="h4 fw-bold text-brown mb-0">@selectedOrder.TotalAmount.ToString("N2") RON</span>
                     </div>
                     <button type="button" class="btn btn-secondary rounded-pill px-4" @onclick="CloseModal">Close</button>
                 </div>
@@ -141,52 +157,111 @@
 <style>
     body {
         background-color: #fdf6ee !important;
-        font-family: 'Inter', 'Segoe UI', sans-serif !important;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
     }
 
-    .card {
-        border-radius: 12px;
+    :root {
+        --brown-primary: #5a3e2b;
+        --cream-bg: #fdf6ee;
+    }
+
+    .text-brown {
+        color: var(--brown-primary);
+    }
+
+    .search-box {
+        width: 320px;
+    }
+
+        .search-box input {
+            font-size: 0.9rem;
+            border: 1px solid rgba(90, 62, 43, 0.15);
+        }
+
+            .search-box input:focus {
+                border-color: var(--brown-primary);
+                box-shadow: 0 0 0 0.25rem rgba(90, 62, 43, 0.1);
+            }
+
+    .custom-card {
+        border: 1px solid rgba(90, 62, 43, 0.08) !important;
+        border-radius: 16px;
         overflow: hidden;
     }
 
-    .table thead th {
-        font-weight: 600;
+    .custom-table thead th {
+        background-color: #fcf9f5 !important;
+        color: #7a6e65 !important;
+        font-weight: 700;
         text-transform: uppercase;
         font-size: 0.75rem;
-        letter-spacing: 0.05em;
-        padding-top: 15px;
-        padding-bottom: 15px;
+        letter-spacing: 0.8px;
+        padding: 16px 20px !important;
+        border-bottom: 2px solid rgba(90, 62, 43, 0.1) !important;
+    }
+
+    .custom-table tbody tr {
+        transition: background-color 0.2s ease-in-out;
+    }
+
+        .custom-table tbody tr:hover {
+            background-color: #fbf3e9 !important;
+        }
+
+    .custom-table tbody td {
+        padding: 14px 20px !important;
+        border-bottom: 1px solid rgba(90, 62, 43, 0.05) !important;
+        font-size: 0.9rem;
     }
 
     .badge {
-        font-weight: 500;
+        font-weight: 600;
         padding: 0.5em 0.8em;
     }
 
-    .form-select-sm {
-        border-radius: 8px;
-        font-size: 0.85rem;
+    .btn-warning {
+        background-color: var(--brown-primary);
+        border-color: var(--brown-primary);
     }
+
+        .btn-warning:hover {
+            background-color: #473122;
+            border-color: #473122;
+            transform: translateY(-1px);
+        }
 
     .modal-content {
         border-radius: 16px;
     }
-
-    .btn-primary {
-        background-color: #f0a500;
-        border: none;
-    }
-
-        .btn-primary:hover {
-            background-color: #f0a500;
-            transform: translateY(-1px);
-        }
 </style>
 
 @code {
     private List<Order>? allOrders;
     private Order? selectedOrder;
     private bool showModal = false;
+    private string searchTerm = "";
+
+    // Proprietate calculată care filtrează lista în timp real local
+    private IEnumerable<Order> FilteredOrders
+    {
+        get
+        {
+            if (allOrders == null) return Enumerable.Empty<Order>();
+
+            if (string.IsNullOrWhiteSpace(searchTerm)) return allOrders;
+
+            // Elimină eventualul caracter `#` adăugat de manager la căutarea unui ID
+            var cleanTerm = searchTerm.Replace("#", "").Trim();
+
+            return allOrders.Where(o =>
+                o.OrderId.ToString().Contains(cleanTerm) ||
+                (o.City != null && o.City.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            );
+        }
+    }
+
+    // Returnează dinamic numărul total bazat doar pe rezultatele filtrate
+    private int CurrentTotalCount => FilteredOrders.Count();
 
     protected override async Task OnInitializedAsync()
     {
@@ -240,11 +315,11 @@
                 var notification = new Notification
                     {
                         UserId = dbOrder.UserId,
-                        OrderId = dbOrder.OrderId, 
+                        OrderId = dbOrder.OrderId,
                         Message = $"Statusul comenzii tale #{dbOrder.OrderId} a fost actualizat în: {newStatus}.",
                         CreatedAt = DateTime.Now,
                         IsRead = false,
-                        TargetUrl = $"/my-orders/{dbOrder.OrderId}" 
+                        TargetUrl = $"/my-orders/{dbOrder.OrderId}"
                     };
 
                 context.Notification.Add(notification);

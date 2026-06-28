@@ -4,6 +4,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject CartService cartService
 @inject NavigationManager Nav
+@inject IDbContextFactory<BooktiqueContext> DbContextFactory
 @implements IDisposable
 @rendermode InteractiveServer
 
@@ -35,12 +36,10 @@
             <div class="col-lg-8">
                 @* --- SECȚIUNEA LIBRĂRIE (Official Booktique) --- *@
                 @{
-                    // 1. Produsele oficiale (Librăria Booktique)
                     var officialItems = cartService.Items
                     .Where(i => i.SellerId == null || i.SellerId == 0)
                     .ToList();
 
-                    // 2. Produsele de la vânzători (Anticariat)
                     var antiqueItems = cartService.Items
                     .Where(i => i.SellerId != null && i.SellerId != 0)
                     .GroupBy(i => new { i.SellerId, i.SellerName })
@@ -60,7 +59,7 @@
                     {
                         @RenderCartItem(item)
                     }
-                    <div class="mb-5"></div> 
+                    <div class="mb-5"></div>
                 }
 
                 @* --- SECȚIUNEA ANTICARIAT --- *@
@@ -122,7 +121,6 @@
         height: 100%;
         margin: 0;
         padding: 0;
- 
         background-image: linear-gradient(rgba(253, 246, 238, 0.88), rgba(253, 246, 238, 0.88)), url('https://i.pinimg.com/1200x/33/99/ac/3399ac1d819b89bdb962b893c9554a41.jpg');
         background-size: cover;
         background-position: center;
@@ -182,9 +180,11 @@
 </style>
 
 @code {
-    // Definirea unui RenderFragment pentru a nu repeta codul HTML al cardului
     RenderFragment RenderCartItem(CartItem item) => __builder =>
     {
+        // Validăm dacă s-a atins stocul maxim disponibil din baza de date folosind item.BookStock
+        bool isStockLimitReached = item.Quantity >= item.BookStock;
+
         <div class="cart-card mb-3 shadow-sm border rounded p-3 bg-white">
             <div class="d-flex align-items-center">
                 <div class="img-container me-3">
@@ -193,24 +193,40 @@
                 <div class="flex-grow-1">
                     <h5 class="mb-1 text-dark fw-bold">@item.Title</h5>
                     <p class="text-muted mb-0 small">Price: @item.Price lei</p>
+
+                    <p class="text-secondary mb-0 small fw-semibold mt-1" style="font-size: 0.8rem;">
+                        Available Stock: <span class="@(item.BookStock <= 2 ? "text-danger fw-bold" : "text-success")">@item.BookStock pcs</span>
+                    </p>
+
                     <div class="mt-2 d-flex align-items-center gap-3">
                         <div class="input-group input-group-sm shadow-sm" style="width: 110px;">
                             <button class="btn btn-outline-secondary border-secondary-subtle"
                                     @onclick="() => cartService.DecreaseQuantity(item.BookId)">
                                 <i class="bi bi-dash"></i>
                             </button>
+
                             <span class="input-group-text bg-white fw-bold flex-grow-1 justify-content-center">
                                 @item.Quantity
                             </span>
+
                             <button class="btn btn-outline-secondary border-secondary-subtle"
-                                    @onclick="() => cartService.IncreaseQuantity(item.BookId)">
+                                    disabled="@isStockLimitReached"
+                                    @onclick="() => HandleIncreaseQuantity(item)">
                                 <i class="bi bi-plus"></i>
                             </button>
                         </div>
+
                         <button class="btn btn-sm btn-outline-danger border-0" @onclick="() => cartService.RemoveFromCart(item.BookId)">
                             <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Remove</span>
                         </button>
                     </div>
+
+                    @if (isStockLimitReached)
+                    {
+                        <small class="text-danger d-block mt-1 animate-fade">
+                            <i class="bi bi-exclamation-circle me-1"></i>Maximum available stock reached.
+                        </small>
+                    }
                 </div>
                 <div class="text-end">
                     <span class="fw-bold text-orange fs-5">@(item.Price * item.Quantity) lei</span>
@@ -218,9 +234,18 @@
             </div>
         </div>
     };
+
     protected override void OnInitialized() => cartService.OnChange += StateHasChanged;
 
     public void Dispose() => cartService.OnChange -= StateHasChanged;
+
+    private void HandleIncreaseQuantity(CartItem item)
+    {
+        if (item.Quantity < item.BookStock)
+        {
+            cartService.IncreaseQuantity(item.BookId);
+        }
+    }
 
     private void GoToCheckout()
     {

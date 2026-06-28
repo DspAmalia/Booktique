@@ -6,102 +6,124 @@
 @using static Booktique.Models.MainModels.User
 @implements IAsyncDisposable
 @inject IDbContextFactory<BooktiqueContext> DbFactory
+@rendermode InteractiveServer
 
 @attribute [Authorize(Roles = "Manager")]
 
 <PageTitle>User Management | Booktique</PageTitle>
 
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-brown mb-1">User <span class="text-dark">Management</span></h2>
-            <p class="text-muted small mb-0">Overview and control of all registered members in Booktique</p>
+    <div class="mb-4 px-3">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h2 class="fw-bold text-dark m-0">User Management</h2>
+            </div>
+            <div class="text-end">
+                <div class="d-flex gap-2 justify-content-end mb-2">
+                    <a href="users/create" class="btn btn-warning rounded-pill px-3 btn-sm shadow-sm fw-bold">
+                        <i class="bi bi-person-plus-fill me-1"></i>Create New
+                    </a>
+                    <a href="/admin/dashboard" class="btn btn-outline-secondary rounded-pill px-3 btn-sm shadow-sm fw-bold">
+                        <i class="bi bi-arrow-left me-1"></i>Back
+                    </a>
+                </div>
+                <div class="text-muted small">Total Users: @CurrentTotalCount</div>
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            <a href="users/create" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">
-                <i class="bi bi-person-plus-fill me-2"></i>Create New
-            </a>
-            <a href="/admin/dashboard" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm fw-bold">
-                <i class="bi bi-arrow-left me-2"></i>Back
-            </a>
+
+        <div class="d-flex justify-content-start">
+            <div class="search-box position-relative">
+                <i class="bi bi-search position-absolute top-50 start-3 translate-middle-y text-muted small ps-1"></i>
+                <input type="text" class="form-control rounded-pill shadow-sm ps-4"
+                       placeholder="Search by username..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
         </div>
     </div>
 
     <div class="card shadow-sm border-0 rounded-4 overflow-hidden custom-card">
         <div class="card-body p-0">
-            <QuickGrid Class="table align-middle mb-0 custom-grid" Items="context.User">
+            @if (allUsers == null)
+            {
+                <div class="d-flex justify-content-center py-5">
+                    <div class="spinner-border text-brown" role="status"></div>
+                </div>
+            }
+            else
+            {
+                <QuickGrid Class="table align-middle mb-0 custom-grid" Items="FilteredUsersAsQueryable">
 
-                <TemplateColumn Title="Profile" Class="col-profile text-center">
-                    <div class="avatar-wrapper d-inline-block">
-                        <img src="@(string.IsNullOrEmpty(context.ProfilePicture) ? "https://www.shutterstock.com/image-illustration/man-open-book-illustration-element-260nw-1103282219.jpg" : context.ProfilePicture)"
-                             class="rounded-circle border border-2 border-white shadow-sm"
-                             style="width: 40px; height: 40px; object-fit: cover;" />
-                    </div>
-                </TemplateColumn>
+                    <TemplateColumn Title="Profile" Class="col-profile text-center">
+                        <div class="avatar-wrapper d-inline-block">
+                            <img src="@(string.IsNullOrEmpty(context.ProfilePicture) ? "https://www.shutterstock.com/image-illustration/man-open-book-illustration-element-260nw-1103282219.jpg" : context.ProfilePicture)"
+                                 class="rounded-circle border border-2 border-white shadow-sm"
+                                 style="width: 40px; height: 40px; object-fit: cover;" />
+                        </div>
+                    </TemplateColumn>
 
-                <PropertyColumn Title="Username" Property="user => user.UserName" Sortable="true" Class="fw-bold text-brown" />
+                    <PropertyColumn Title="Username" Property="user => user.UserName" Sortable="true" Class="fw-bold text-brown" />
 
-                <PropertyColumn Title="Email" Property="user => user.UserEmail" Sortable="true" Class="text-muted" />
+                    <PropertyColumn Title="Email" Property="user => user.UserEmail" Sortable="true" Class="text-muted" />
 
-                <TemplateColumn Title="Role" Sortable="true">
-                    @{
-                        string roleClass, icon;
-                        switch (context.Role)
+                    <TemplateColumn Title="Role" Sortable="true">
+                        @{
+                            string roleClass, icon;
+                            switch (context.Role)
+                            {
+                                case "Administrator":
+                                    roleClass = "bg-warning-subtle text-warning-dark border-warning-subtle";
+                                    icon = "bi-shield-fill-check";
+                                    break;
+                                case "Manager":
+                                    roleClass = "bg-danger-subtle text-danger border-danger-subtle";
+                                    icon = "bi-shield-lock-fill";
+                                    break;
+                                default:
+                                    roleClass = "bg-light text-secondary border-secondary-subtle";
+                                    icon = "bi-person-fill";
+                                    break;
+                            }
+                        }
+                        <span class="badge @roleClass border rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center">
+                            <i class="bi @icon me-1.5"></i> @context.Role
+                        </span>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Subscription Plan" Sortable="true">
+                        @switch (context.IsSubscribed)
                         {
-                            case "Administrator":
-                                roleClass = "bg-warning-subtle text-warning-dark border-warning-subtle";
-                                icon = "bi-shield-fill-check";
+                            case SubscriptionLevel.Yearly:
+                                <span class="badge rounded-pill bg-warning-subtle text-warning-dark border border-warning-subtle px-3 py-2 fw-semibold d-inline-flex align-items-center">
+                                    <i class="bi bi-star-fill me-1.5 text-warning"></i> Yearly Premium
+                                </span>
                                 break;
-                            case "Manager":
-                                roleClass = "bg-danger-subtle text-danger border-danger-subtle";
-                                icon = "bi-shield-lock-fill";
+
+                            case SubscriptionLevel.Monthly:
+                                <span class="badge rounded-pill bg-info-subtle text-info-dark border border-info-subtle px-3 py-2 fw-semibold d-inline-flex align-items-center">
+                                    <i class="bi bi-calendar-check-fill me-1.5 text-info"></i> Monthly
+                                </span>
                                 break;
+
+                            case SubscriptionLevel.None:
                             default:
-                                roleClass = "bg-light text-secondary border-secondary-subtle";
-                                icon = "bi-person-fill";
+                                <span class="badge rounded-pill bg-light text-muted border px-3 py-2 fw-normal d-inline-flex align-items-center">
+                                    <i class="bi bi-x-circle me-1.5 text-secondary"></i> No Active Plan
+                                </span>
                                 break;
                         }
-                    }
-                    <span class="badge @roleClass border rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center">
-                        <i class="bi @icon me-1.5"></i> @context.Role
-                    </span>
-                </TemplateColumn>
+                    </TemplateColumn>
 
-                <TemplateColumn Title="Subscription Plan" Sortable="true">
-                    @switch (context.IsSubscribed)
-                    {
-                        case SubscriptionLevel.Yearly:
-                            <span class="badge rounded-pill bg-warning-subtle text-warning-dark border border-warning-subtle px-3 py-2 fw-semibold d-inline-flex align-items-center">
-                                <i class="bi bi-star-fill me-1.5 text-warning"></i> Yearly Premium
-                            </span>
-                            break;
-
-                        case SubscriptionLevel.Monthly:
-                            <span class="badge rounded-pill bg-info-subtle text-info-dark border border-info-subtle px-3 py-2 fw-semibold d-inline-flex align-items-center">
-                                <i class="bi bi-calendar-check-fill me-1.5 text-info"></i> Monthly
-                            </span>
-                            break;
-
-                        case SubscriptionLevel.None:
-                        default:
-                            <span class="badge rounded-pill bg-light text-muted border px-3 py-2 fw-normal d-inline-flex align-items-center">
-                                <i class="bi bi-x-circle me-1.5 text-secondary"></i> No Active Plan
-                            </span>
-                            break;
-                    }
-                </TemplateColumn>
-
-                <TemplateColumn Title="Actions" Align="Align.End" Class="pe-4">
-                    <div class="btn-group shadow-sm rounded-pill overflow-hidden border">
-                        <a href="@($"users/details?userid={context.UserId}")" class="btn btn-sm btn-white action-btn" title="Details">
-                            <i class="bi bi-eye-fill text-primary"></i>
-                        </a>
-                        <a href="@($"users/delete?userid={context.UserId}")" class="btn btn-sm btn-white action-btn border-start" title="Delete">
-                            <i class="bi bi-trash-fill text-danger"></i>
-                        </a>
-                    </div>
-                </TemplateColumn>
-            </QuickGrid>
+                    <TemplateColumn Title="Actions" Align="Align.End" Class="pe-4">
+                        <div class="btn-group shadow-sm rounded-pill overflow-hidden border">
+                            <a href="@($"users/details?userid={context.UserId}")" class="btn btn-sm btn-white action-btn" title="Details">
+                                <i class="bi bi-eye-fill text-primary"></i>
+                            </a>
+                            <a href="@($"users/delete?userid={context.UserId}")" class="btn btn-sm btn-white action-btn border-start" title="Delete">
+                                <i class="bi bi-trash-fill text-danger"></i>
+                            </a>
+                        </div>
+                    </TemplateColumn>
+                </QuickGrid>
+            }
         </div>
     </div>
 </div>
@@ -126,9 +148,27 @@
         background-color: var(--cream-bg);
     }
 
+    .search-box {
+        width: 320px;
+    }
+
+        .search-box input {
+            font-size: 0.9rem;
+            border: 1px solid rgba(90, 62, 43, 0.15);
+        }
+
+            .search-box input:focus {
+                border-color: var(--brown-primary);
+                box-shadow: 0 0 0 0.25rem rgba(90, 62, 43, 0.1);
+            }
+
     .text-brown {
         color: var(--brown-primary);
     }
+
+        .text-brown.spinner-border {
+            color: var(--brown-primary) !important;
+        }
 
     .btn-warning {
         color: white;
@@ -154,7 +194,6 @@
         margin-right: 0.375rem !important;
     }
 
-    /* Stiluri Custom Grid & Card */
     .custom-card {
         border: 1px solid rgba(90, 62, 43, 0.08) !important;
     }
@@ -165,7 +204,6 @@
         border-spacing: 0;
     }
 
-    /* Corectare headere din QuickGrid */
     ::deep .table thead th {
         background-color: #fcf9f5 !important;
         color: #7a6e65 !important;
@@ -177,7 +215,6 @@
         border-bottom: 2px solid rgba(90, 62, 43, 0.1) !important;
     }
 
-    /* Stiluri Rânduri & Hover */
     ::deep .table tbody tr {
         transition: all 0.2s ease-in-out;
     }
@@ -205,7 +242,6 @@
         transform: scale(1.1);
     }
 
-    /* Butoane Acțiuni */
     .btn-white {
         background-color: #ffffff;
         border: none;
@@ -228,10 +264,27 @@
 
 @code {
     private BooktiqueContext context = default!;
+    private List<User>? allUsers;
+    private string searchTerm = "";
 
-    protected override void OnInitialized()
+    // Proprietatea filtrează local lista descărcată inițial
+    private IEnumerable<User>? FilteredUsers =>
+        string.IsNullOrWhiteSpace(searchTerm)
+        ? allUsers
+        : allUsers?.Where(u => u.UserName != null && u.UserName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    // Convertește rezultatul în IQueryable pentru a fi compatibil cu QuickGrid
+    private IQueryable<User>? FilteredUsersAsQueryable => FilteredUsers?.AsQueryable();
+
+    // Această proprietate calculează dinamic numărul total bazat pe lista deja filtrată
+    private int CurrentTotalCount => FilteredUsers?.Count() ?? 0;
+
+    protected override async Task OnInitializedAsync()
     {
         context = DbFactory.CreateDbContext();
+
+        // Încarcă toți utilizatorii din baza de date
+        allUsers = await context.User.ToListAsync();
     }
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
