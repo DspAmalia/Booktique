@@ -8,6 +8,7 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject CartService cartService
+@inject Booktique.Models.Services.ChatNotificationService NotificationService
 
 @rendermode InteractiveServer
 @implements IDisposable
@@ -67,12 +68,30 @@
                             @* Butonul pentru PDF Preview *@
                             @if (!string.IsNullOrEmpty(book.BookPreviewPath))
                             {
-                                <a class="btn btn-outline-warning rounded-pill px-4 fw-bold"
-                                   href="@book.BookPreviewPath"
-                                   target="_blank"
-                                   rel="noopener noreferrer">
-                                    <i class="bi bi-file-earmark-pdf me-2"></i>Read Preview
-                                </a>
+                                <AuthorizeView>
+                                    <Authorized>
+                                        @if (hasSubscription)
+                                        {
+                                            <a class="btn btn-outline-warning rounded-pill px-4 fw-bold"
+                                               href="@book.BookPreviewPath"
+                                               target="_blank"
+                                               rel="noopener noreferrer">
+                                                <i class="bi bi-file-earmark-pdf me-2"></i>Read Preview
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-secondary rounded-pill px-4 text-muted small" disabled title="Requires active subscription">
+                                                <i class="bi bi-lock-fill me-2"></i>Preview (Requires Subscription)
+                                            </button>
+                                        }
+                                    </Authorized>
+                                    <NotAuthorized>
+                                        <button class="btn btn-outline-secondary rounded-pill px-4 text-muted small" disabled title="Please login to read preview">
+                                            <i class="bi bi-lock-fill me-2"></i>Preview (Login Required)
+                                        </button>
+                                    </NotAuthorized>
+                                </AuthorizeView>
                             }
 
                             <AuthorizeView>
@@ -447,15 +466,19 @@
     private List<Review> reviews = new();
 
     [SupplyParameterFromForm]
-    private Review newReview { get; set; } = new() { Rating = 0 }; 
+    private Review newReview { get; set; } = new() { Rating = 0 };
 
     [SupplyParameterFromQuery]
     public int BookId { get; set; }
+
+    [SupplyParameterFromQuery]
+    private int? notifId { get; set; }
 
     private bool isFavorite = false;
     private List<Book> relatedBooks = new();
     private bool isAdded = false;
     private List<Book> authorBooks = new();
+    private bool hasSubscription = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -469,8 +492,6 @@
         {
             pageTitle = book.BookTitle;
             reviews = book.Reviews.OrderByDescending(r => r.CreatedAt).ToList();
-
-            // Verificăm dacă produsul este deja în coș în acest moment
             isAdded = cartService.Items.Any(item => item.BookId == BookId);
 
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -481,6 +502,7 @@
                 if (user != null)
                 {
                     isFavorite = await context.Favorite.AnyAsync(f => f.UserId == user.UserId && f.BookId == BookId);
+                    hasSubscription = user.IsSubscribed > 0;
                 }
             }
 
@@ -496,12 +518,13 @@
                 .Take(4)
                 .ToListAsync();
         }
-        cartService.OnChange += StateHasChanged;
+        cartService.OnChange += OnCartChanged;
     }
+
+    private void OnCartChanged() => InvokeAsync(StateHasChanged);
 
     private void HandleAddToCart()
     {
-        // Verificare de siguranță: dacă este deja adăugat, nu mai permitem rularea logicii
         if (book != null && !isAdded)
         {
             cartService.AddToCart(book);
@@ -528,7 +551,7 @@
         reviews.Insert(0, newReview);
         await UpdateBookRating(context);
 
-        newReview = new Review() { Rating = 5 }; 
+        newReview = new Review() { Rating = 5 };
         StateHasChanged();
     }
 
@@ -555,7 +578,7 @@
         {
             int newRating = reviews.Any() ? (int)Math.Round(reviews.Average(r => r.Rating)) : 0;
             bookToUpdate.BookRating = newRating;
-            if (book != null) book.BookRating = newRating; 
+            if (book != null) book.BookRating = newRating;
             await context.SaveChangesAsync();
         }
     }
@@ -586,7 +609,35 @@
         await context.SaveChangesAsync();
     }
 
-    public void Dispose() => cartService.OnChange -= StateHasChanged;
+    protected override async Task OnParametersSetAsync()
+    {
+        if (notifId.HasValue && notifId.Value > 0)
+        {
+            using var context = DbFactory.CreateDbContext();
+
+            var notification = await context.Notification
+                .FirstOrDefaultAsync(n => n.NotificationId == notifId.Value && !n.IsRead);
+
+            if (notification != null)
+            {
+                notification.IsRead = true;
+                await context.SaveChangesAsync();
+
+                var totalBackInStockInDb = await context.Notification
+                    .Where(n => !n.IsRead && n.BookId != null)
+                    .CountAsync();
+
+                var totalOrdersInDb = await context.Notification
+                    .Where(n => !n.IsRead && n.OrderId != null)
+                    .CountAsync();
+
+                NotificationService.UpdateBackInStockCount(totalBackInStockInDb);
+                NotificationService.UpdateUnreadCount(totalOrdersInDb);
+            }
+        }
+    }
+
+    public void Dispose() => cartService.OnChange -= OnCartChanged;
 
     private void NavigateToDetails(int id) => NavigationManager.NavigateTo($"/books/details?bookid={id}", true);
 }

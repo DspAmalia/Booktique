@@ -14,6 +14,10 @@ namespace Booktique.Models.MainModels
         public int? OrderId { get; set; } 
         public Order? Order { get; set; }
 
+        [ForeignKey("Book")]
+        public int? BookId { get; set; }
+        public Book? Book { get; set; }
+
         public string Message { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool IsRead { get; set; } = false;

@@ -4,6 +4,8 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
+@using System.Security.Cryptography
+@using System.Text
 
 @inject BooktiqueContext appContext
 @inject NavigationManager NavigationManager
@@ -133,7 +135,13 @@
 
     .btn-warning {
         color: white;
+        background-color: #f4d03f;
+        border: none;
     }
+
+        .btn-warning:hover {
+            background-color: #e2c035;
+        }
 
     .text-brown {
         color: var(--brown-primary);
@@ -163,20 +171,59 @@
         // Pasul 1: Căutăm utilizatorul exclusiv după UserName
         var user = appContext.User.FirstOrDefault(x => x.UserName == Model.UserName);
 
-        // Pasul 2: Verificăm dacă utilizatorul există și parola se potrivește
-        if (user is null || user.Password != Model.Password)
+        if (user is null)
         {
             errorMessage = "Invalid credentials. Please try again.";
             return;
         }
 
-        var claims = new List<Claim>
+        // Calculăm hash-ul parolei introduse în formular
+        string hashedPasswordInput = HashPassword(Model.Password);
+        bool isValid = false;
+        bool requiresUpgrade = false;
+
+        // Pasul 2: Verificăm potrivirea (hibrid)
+        if (user.Password == hashedPasswordInput)
         {
-            new Claim(ClaimTypes.Name, Model.UserName),
-            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-            new Claim(ClaimTypes.Email, user.UserEmail ?? string.Empty),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+            // Parola din BD este deja securizată și se potrivește
+            isValid = true;
+        }
+        else if (user.Password == Model.Password)
+        {
+            // Parola din BD era în format plain text și se potrivește
+            isValid = true;
+            requiresUpgrade = true; // Marcăm contul pentru upgrade de securitate
+        }
+
+        if (!isValid)
+        {
+            errorMessage = "Invalid credentials. Please try again.";
+            return;
+        }
+
+        // Pasul 3: Migrare automată la SHA-256 (dacă parola veche era necodată)
+        if (requiresUpgrade)
+        {
+            try
+            {
+                user.Password = hashedPasswordInput;
+                appContext.User.Update(user);
+                await appContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Nu s-a putut face upgrade la parola utilizatorului {user.UserName}: {ex.Message}");
+            }
+        }
+
+        // Pasul 4: Generarea identității și autentificarea cookie
+        var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, Model.UserName),
+        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+        new Claim(ClaimTypes.Email, user.UserEmail ?? string.Empty),
+        new Claim(ClaimTypes.Role, user.Role)
+    };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
@@ -186,5 +233,19 @@
             await HttpContext.SignInAsync(principal);
             NavigationManager.NavigateTo("/");
         }
+    }
+
+    private string HashPassword(string password)
+    {
+        if (string.IsNullOrEmpty(password)) return string.Empty;
+
+        using var sha256 = SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        var builder = new StringBuilder();
+        foreach (var b in bytes)
+        {
+            builder.Append(b.ToString("x2"));
+        }
+        return builder.ToString();
     }
 }

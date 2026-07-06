@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<BooktiqueContext> DbFactory
+@inject Booktique.Models.Services.ChatNotificationService NotificationService
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
@@ -243,26 +244,44 @@
 </style>
 
 @code {
-    [Parameter] public int OrderId { get; set; }
+    [Parameter]
+    public int OrderId { get; set; }
     private Order? order;
 
-    protected override async Task OnInitializedAsync()
+    [SupplyParameterFromQuery]
+    private int? notifId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
     {
-        await LoadOrderDetails();
-        await CheckAndMarkAsRead();
+        if (OrderId > 0)
+        {
+            await LoadOrderDetails();
+            await CheckAndMarkAsRead();
+        }
     }
 
     private async Task CheckAndMarkAsRead()
     {
-        var uri = Nav.ToAbsoluteUri(Nav.Uri);
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("notifId", out var notifIdStr))
+        if (notifId.HasValue && notifId.Value > 0)
         {
-            if (int.TryParse(notifIdStr, out int notifId))
+            await using var context = await DbFactory.CreateDbContextAsync();
+            var notification = await context.Notification
+                .FirstOrDefaultAsync(n => n.NotificationId == notifId.Value && !n.IsRead);
+
+            if (notification != null)
             {
-                await using var ctx = await DbFactory.CreateDbContextAsync();
-                await ctx.Notification
-                    .Where(n => n.NotificationId == notifId && !n.IsRead)
-                    .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+                notification.IsRead = true;
+                await context.SaveChangesAsync();
+
+                var totalBackInStockInDb = await context.Notification
+                    .Where(n => !n.IsRead && n.BookId != null)
+                    .CountAsync();
+
+                var totalOrdersInDb = await context.Notification
+                    .Where(n => !n.IsRead && n.OrderId != null)
+                    .CountAsync();
+
+                NotificationService.UpdateBackInStockCount(totalBackInStockInDb);
             }
         }
     }

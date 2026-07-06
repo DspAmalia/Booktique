@@ -141,9 +141,9 @@
         border: none;
     }
 
-        .btn-warning:hover {
-            background-color: #e2c035;
-        }
+    .btn-warning:hover {
+        background-color: #e2c035;
+    }
 
     .form-control:focus {
         border-color: var(--brown-primary);
@@ -165,7 +165,6 @@
             opacity: 0;
             transform: translateY(-10px);
         }
-
         to {
             opacity: 1;
             transform: translateY(0);
@@ -192,24 +191,25 @@
 
         using var context = DbFactory.CreateDbContext();
         
-        // verific dacă email-ul există deja
+        // Dacă email-ul există deja
         if (await context.User.AnyAsync(u => u.UserEmail == NewUser.UserEmail))
         {
             ErrorMessage = "Email already registered!";
             return;
         }
 
-        //Setare automată a rolului
+        // Setare automată a rolului
         var role = NewUser.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase)
             ? "Manager"
             : "User";
 
+        // Criptăm parola primită înainte de a o pune în obiectul User
         var user = new User
             {
                 UserName = NewUser.UserName,
-                Password = NewUser.Password,
+                Password = HashPassword(NewUser.Password), 
                 Role = role,
-                UserEmail=NewUser.UserEmail
+                UserEmail = NewUser.UserEmail
             };
 
         context.User.Add(user);
@@ -228,11 +228,15 @@
         NavigationManager.NavigateTo("/");
     }
 
-    // private string HashPassword(string password)
-    // {
-    //     using var sha = SHA256.Create();
-    //     var bytes = Encoding.UTF8.GetBytes(password);
-    //     var hash = sha.ComputeHash(bytes);
-    //     return Convert.ToBase64String(hash);
-    // }
+    private string HashPassword(string password)
+    {
+        using var sha256 = SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        var builder = new StringBuilder();
+        foreach (var b in bytes)
+        {
+            builder.Append(b.ToString("x2"));
+        }
+        return builder.ToString();
+    }
 }

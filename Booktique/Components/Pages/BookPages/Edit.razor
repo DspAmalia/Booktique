@@ -3,6 +3,7 @@
 @using Booktique.Models.MainModels
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject Booktique.Models.Services.ChatNotificationService NotificationService
 @rendermode InteractiveServer
 
 <PageTitle>Edit Book | Booktique</PageTitle>
@@ -197,15 +198,31 @@
 
     private async Task UpdateBook()
     {
-        if (Book!.BookStock < 0) Book.BookStock = 0; 
+        if (Book!.BookStock < 0) Book.BookStock = 0;
         Book.SellerId = null;
 
         using var context = DbFactory.CreateDbContext();
+
+        // 1. Verificăm stocul existent în baza de date ÎNAINTE de modificare
+        var oldStock = await context.Book
+            .AsNoTracking()
+            .Where(b => b.BookId == BookId)
+            .Select(b => b.BookStock)
+            .FirstOrDefaultAsync();
+
+        // 2. Atașăm obiectul modificat din formular
         context.Attach(Book!).State = EntityState.Modified;
 
         try
         {
             await context.SaveChangesAsync();
+
+            // 3. Dacă stocul a pornit de la 0 și acum este mai mare, declanșăm alertele
+            if (oldStock == 0 && Book.BookStock > 0)
+            {
+                await TriggerStockNotificationsAsync(Book.BookId, Book.BookTitle);
+            }
+
             NavigationManager.NavigateTo($"/books/details?bookid={BookId}");
         }
         catch (DbUpdateConcurrencyException)
@@ -216,5 +233,50 @@
             }
             else throw;
         }
+    }
+
+    private async Task TriggerStockNotificationsAsync(int bookId, string bookTitle)
+    {
+        // Folosește direct versiunea Async a fabricii pentru siguranță în Blazor Server
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        var userIds = await context.Favorite
+            .Where(f => f.BookId == bookId)
+            .Select(f => f.UserId)
+            .Distinct()
+            .ToListAsync();
+
+        if (!userIds.Any()) return;
+
+        foreach (var userId in userIds)
+        {
+            var notification = new Notification
+                {
+                    UserId = userId,
+                    OrderId = null,
+                    BookId = bookId, 
+                    Message = $"Book \"{bookTitle}\", which is in your favorites, is back in stock!",
+                    CreatedAt = DateTime.Now,
+                    IsRead = false,
+                    TargetUrl = $"/books/details?bookId={bookId}"
+                };
+
+            context.Notification.Add(notification);
+        }
+
+        // Salvarea efectivă în SQL Server
+        await context.SaveChangesAsync();
+
+        // Actualizează starea serviciului reactiv
+        var totalBackInStockInDb = await context.Notification
+            .Where(n => !n.IsRead && n.BookId != null) // Numărăm doar notificările de stoc
+            .CountAsync();
+
+        var totalOrdersInDb = await context.Notification
+            .Where(n => !n.IsRead && n.OrderId != null) // Numărăm doar notificările de comenzi
+            .CountAsync();
+
+        // Trimitem noile valori către serviciul tău de chat/notificări
+        NotificationService.UpdateBackInStockCount(totalBackInStockInDb);
     }
 }

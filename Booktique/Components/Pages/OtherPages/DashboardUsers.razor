@@ -2,8 +2,10 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
+@using ClosedXML.Excel
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavManager
+@inject IJSRuntime JS
 @attribute [Authorize(Roles = "Manager")]
 @rendermode InteractiveServer
 
@@ -17,11 +19,11 @@
 
     <div class="card shadow-sm border-0 mb-4 p-3 bg-white rounded-4">
         <div class="row g-3 align-items-end">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="small fw-bold text-muted">SEARCH NAME/EMAIL</label>
                 <input type="text" class="form-control" @bind="searchQuery" @bind:event="oninput" placeholder="Search client..." />
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="small fw-bold text-muted">FILTER BY ROLE</label>
                 <select class="form-select" @bind="selectedRole">
                     <option value="">All Roles</option>
@@ -43,6 +45,11 @@
             <div class="col-md-2">
                 <button class="btn btn-warning w-100 rounded-pill text-white fw-bold" @onclick="ApplyFilters">
                     <i class="bi bi-filter"></i> Filter
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100 rounded-pill fw-bold" @onclick="ExportToExcel" disabled="@(filteredUsers == null || !filteredUsers.Any())">
+                    <i class="bi bi-file-earmark-excel"></i> Export
                 </button>
             </div>
             <div class="col-md-2 text-end">
@@ -188,6 +195,73 @@
 
         filteredUsers = await query.OrderByDescending(u => u.UserId).ToListAsync();
         StateHasChanged();
+    }
+
+    private async Task ExportToExcel()
+    {
+        if (filteredUsers == null || !filteredUsers.Any()) return;
+
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.Worksheets.Add("Clients Report");
+
+            // Antet tabel
+            string[] headers = { "Client ID", "Name", "Email", "Role", "Subscription Plan", "Loyalty Points" };
+            for (int i = 0; i < headers.Length; i++)
+                worksheet.Cell(1, i + 1).Value = headers[i];
+
+            var headerRow = worksheet.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#FFF9E6"); // Soft warning-ish tint pentru antet
+
+            int rowIdx = 2;
+            foreach (var user in filteredUsers)
+            {
+                worksheet.Cell(rowIdx, 1).Value = $"#{user.UserId}";
+                worksheet.Cell(rowIdx, 2).Value = user.UserName;
+                worksheet.Cell(rowIdx, 3).Value = user.UserEmail;
+                worksheet.Cell(rowIdx, 4).Value = user.Role ?? "User";
+                worksheet.Cell(rowIdx, 5).Value = user.IsSubscribed == User.SubscriptionLevel.None ? "Standard" : user.IsSubscribed.ToString();
+                worksheet.Cell(rowIdx, 6).Value = user.LoyaltyPoints;
+
+                // Formatare puncte ca număr întreg standard
+                worksheet.Cell(rowIdx, 6).Style.NumberFormat.Format = "#,##0";
+                rowIdx++;
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                var fileBytes = stream.ToArray();
+                var base64String = Convert.ToBase64String(fileBytes);
+                var fileName = $"Booktique_Clients_{DateTime.Now:yyyyMMdd}.xlsx";
+
+                var jsInlineCode = $@"
+                    (function() {{
+                        const byteCharacters = atob('{base64String}');
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {{
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }}
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], {{ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }});
+
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = '{fileName}';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }})();
+                ";
+
+                await JS.InvokeVoidAsync("eval", jsInlineCode);
+            }
+        }
     }
 
     private void GoToPrintClients()

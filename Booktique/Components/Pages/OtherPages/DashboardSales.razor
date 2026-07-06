@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
+@using ClosedXML.Excel
 @inject BooktiqueContext DbContext
 @inject IJSRuntime JS
 @inject IDbContextFactory<BooktiqueContext> DbFactory
@@ -19,11 +20,11 @@
 
     <div class="card shadow-sm border-0 mb-4 p-3 bg-white rounded-4">
         <div class="row g-3 align-items-end">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="small fw-bold text-muted">START DATE</label>
                 <input type="date" class="form-control" @bind="startDate" />
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="small fw-bold text-muted">END DATE</label>
                 <input type="date" class="form-control" @bind="endDate" />
             </div>
@@ -32,8 +33,13 @@
                     <i class="bi bi-filter"></i> Filter
                 </button>
             </div>
-            <div class="col-md-4 text-end">
-                <button class="btn btn-dark rounded-pill px-4 shadow-sm" @onclick="GoToPrintReport">
+            <div class="col-md-3">
+                <button class="btn btn-success w-100 rounded-pill" @onclick="ExportToExcel" disabled="@(filteredSales == null || !filteredSales.Any())">
+                    <i class="bi bi-file-earmark-excel"></i> Export Excel
+                </button>
+            </div>
+            <div class="col-md-3 text-end">
+                <button class="btn btn-dark rounded-pill px-4 shadow-sm w-100" @onclick="GoToPrintReport">
                     <i class="bi bi-printer me-2"></i> Report
                 </button>
             </div>
@@ -110,7 +116,6 @@
     {
         using var context = await DbFactory.CreateDbContextAsync();
 
-        // Luăm începutul zilei pentru StartDate și sfârșitul zilei pentru EndDate
         var start = startDate.Date;
         var end = endDate.Date.AddDays(1).AddTicks(-1);
 
@@ -124,9 +129,75 @@
         StateHasChanged();
     }
 
+    private async Task ExportToExcel()
+    {
+        if (filteredSales == null || !filteredSales.Any()) return;
+
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.Worksheets.Add("Sales Report");
+
+            // Antetul adaptat pentru structura raportului de vânzări
+            string[] headers = { "Order ID", "Date", "Customer ID", "Payment Method", "Total Amount (RON)" };
+            for (int i = 0; i < headers.Length; i++)
+                worksheet.Cell(1, i + 1).Value = headers[i];
+
+            var headerRow = worksheet.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#F1E6D8");
+
+            int rowIdx = 2;
+            foreach (var order in filteredSales)
+            {
+                worksheet.Cell(rowIdx, 1).Value = $"#{order.OrderId}";
+                worksheet.Cell(rowIdx, 2).Value = order.OrderDate.ToString("dd.MM.yyyy HH:mm");
+                worksheet.Cell(rowIdx, 3).Value = $"User #{order.UserId}";
+                worksheet.Cell(rowIdx, 4).Value = order.PaymentMethod?.ToString() ?? "N/A";
+                worksheet.Cell(rowIdx, 5).Value = order.TotalAmount;
+
+                // Formatare celulă ca număr zecimal monetar
+                worksheet.Cell(rowIdx, 5).Style.NumberFormat.Format = "#,##0.00";
+                rowIdx++;
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                var fileBytes = stream.ToArray();
+                var base64String = Convert.ToBase64String(fileBytes);
+                var fileName = $"Booktique_Sales_{DateTime.Now:yyyyMMdd}.xlsx";
+
+                // Injectare inline script executat ca Blob pentru stabilitate maximă
+                var jsInlineCode = $@"
+                    (function() {{
+                        const byteCharacters = atob('{base64String}');
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {{
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }}
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], {{ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }});
+
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = '{fileName}';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }})();
+                ";
+
+                await JS.InvokeVoidAsync("eval", jsInlineCode);
+            }
+        }
+    }
+
     private void GoToPrintReport()
     {
-        // Trimitem datele sub formă de string (yyyy-MM-dd) în URL
         var start = startDate.ToString("yyyy-MM-dd");
         var end = endDate.ToString("yyyy-MM-dd");
         NavManager.NavigateTo($"/admin/reports/sales/{start}/{end}");

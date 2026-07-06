@@ -135,7 +135,7 @@
                                         <td class="fw-bold text-dark">@(item.Book?.BookTitle ?? "Digital Product")</td>
                                         <td class="text-center fw-semibold">@item.Quantity</td>
                                         <td class="text-end text-muted">@item.UnitPrice.ToString("N2") RON</td>
-                                        <td class="text-end fw-bold text-brown">@(item.Quantity * item.UnitPrice).ToString("N2") RON</td>
+                                        <td class="text-end fw-bold text-brown">@((item.Quantity * item.UnitPrice).ToString("N2")) RON</td>
                                     </tr>
                                 }
                             </tbody>
@@ -312,20 +312,29 @@
                 dbOrder.Status = newStatus;
                 dbOrder.LastUpdated = DateTime.Now;
 
+                // 1. Creăm obiectul fără proprietatea TargetUrl pentru moment
                 var notification = new Notification
                     {
                         UserId = dbOrder.UserId,
                         OrderId = dbOrder.OrderId,
-                        Message = $"Statusul comenzii tale #{dbOrder.OrderId} a fost actualizat în: {newStatus}.",
+                        Message = $"Your order status #{dbOrder.OrderId} was updated to: {newStatus}.",
                         CreatedAt = DateTime.Now,
-                        IsRead = false,
-                        TargetUrl = $"/my-orders/{dbOrder.OrderId}"
+                        IsRead = false
+                        // Am scos TargetUrl de aici pentru a evita eroarea de compilare
                     };
 
+                // 2. Adăugăm notificarea în context și salvăm o dată
+                // În acest moment, baza de date generează ID-ul unic pentru cheia primară (ex: 3029)
                 context.Notification.Add(notification);
-
                 await context.SaveChangesAsync();
 
+                // 3. Acum că notification.Id este complet populat și valid, construim URL-ul dorit
+                notification.TargetUrl = $"/order-details/{notification.OrderId}?notifId={notification.NotificationId}";
+
+                // 4. Salvăm din nou pentru a actualiza coloana TargetUrl în baza de date
+                await context.SaveChangesAsync();
+
+                // 5. Actualizăm interfața grafică Blazor
                 order.Status = newStatus;
                 StateHasChanged();
             }

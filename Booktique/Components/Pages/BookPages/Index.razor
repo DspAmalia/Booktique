@@ -250,6 +250,7 @@
         background-repeat: no-repeat;
     }
 
+    /* --- HERO SECTION --- */
     .hero-wrapper {
         background: linear-gradient(135deg, var(--hero-container-bg) 0%, var(--hero-container-accent) 100%);
         border-radius: 40px;
@@ -259,25 +260,37 @@
         backdrop-filter: blur(8px);
     }
 
+
+
     .bg-accent-soft {
         background-color: var(--accent-soft) !important;
     }
+
+
 
     .text-brown-dark {
         color: var(--brown-dark);
     }
 
+
+
     .text-muted-brown {
         color: var(--brown-muted);
     }
+
+
 
     .text-accent-gold {
         accent-color: var(--accent);
     }
 
+
+
     .fw-black {
         font-weight: 800;
     }
+
+
 
     .text-gold-gradient {
         background: linear-gradient(135deg, #cc9933 0%, #f3c675 50%, #996600 100%);
@@ -287,6 +300,8 @@
         position: relative;
         font-weight: 800;
     }
+
+
 
         .text-gold-gradient::after {
             content: '';
@@ -300,6 +315,8 @@
             border-radius: 4px;
         }
 
+
+
     .search-container-modern {
         background: white;
         border-radius: 20px;
@@ -311,11 +328,15 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+
+
         .search-container-modern:focus-within {
             transform: scale(1.02);
             box-shadow: 0 15px 30px rgba(90, 62, 43, 0.1) !important;
             border-color: var(--accent);
         }
+
+
 
     .search-input-modern {
         border: none;
@@ -326,6 +347,8 @@
         color: var(--brown-dark);
     }
 
+
+
     .btn-search-go {
         background: var(--brown-dark);
         color: white;
@@ -335,11 +358,15 @@
         transition: all 0.3s;
     }
 
+
+
         .btn-search-go:hover {
             background: var(--accent);
             color: white;
             transform: translateY(-2px);
         }
+
+
 
     .hero-image-container {
         padding: 30px;
@@ -349,6 +376,8 @@
         justify-content: center;
         position: relative;
     }
+
+
 
     .hero-img-styled {
         border-radius: 30px;
@@ -360,9 +389,13 @@
         width: 100%;
     }
 
+
+
     .hero-wrapper:hover .hero-img-styled {
         transform: rotate(0deg) scale(1.05);
     }
+
+
 
     .floating-badge {
         position: absolute;
@@ -375,6 +408,8 @@
         animation: float 3s ease-in-out infinite;
     }
 
+
+
     .icon-circle {
         background: var(--accent);
         color: white;
@@ -386,61 +421,25 @@
         justify-content: center;
     }
 
-    .very-small {
-        font-size: 0.75rem;
-        color: #888;
-    }
-
     @@keyframes float {
-        0% {
-            transform: translateY(0px);
-        }
-
-        50% {
-            transform: translateY(-15px);
-        }
-
-        100% {
-            transform: translateY(0px);
-        }
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
     }
 
+    /* --- BEST SELLERS --- */
     .top-sales-wrapper {
         background: rgba(255, 255, 255, 0.9);
         border-radius: 30px;
         border: 2px solid var(--accent) !important;
         box-shadow: 0 10px 30px rgba(240, 165, 0, 0.1) !important;
-        backdrop-filter: blur(4px);
-    }
-
-    .icon-badge-large {
-        background: var(--accent);
-        width: 60px;
-        height: 60px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        box-shadow: 0 10px 20px rgba(240, 165, 0, 0.3);
     }
 
     .top-books-scroll-container {
         width: 100%;
         overflow-x: auto;
         padding-bottom: 20px;
-        scrollbar-width: thin;
-        scrollbar-color: var(--accent) transparent;
     }
-
-        .top-books-scroll-container::-webkit-scrollbar {
-            height: 6px;
-        }
-
-        .top-books-scroll-container::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 10px;
-        }
 
     .top-books-scroll {
         display: flex;
@@ -449,10 +448,7 @@
         min-width: max-content;
     }
 
-    .top-book-item {
-        position: relative;
-        flex: 0 0 auto;
-    }
+    .top-book-item { position: relative; flex: 0 0 auto; }
 
     .rank-number {
         position: absolute;
@@ -474,41 +470,15 @@
         overflow: hidden;
         cursor: pointer;
         z-index: 2;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         background: #fff;
+        transition: transform 0.3s ease;
     }
 
-        .top-book-card:hover {
-            transform: translateY(-15px) rotate(2deg);
-        }
+    .top-book-card:hover { transform: translateY(-10px); }
+    .top-book-img-wrapper { width: 100%; height: 100%; padding: 10px; }
+    .top-book-img { width: 100%; height: 100%; object-fit: contain; }
 
-    .top-book-img-wrapper {
-        width: 100%;
-        height: 100%;
-        padding: 10px;
-    }
-
-    .top-book-img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .top-book-info-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(transparent, rgba(0,0,0,0.8));
-        padding: 20px 15px 10px;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .top-book-card:hover .top-book-info-overlay {
-        opacity: 1;
-    }
-
+    /* --- FILTERS SIDEBAR --- */
     .filters-sidebar {
         background: rgba(255, 255, 255, 0.9);
         border-radius: 24px;
@@ -544,13 +514,12 @@
         border-radius: 12px;
         padding: 10px;
         font-size: 0.85rem;
-        transition: all 0.3s;
     }
 
-    /* --- SECȚIUNEA REVIZUITĂ PENTRU ALINIERE ȘI RESPONSIVENESS IN PAGINĂ --- */
+    /* --- COLOANE CĂRȚI (GRID RESPONSIV MODIFICAT) --- */
     .books-grid {
         display: grid;
-        /* Folosim auto-fill cu minmax ca să adaptăm numărul de coloane la lățimea ecranului și să NU mai iasă din pagină */
+        /* Pe PC: Cărțile au o mărime ideală de 180px-220px și se așează automat pe mai multe coloane */
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 1.5rem;
         padding-bottom: 50px;
@@ -560,82 +529,139 @@
         background: #fff;
         border-radius: 12px;
         overflow: hidden;
-        transition: all 0.4s ease;
+        transition: all 0.3s ease;
         height: 100%;
         position: relative;
-        border: 1px solid transparent;
+        border: 1px solid rgba(90, 62, 43, 0.05);
         display: flex;
         flex-direction: column;
     }
 
-    .book-card-wrapper {
-        transition: transform 0.3s ease;
+    .book-card-wrapper:hover .book-card {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(90, 62, 43, 0.08) !important;
     }
 
-        .book-card-wrapper:hover {
-            transform: translateY(-10px);
-        }
-
-    .book-img-container {
-        position: relative;
-        width: 100%;
-        /* Stabilim un raport de aspect fix 2:3 pentru a asigura dimensiuni perfect identice la imagini */
-        aspect-ratio: 2 / 3;
-        background: #fff;
-    }
-
-    .book-img {
-        width: 100%;
-        height: 100%;
-        /* Ocupă tot containerul uniform, eliminând diferențele de înălțime dintre coperți */
-        object-fit: cover;
-        display: block;
-    }
-
-    .book-info {
-        flex-grow: 1;
-    }
+    .book-img-container { position: relative; width: 100%; aspect-ratio: 2 / 3; background: #fff; }
+    .book-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .book-info { flex-grow: 1; padding: 12px !important; }
+    .book-title { font-size: 0.95rem; line-height: 1.2; max-height: 2.4em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal !important; }
+    .book-author { font-size: 0.8rem; margin-bottom: 4px; }
+    .book-price { font-size: 1rem; color: #f0a500; font-weight: 800; }
 
     .wishlist-btn {
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 8px;
+        right: 8px;
         background: white;
         border: none;
         border-radius: 50%;
-        width: 35px;
-        height: 35px;
+        width: 30px;
+        height: 30px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         z-index: 11;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .is-sold-out {
-        filter: grayscale(1);
-        opacity: 0.6;
-    }
+    .is-sold-out { filter: grayscale(1); opacity: 0.6; }
+    .sold-out-badge { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 20; font-size: 0.8rem; }
+    .btn-outline-brown { border-color: #5a3e2b; color: #5a3e2b; }
+    .btn-outline-brown:hover { background-color: #5a3e2b; color: white; }
 
-    .sold-out-badge {
-        position: absolute;
-        top: 40%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 20;
-    }
-
-    .text-accent-yellow {
-        color: #f0a500;
-        font-weight: 800;
-    }
-
-    .btn-outline-brown {
-        border-color: #5a3e2b;
-        color: #5a3e2b;
-    }
-
-        .btn-outline-brown:hover {
-            background-color: #5a3e2b;
-            color: white;
+    /* =========================================================================
+       --- MEDIA QUERIES GENERATE SPECIAL PENTRU ECRANELE DE TELEFON ---
+       ========================================================================= */
+    @@media (max-width: 767.98px) {
+        /* 1. Grid-ul principal: Forțăm exact 2 cărți pe rând pe telefon pentru a arăta compact și curat */
+        .books-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.75rem !important; /* Spațiu mai mic între ele ca să încapă perfect */
+            padding-bottom: 30px;
         }
+
+        /* 2. Filtrele: În loc de o bară verticală mare, le transformăm într-o zonă orizontală simplă */
+        .filters-sidebar {
+            position: relative !important;
+            top: 0 !important;
+            padding: 15px !important;
+            margin-bottom: 20px;
+            border-radius: 16px;
+        }
+        
+        /* 3. Hero Section: Îl rearanjăm să nu ocupe tot ecranul inutil */
+        .hero-wrapper {
+            border-radius: 20px;
+        }
+        .hero-wrapper .p-5 {
+            padding: 20px !important;
+        }
+        .hero-title {
+            font-size: 1.8rem !important;
+            line-height: 1.2;
+        }
+        .lead {
+            font-size: 0.85rem !important;
+            margin-bottom: 15px !important;
+        }
+        .search-container-modern {
+            padding: 4px;
+        }
+        .search-input-modern {
+            padding: 8px 10px;
+            font-size: 0.9rem;
+        }
+        .btn-search-go {
+            padding: 6px 15px;
+            font-size: 0.9rem;
+        }
+
+        /* 4. Best Sellers: Reducem dimensiunile textului din spate (cifrele de rank) ca să nu se suprapună urât */
+        .top-sales-wrapper {
+            padding: 20px !important;
+            border-radius: 20px;
+        }
+        .top-books-scroll {
+            gap: 2.5rem;
+            padding: 15px 20px 20px 50px;
+        }
+        .rank-number {
+            font-size: 6rem;
+            left: -45px;
+            bottom: -10px;
+        }
+        .top-book-card {
+            width: 130px;
+            height: 190px;
+        }
+
+        /* 5. Cărțile devin mai finuțe din punct de vedere font și margini */
+        .book-title {
+            font-size: 0.85rem !important;
+        }
+        .book-author {
+            font-size: 0.75rem !important;
+        }
+        .book-price {
+            font-size: 0.9rem !important;
+        }
+    }
+
+    /* Optimizare extra pentru telefoane foarte înguste (sub 380px lățime ecran) */
+    @@media (max-width: 375px) {
+        .books-grid {
+            /* Dacă ecranul e extrem de mic, lăsăm 2 coloane dar micșorăm padding-ul textului */
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.5rem !important;
+        }
+        .book-info {
+            padding: 8px !important;
+        }
+        .hero-title {
+            font-size: 1.5rem !important;
+        }
+    }
 </style>
 
 @code {

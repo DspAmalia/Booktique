@@ -480,7 +480,7 @@
                             if (bookInDb.BookStock < item.Quantity)
                             {
                                 // Oprim tranzacția dacă cineva a cumpărat între timp și stocul e insuficient
-                                throw new Exception($"Stoc insuficient pentru cartea: '{bookInDb.BookTitle}'. Stoc rămas: {bookInDb.BookStock}.");
+                                throw new Exception($"Insufficient stock for the book: '{bookInDb.BookTitle}'. Remaining stock: {bookInDb.BookStock}.");
                             }
 
                             // Scădem cantitatea comandată din stoc
@@ -527,7 +527,7 @@
                         {
                             UserId = userIdInt,
                             OrderId = o.OrderId,
-                            Message = $"Comanda ta #{o.OrderId} a fost plasată cu succes.",
+                            Message = $"Your order #{o.OrderId} has been registered successfully.",
                             CreatedAt = DateTime.Now,
                             IsRead = false,
                             TargetUrl = $"/my-orders/{o.OrderId}"

@@ -14,14 +14,17 @@
 
 <div class="page">
     <main>
-        <div class="top-row px-4 shadow-sm d-flex align-items-center justify-content-between">
+        <!-- TOPBAR -->
+        <header class="top-row px-3 shadow-sm d-flex align-items-center justify-content-between">
 
-            <div class="d-flex align-items-center gap-3">
-                <a class="navbar-brand me-4" href="">
-                    <strong style="color: #2d3436; font-size: 1.4rem;">Booktique</strong>
+            <!-- Zona Stânga: Brand & Navigație Principală -->
+            <div class="d-flex align-items-center flex-grow-1 overflow-hidden me-2">
+                <a class="navbar-brand me-3" href="">
+                    <strong>Booktique</strong>
                 </a>
 
-                <nav class="d-none d-md-flex align-items-center gap-2">
+                <!-- Am eliminat d-none și am adăugat clasa custom 'nav-scrollable' -->
+                <nav class="nav-scrollable d-flex align-items-center gap-1">
                     <NavLink class="nav-horizontal-link" href="" Match="NavLinkMatch.All">
                         <i class="bi bi-house-door"></i> Home
                     </NavLink>
@@ -33,11 +36,9 @@
                     {
                         <NavLink class="nav-horizontal-link position-relative d-inline-flex align-items-center" href="/chat">
                             <i class="bi bi-chat-dots me-1"></i> Messenger
-
                             @if (NotificationService.TotalUnreadCount > 0)
                             {
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm"
-                                      style="font-size: 0.65rem; padding: 0.25em 0.45em; transform: translate(-10%, -30%) !important; z-index: 10;">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm badge-messenger">
                                     @NotificationService.TotalUnreadCount
                                 </span>
                             }
@@ -52,36 +53,31 @@
                 </nav>
             </div>
 
-            <div class="d-flex align-items-center gap-2">
+            <!-- Zona Dreapta: Panouri Administrative, Notificări, Utilizator (Rămâne neschimbată, dar compactată) -->
+            <div class="d-flex align-items-center gap-1 flex-shrink-0">
 
-                <AuthorizeView Roles="Manager, Admin">
-                    <a class="nav-horizontal-link admin-theme" href="/admin/dashboard" title="Dashboard">
+                <AuthorizeView Roles="Admin, Administrator, Manager">
+                    <a class="nav-horizontal-link admin-theme p-2" href="/admin/dashboard" title="Admin Dashboard">
                         <i class="bi bi-speedometer2"></i>
                     </a>
                 </AuthorizeView>
 
-                <AuthorizeView Roles="Administrator">
-                    <a class="nav-horizontal-link admin-theme" href="/admin/manage-users" title="Manage-User">
-                        <i class="bi bi-speedometer2"></i>
-                    </a>
-                </AuthorizeView>
-
-                <AuthorizeView Roles="User, Manager">
+                <AuthorizeView Roles="User, Manager, Admin, Administrator">
                     <Authorized>
-                        <div class="dropdown ms-2">
-                            <a class="nav-horizontal-link position-relative dropdown-trigger-btn"
+                        <div class="dropdown">
+                            <a class="nav-horizontal-link position-relative dropdown-trigger-btn p-2"
                                type="button"
                                data-bs-toggle="dropdown"
                                aria-expanded="false">
                                 <i class="bi bi-bell"></i>
                                 @if (unreadCount > 0)
                                 {
-                                    <span class="cart-badge bg-danger" style="top: 2px; right: 2px;">
+                                    <span class="cart-badge bg-danger">
                                         @unreadCount
                                     </span>
                                 }
                             </a>
-
+                            <!-- Meniul dropdown de notificări rămâne la fel -->
                             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-modern notification-dropdown shadow-lg border-0 p-0">
                                 <li class="dropdown-header-modern">
                                     <span class="fw-bold text-brown-dark">Notifications</span>
@@ -93,116 +89,133 @@
                                 <div class="dropdown-scroll-area">
                                     @if (userNotifications == null || !userNotifications.Any())
                                     {
-                                        <li class="text-center py-4 px-3 text-muted-brown fs-7">
-                                            <i class="bi bi-bell-slash d-block fs-3 mb-2 opacity-50"></i>
-                                            You don't have new notifications.
-                                        </li>
+                                    <li class="text-center py-4 px-3 text-muted-brown fs-7">
+                                        <i class="bi bi-bell-slash d-block fs-3 mb-2 opacity-50"></i>
+                                        You don't have new notifications.
+                                    </li>
                                     }
                                     else
                                     {
                                         @foreach (var n in userNotifications)
                                         {
-                                            <li>
-                                                <a class="dropdown-item notification-item @(n.IsRead ? "is-read" : "is-unread")"
-                                                   href="/order-details/@n.OrderId?notifId=@n.NotificationId">
-                                                    <div class="d-flex gap-2 align-items-start w-100">
+                                        <li>
+                                            <a class="dropdown-item notification-item @(n.IsRead ? "is-read" : "is-unread")"
+                                               href="@(
+                                                    string.IsNullOrEmpty(n.TargetUrl)
+                                                        ? $"/order-details/{n.OrderId}?notifId={n.NotificationId}"
+                                                        : (n.TargetUrl.Contains("notifId=")
+                                                            ? n.TargetUrl
+                                                            : (n.TargetUrl.Contains("?") ? $"{n.TargetUrl}&notifId={n.NotificationId}" : $"{n.TargetUrl}?notifId={n.NotificationId}"))
+                                                )">
+                                                <div class="d-flex gap-2 align-items-start w-100">
                                                         @if (!n.IsRead)
                                                         {
-                                                            <span class="notification-dot mt-1.5"></span>
+                                                        <span class="notification-dot mt-1.5"></span>
                                                         }
-                                                        <div class="flex-grow-1">
-                                                            <div class="notification-msg mb-1">@n.Message</div>
-                                                            <div class="notification-time">@n.CreatedAt.ToString("g")</div>
+                                                    <div class="flex-grow-1">
+                                                        <div class="notification-msg mb-1">
+                                                                @* iconiță diferită în funcție de tipul notificării (Comandă sau Carte) *@
+                                                                @if (n.OrderId != null)
+                                                                {
+                                                                <i class="bi bi-box-seam text-primary me-1"></i>
+                                                                }
+                                                                else
+                                                                {
+                                                                <i class="bi bi-heart-fill text-danger me-1"></i>
+                                                                }
+                                                                @n.Message
                                                         </div>
+                                                        <div class="notification-time">@n.CreatedAt.ToString("g")</div>
                                                     </div>
-                                                </a>
-                                            </li>
+                                                </div>
+                                            </a>
+                                        </li>
                                         }
                                     }
-                                </div>
-                                <li class="dropdown-footer-modern">
-                                    <span class="fs-7 text-muted opacity-75">Recent updates</span>
-                                </li>
-                            </ul>
                         </div>
-                    </Authorized>
-                </AuthorizeView>
+                        <li class="dropdown-footer-modern">
+                            <span class="fs-7 text-muted opacity-75">Recent updates</span>
+                        </li>
+                        </ul>
+            </div>
+            </Authorized>
+            </AuthorizeView>
 
-                <AuthorizeView>
-                    <Authorized>
-                        <NavLink class="nav-horizontal-link" href="/contact">
-                            <i class="bi bi-headset"></i> Contact
-                        </NavLink>
-                        <div class="dropdown ms-2">
-                            <button class="user-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <AuthorizeView>
+                <Authorized>
+                    <NavLink class="nav-horizontal-link d-none d-lg-flex" href="/contact">
+                        <i class="bi bi-headset"></i> Contact
+                    </NavLink>
+
+                    <div class="dropdown">
+                        <button class="user-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 @if (!string.IsNullOrEmpty(profilePictureUrl))
                                 {
-                                    <img src="@profilePictureUrl" class="user-avatar-nav" alt="Profile" />
+                                <img src="@profilePictureUrl" class="user-avatar-nav" alt="Profile" />
                                 }
                                 else
                                 {
-                                    <span class="user-initial">@context.User.Identity?.Name?[0].ToString().ToUpper()</span>
+                                <span class="user-initial">@context.User.Identity?.Name?[0].ToString().ToUpper()</span>
                                 }
-                                <span class="d-none d-sm-inline ms-1 text-brown-dark fw-semibold fs-7">@context.User.Identity?.Name</span>
-                                <i class="bi bi-chevron-down ms-1 fs-8 text-muted opacity-70"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-modern user-dropdown shadow-lg border-0 p-2">
-                                <li class="user-dropdown-info px-3 py-2 mb-2 border-bottom-subtle">
-                                    <div class="fs-7 text-muted">Connected as</div>
-                                    <div class="fw-bold text-brown-dark text-truncate">@context.User.Identity?.Name</div>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item text-dark" href="/profile">
-                                        <i class="bi bi-person me-2 text-muted"></i>Profile
-                                    </a>
-                                </li>
-
-                                <li>
-                                    <a class="dropdown-item text-dark d-flex align-items-center justify-content-between" href="/cart">
-                                        <span><i class="bi bi-cart3 me-2 text-muted"></i>Cart</span>
+                            <span class="d-none d-sm-inline ms-1 text-brown-dark fw-semibold fs-7">@context.User.Identity?.Name</span>
+                            <i class="bi bi-chevron-down ms-1 fs-8 text-muted opacity-70"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-modern user-dropdown shadow-lg border-0 p-2">
+                            <li class="user-dropdown-info px-3 py-2 mb-2">
+                                <div class="fs-7 text-muted">Connected as</div>
+                                <div class="fw-bold text-brown-dark text-truncate">@context.User.Identity?.Name</div>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-dark" href="/profile">
+                                    <i class="bi bi-person me-2 text-muted"></i>Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-dark d-flex align-items-center justify-content-between" href="/cart">
+                                    <span><i class="bi bi-cart3 me-2 text-muted"></i>Cart</span>
                                         @if (cartService.Items.Any())
                                         {
-                                            <span class="badge bg-accent text-white rounded-pill px-2 py-0.5 fs-8">
+                                        <span class="badge bg-accent text-white rounded-pill px-2 py-0.5 fs-8">
                                                 @cartService.Items.Sum(i => i.Quantity)
-                                            </span>
+                                        </span>
                                         }
-                                    </a>
-                                </li>
-
-                                <AuthorizeView Roles="User, Manager" Context="SubContext">
-                                    <li>
-                                        <a class="dropdown-item text-dark" href="/subscriptions">
-                                            <i class="bi bi-star me-2 text-muted"></i>Subscriptions
-                                        </a>
-                                    </li>
-                                </AuthorizeView>
-
-                                <li class="my-2 border-top-subtle"></li>
+                                </a>
+                            </li>
+                            <AuthorizeView Roles="User, Manager" Context="SubContext">
                                 <li>
-                                    <a class="dropdown-item logout-item" href="/logout">
-                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                    <a class="dropdown-item text-dark" href="/subscriptions">
+                                        <i class="bi bi-star me-2 text-muted"></i>Subscriptions
                                     </a>
                                 </li>
-                            </ul>
-                        </div>
-                    </Authorized>
-                    <NotAuthorized>
-                        <a href="/login" class="login-pill">Login</a>
-                    </NotAuthorized>
-                </AuthorizeView>
-            </div>
-        </div>
+                            </AuthorizeView>
+                            <li class="my-2 border-top-subtle"></li>
+                            <li>
+                                <a class="dropdown-item logout-item" href="/logout">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login" class="login-pill">Login</a>
+                </NotAuthorized>
+            </AuthorizeView>
+</div>
+</header>
 
-        <article class="content px-4">
+<!-- CONȚINUT PAGINĂ -->
+<article class="content px-4">
             @Body
 
-            <div class="ai-floating-container">
-                <a href="/ask-ai" class="btn btn-ai-chat shadow-lg d-flex align-items-center justify-content-center text-decoration-none">
-                    <i class="bi bi-magic me-2"></i>
-                    <span class="fw-bold d-none d-sm-inline">Booktique AI</span>
-                </a>
-            </div>
-        </article>
+    <!-- Buton plutitor AI -->
+    <div class="ai-floating-container">
+        <a href="/ask-ai" class="btn btn-ai-chat shadow-lg d-flex align-items-center justify-content-center text-decoration-none">
+            <i class="bi bi-magic me-2"></i>
+            <span class="fw-bold d-none d-sm-inline">Booktique AI</span>
+        </a>
+    </div>
+</article>
     </main>
 </div>
 
@@ -215,70 +228,7 @@
         --dropdown-bg: #ffffff;
     }
 
-    .ai-floating-container {
-        position: fixed;
-        bottom: 25px; 
-        right: 25px; 
-        z-index: 9999; 
-    }
-
-    .btn-ai-chat {
-        background: linear-gradient(135deg, #f0a500 0%, #d48802 100%);
-        color: white;
-        border: none;
-        padding: 12px 20px;
-        border-radius: 50px; 
-        font-size: 1rem;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .btn-ai-chat:hover {
-        transform: translateY(-3px); 
-        box-shadow: 0 8px 15px rgba(240, 165, 0, 0.4);
-        color: white;
-    }
-
-    .checkbox {
-        opacity: 0;
-        position: absolute;
-    }
-
-    .checkbox-label {
-        background-color: #5a3e2b;
-        width: 50px;
-        height: 26px;
-        border-radius: 50px;
-        position: relative;
-        padding: 5px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .bi-moon-fill {
-        color: #f1c40f;
-    }
-
-    .bi-sun-fill {
-        color: #f39c12;
-    }
-
-    .ball {
-        background-color: #fff;
-        width: 22px;
-        height: 22px;
-        position: absolute;
-        left: 2px;
-        top: 2px;
-        border-radius: 50%;
-        transition: transform 0.2s linear;
-    }
-
-    .checkbox:checked + .checkbox-label .ball {
-        transform: translateX(24px);
-    }
-
+    /* Topbar Core layout */
     .top-row {
         min-height: 4.5rem;
         height: auto;
@@ -287,32 +237,68 @@
         position: sticky;
         top: 0;
         z-index: 2000 !important;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
         padding: 0.5rem 1.5rem;
         flex-wrap: wrap;
         gap: 10px;
+    }
+
+    .navbar-brand strong {
+        color: #2d3436;
+        font-size: 1.4rem;
     }
 
     .nav-horizontal-link, .user-pill, .login-pill {
         flex-shrink: 0;
     }
 
-    @@media (max-width: 576px) {
-        .top-row {
-            padding: 0.5rem 0.5rem;
-            justify-content: center;
+    .nav-horizontal-link {
+        color: #4a3325;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .nav-horizontal-link:hover {
+            color: #2d1a0f !important;
+            background-color: rgba(61, 43, 31, 0.06);
         }
 
-        .nav-horizontal-link {
-            padding: 0.5rem 0.5rem;
-            font-size: 0.9rem;
+        .nav-horizontal-link.active {
+            color: var(--brown-dark) !important;
+            background-color: rgba(61, 43, 31, 0.12) !important;
         }
 
-        .user-pill {
-            padding: 2px 6px 2px 2px !important;
-        }
+    .admin-theme {
+        color: #6c5ce7;
+    }
+
+    /* Badges */
+    .cart-badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: #ff4757;
+        color: white;
+        font-size: 0.65rem;
+        padding: 2px 5px;
+        border-radius: 50%;
+    }
+
+    .badge-messenger {
+        font-size: 0.65rem;
+        padding: 0.25em 0.45em;
+        transform: translate(-10%, -30%) !important;
+        z-index: 10;
+    }
+
+    /* Dropdowns */
+    .dropdown-trigger-btn {
+        cursor: pointer;
     }
 
     .dropdown-menu-modern {
@@ -325,15 +311,15 @@
         background-color: var(--dropdown-bg);
         border-radius: 16px;
         margin-top: 12px !important;
-        overflow: hidden; 
+        overflow: hidden;
     }
 
-    .dropdown-menu-modern.show {
-        visibility: visible;
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        pointer-events: auto;
-    }
+        .dropdown-menu-modern.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
 
     .notification-dropdown {
         width: 340px;
@@ -343,7 +329,6 @@
         width: 220px;
     }
 
-    /* Dropdown Header & Footer Custom Layouts */
     .dropdown-header-modern {
         padding: 14px 18px;
         border-bottom: 1px solid rgba(74, 51, 37, 0.06);
@@ -368,11 +353,10 @@
         border-bottom-right-radius: 16px;
     }
 
-    /* Individual Dropdown Items Styling */
     .dropdown-item {
         padding: 10px 16px;
-        margin: 0 8px; /
-        width: calc(100% - 16px); 
+        margin: 0 8px;
+        width: calc(100% - 16px);
         border-radius: 10px;
         transition: all 0.2s ease;
         color: var(--brown-dark);
@@ -382,13 +366,13 @@
         align-items: center;
     }
 
-    .dropdown-item:hover {
-        background-color: var(--accent-soft);
-        color: var(--brown-dark);
-        padding-left: 20px; 
-    }
+        .dropdown-item:hover {
+            background-color: var(--accent-soft);
+            color: var(--brown-dark);
+            padding-left: 20px;
+        }
 
-    /* Specific Notification Layout */
+    /* Notification Items */
     .notification-item {
         border-radius: 0;
         padding: 12px 18px;
@@ -398,17 +382,17 @@
         white-space: normal;
     }
 
-    .notification-item:hover {
-        padding-left: 22px; 
-    }
+        .notification-item:hover {
+            padding-left: 22px;
+        }
 
-    .notification-item.is-unread {
-        background-color: rgba(240, 165, 0, 0.03);
-    }
+        .notification-item.is-unread {
+            background-color: rgba(240, 165, 0, 0.03);
+        }
 
-    .notification-item.is-unread:hover {
-        background-color: var(--accent-soft);
-    }
+            .notification-item.is-unread:hover {
+                background-color: var(--accent-soft);
+            }
 
     .notification-dot {
         width: 7px;
@@ -435,81 +419,7 @@
         color: #b2bec3;
     }
 
-    /* User details header inside layout */
-    .user-dropdown-info {
-        border-bottom: 1px solid rgba(74, 51, 37, 0.06);
-    }
-
-    .border-bottom-subtle {
-        border-bottom: 1px solid rgba(74, 51, 37, 0.06);
-    }
-
-    .border-top-subtle {
-        border-top: 1px solid rgba(74, 51, 37, 0.06);
-    }
-
-    .logout-item {
-        color: #dc3545 !important;
-    }
-    .logout-item:hover {
-        background-color: rgba(220, 53, 69, 0.08);
-    }
-
-    .dropdown-toggle::after {
-        display: none;
-    }
-
-    /* Utility font adjustments */
-    .fs-7 { font-size: 0.85rem !important; }
-    .fs-8 { font-size: 0.75rem !important; }
-    .text-accent { color: var(--accent) !important; }
-    .bg-accent-soft { background-color: var(--accent-soft) !important; }
-    .bg-accent { background-color: var(--accent) !important; }
-    .text-brown-dark { color: var(--brown-dark) !important; }
-    .text-muted-brown { color: var(--brown-muted) !important; }
-
-    /* --- BASIC COMPONENT STYLES --- */
-    .nav-horizontal-link {
-        color: #4a3325;
-        text-decoration: none;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .dropdown-trigger-btn {
-        cursor: pointer;
-    }
-
-    .nav-horizontal-link:hover {
-        color: #2d1a0f !important;
-        background-color: rgba(61, 43, 31, 0.06);
-    }
-
-    .nav-horizontal-link.active {
-        color: var(--brown-dark) !important;
-        background-color: rgba(61, 43, 31, 0.12) !important;
-    }
-
-    .admin-theme {
-        color: #6c5ce7;
-    }
-
-    .cart-badge {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        background: #ff4757;
-        color: white;
-        font-size: 0.65rem;
-        padding: 2px 5px;
-        border-radius: 50%;
-    }
-
+    /* User Pill */
     .user-pill {
         background: #f8f9fa;
         border: 1px solid rgba(74, 51, 37, 0.1);
@@ -522,10 +432,10 @@
         transition: all 0.2s ease;
     }
 
-    .user-pill:hover {
-        background: #f1f3f5;
-        border-color: rgba(74, 51, 37, 0.2);
-    }
+        .user-pill:hover {
+            background: #f1f3f5;
+            border-color: rgba(74, 51, 37, 0.2);
+        }
 
     .user-avatar-nav {
         width: 32px !important;
@@ -556,6 +466,96 @@
         border-radius: 50px;
         text-decoration: none;
         font-weight: 500;
+    }
+
+    .user-dropdown-info {
+        border-bottom: 1px solid rgba(74, 51, 37, 0.06);
+    }
+
+    .border-bottom-subtle, .border-top-subtle {
+        border-color: rgba(74, 51, 37, 0.06) !important;
+    }
+
+    .logout-item {
+        color: #dc3545 !important;
+    }
+
+        .logout-item:hover {
+            background-color: rgba(220, 53, 69, 0.08);
+        }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+
+    /* Floating AI Button */
+    .ai-floating-container {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 9999;
+    }
+
+    .btn-ai-chat {
+        background: linear-gradient(135deg, #f0a500 0%, #d48802 100%);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 50px;
+        font-size: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .btn-ai-chat:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(240, 165, 0, 0.4);
+            color: white;
+        }
+
+    /* Utilities */
+    .fs-7 {
+        font-size: 0.85rem !important;
+    }
+
+    .fs-8 {
+        font-size: 0.75rem !important;
+    }
+
+    .text-accent {
+        color: var(--accent) !important;
+    }
+
+    .bg-accent-soft {
+        background-color: var(--accent-soft) !important;
+    }
+
+    .bg-accent {
+        background-color: var(--accent) !important;
+    }
+
+    .text-brown-dark {
+        color: var(--brown-dark) !important;
+    }
+
+    .text-muted-brown {
+        color: var(--brown-muted) !important;
+    }
+
+    /* Media queries */
+    @@media (max-width: 576px) {
+        .top-row {
+            padding: 0.5rem 0.5rem;
+            justify-content: center;
+        }
+
+        .nav-horizontal-link {
+            padding: 0.5rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .user-pill {
+            padding: 2px 6px 2px 2px !important;
+        }
     }
 </style>
 

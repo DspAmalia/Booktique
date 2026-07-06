@@ -6,81 +6,85 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-<div class="container-fluid pb-5">
-    <div class="d-flex align-items-center justify-content-between mt-4 mb-4">
-        <h2 class="mb-0">My <strong>Favorite Books</strong></h2>
-        <div class="d-flex gap-3">
-            <button class="btn btn-outline-dark rounded-pill shadow-sm" @onclick="ShowFolderModal">
-                <i class="bi bi-folder-plus me-2"></i>New Folder
-            </button>
-        </div>
+<div class="container-fluid pb-5 px-2 px-md-4">
+    <div class="d-flex align-items-center justify-content-between mt-4 mb-4 border-bottom pb-3 gap-2">
+        <h2 class="mb-0 fs-3 fw-light">My <strong class="fw-bold">Favorite Books</strong></h2>
+        <button class="btn btn-sm btn-dark rounded-pill shadow-sm px-3 py-2 text-nowrap" style="font-size: 0.85rem;" @onclick="ShowFolderModal">
+            <i class="bi bi-folder-plus me-1"></i>New Folder
+        </button>
     </div>
 
     @if (!isAuthenticated)
     {
-        <div class="text-center p-5"><div class="spinner-border text-warning"></div><p>Redirecting...</p></div>
+        <div class="text-center p-5"><div class="spinner-border text-warning"></div><p class="mt-2">Redirecting...</p></div>
     }
     else if (favoriteBooks is null)
     {
-        <div class="text-center p-5"><div class="spinner-border text-warning"></div><p>Loading your collection...</p></div>
+        <div class="text-center p-5"><div class="spinner-border text-warning"></div><p class="mt-2">Loading your collection...</p></div>
     }
     else
     {
         <div class="favorites-layout">
+            <!-- Sidebar / Navigare Foldere -->
             <aside class="folder-sidebar">
-                <h5 class="fw-bold mb-3 px-2 text-uppercase small letter-spacing-1">Your Library</h5>
-
-                <div class="folder-nav-item @(activeFolderId == null ? "active" : "")" @onclick="() => SelectFolder(null)">
-                    <div class="d-flex justify-content-between align-items-center w-100">
-                        <span><i class="bi bi-grid-fill me-2"></i>Unorganized</span>
-                        <span class="badge rounded-pill bg-light text-dark border">@favoriteBooks.Count</span>
+                <h5 class="fw-bold mb-3 px-2 text-uppercase small letter-spacing-1 d-none d-md-block text-muted">Library Folders</h5>
+                
+                <div class="folder-nav-container">
+                    <div class="folder-nav-item @(activeFolderId == null ? "active" : "")" @onclick="() => SelectFolder(null)">
+                        <div class="d-flex justify-content-between align-items-center w-100 gap-2">
+                            <span class="text-nowrap text-truncate"><i class="bi bi-grid-fill me-2"></i>Unorganized</span>
+                            <span class="badge rounded-pill bg-light text-dark border px-2 py-1">@favoriteBooks.Count</span>
+                        </div>
                     </div>
-                </div>
 
-                @if (userFolders.Any())
-                {
-                    <hr class="my-3 opacity-10">
-                    @foreach (var folder in userFolders)
+                    @if (userFolders.Any())
                     {
-                        <div class="folder-nav-item @(activeFolderId == folder.FolderId ? "active" : "")"
-                             @onclick="() => SelectFolder(folder.FolderId)">
-                            <div class="d-flex justify-content-between align-items-center w-100">
-                                <span class="text-truncate me-2">
-                                    <i class="bi @(activeFolderId == folder.FolderId ? "bi-folder2-open" : "bi-folder2") me-2"></i>
-                                    @folder.FolderName
-                                </span>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge rounded-pill bg-light text-dark border">
-                                        @(folderContents.ContainsKey(folder.FolderId) ? folderContents[folder.FolderId].Count : "0")
+                        @foreach (var folder in userFolders)
+                        {
+                            <div class="folder-nav-item @(activeFolderId == folder.FolderId ? "active" : "")"
+                                 @onclick="() => SelectFolder(folder.FolderId)">
+                                <div class="d-flex justify-content-between align-items-center w-100 gap-2">
+                                    <span class="text-truncate text-nowrap">
+                                        <i class="bi @(activeFolderId == folder.FolderId ? "bi-folder2-open" : "bi-folder2") me-2"></i>
+                                        @folder.FolderName
                                     </span>
-                                    <i class="bi bi-pencil-square text-muted edit-icon" @onclick:stopPropagation="true" @onclick="() => ShowEditFolderModal(folder)"></i>
-                                    <i class="bi bi-trash text-danger edit-icon" @onclick:stopPropagation="true" @onclick="() => DeleteFolder(folder.FolderId)"></i>
+                                    <div class="d-flex align-items-center gap-2 folder-actions">
+                                        <span class="badge rounded-pill bg-light text-dark border px-2 py-1">
+                                            @(folderContents.ContainsKey(folder.FolderId) ? folderContents[folder.FolderId].Count : "0")
+                                        </span>
+                                        <i class="bi bi-pencil-square text-muted edit-icon" @onclick:stopPropagation="true" @onclick="() => ShowEditFolderModal(folder)"></i>
+                                        <i class="bi bi-trash text-danger edit-icon" @onclick:stopPropagation="true" @onclick="() => DeleteFolder(folder.FolderId)"></i>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                     }
-                }
+                </div>
             </aside>
 
+            <!-- Zona de conținut -->
             <main class="content-area">
-                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                    <h4 class="mb-0 fw-bold text-dark">
-                        @(activeFolderId == null ? "Unorganized Books" : userFolders.FirstOrDefault(f => f.FolderId == activeFolderId)?.FolderName)
-                    </h4>
+                <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm border gap-2">
+                    <div class="min-width-0">
+                        <span class="text-muted x-small text-uppercase d-block">Viewing Section</span>
+                        <h4 class="mb-0 fw-bold text-dark fs-5 text-truncate">
+                            @(activeFolderId == null ? "Unorganized Books" : userFolders.FirstOrDefault(f => f.FolderId == activeFolderId)?.FolderName)
+                        </h4>
+                    </div>
                     @if (activeFolderId != null)
                     {
-                        <button class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm" @onclick="() => ShowAddBookPanelForFolder(activeFolderId.Value)">
-                            <i class="bi bi-plus-lg me-1"></i> Add Book Here
+                        <button class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm text-nowrap fw-bold" @onclick="() => ShowAddBookPanelForFolder(activeFolderId.Value)">
+                            <i class="bi bi-plus-lg me-1"></i> Add Book
                         </button>
                     }
                 </div>
 
                 @if (!GetCurrentBooks().Any())
                 {
-                    <div class="text-center p-5 bg-white rounded-4 shadow-sm border border-dashed">
-                        <i class="bi bi-book text-muted opacity-50" style="font-size: 3.5rem;"></i>
-                        <p class="mt-3 text-muted">This section is currently empty.</p>
-                        <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill">Explore Books</a>
+                    <div class="text-center p-5 bg-white rounded-4 shadow-sm border border-dashed my-4">
+                        <i class="bi bi-folder-x text-muted opacity-50" style="font-size: 3rem;"></i>
+                        <p class="mt-3 text-muted">No books in this folder yet.</p>
+                        <a href="/" class="btn btn-sm btn-outline-dark rounded-pill mt-2 px-4">Browse Catalog</a>
                     </div>
                 }
                 else
@@ -95,24 +99,23 @@
                                         <span class="badge bg-danger shadow">SOLD OUT</span>
                                     </div>
                                 }
+                                
                                 <div class="book-card shadow-sm @(book.BookStock == 0 ? "is-sold-out" : "")">
                                     <div class="book-img-container">
                                         <a href="@($"/books/details?bookid={book.BookId}")" class="d-block w-100 h-100 text-center p-3">
                                             <img src="@book.BookCoverPath" alt="@book.BookTitle" class="book-img" />
                                         </a>
 
-                                        @* Butonul de Favorite (Remove) *@
-                                        <button type="button" class="wishlist-btn" title="Remove"
-                                                @onclick="() => HandleBookAction(book.BookId)">
+                                        <button type="button" class="wishlist-btn" @onclick:stopPropagation="true" @onclick="() => HandleBookAction(book.BookId)">
                                             <i class="bi bi-heart-fill text-danger"></i>
                                         </button>
                                     </div>
 
                                     <a class="text-decoration-none text-dark" href="@($"/books/details?bookid={book.BookId}")">
                                         <div class="book-info p-3 d-flex flex-column align-items-center">
-                                            <h6 class="book-title text-truncate text-center w-100 mb-1">
+                                            <h5 class="book-title text-truncate text-center w-100 mb-1">
                                                 <strong>@book.BookTitle</strong>
-                                            </h6>
+                                            </h5>
                                             <p class="book-author text-muted small mb-2 text-center w-100">@book.BookAuthor</p>
                                             <div class="mt-1">
                                                 <span class="book-price fw-bold text-accent-yellow">@book.BookPrice LEI</span>
@@ -129,65 +132,66 @@
     }
 </div>
 
-@* MODAL: ADD FOLDER *@
+@* MODALE ACȚIUNI FOLDERE *@
 @if (showModal)
 {
-    <div class="modal-backdrop d-flex justify-content-center align-items-center" style="background: rgba(0,0,0,0.5); position:fixed; top:0; left:0; width:100%; height:100%; z-index:1050;">
-        <div class="bg-white p-4 rounded-4 shadow-lg" style="width: 400px;">
-            <h5 class="fw-bold mb-3">Create New Folder</h5>
-            <input type="text" class="form-control mb-3" placeholder="Folder Name" @bind="newFolder.FolderName" />
+    <div class="modal-backdrop d-flex justify-content-center align-items-center px-3" style="background: rgba(0,0,0,0.6); position:fixed; top:0; left:0; width:100%; height:100%; z-index:1050;">
+        <div class="bg-white p-4 rounded-4 shadow-lg w-100 m-2" style="max-width: 420px;">
+            <h5 class="fw-bold mb-3"><i class="bi bi-folder-plus text-warning me-2"></i>Create New Folder</h5>
+            <input type="text" class="form-control mb-3 py-2 rounded-3" placeholder="e.g., Summer Reading" @bind="newFolder.FolderName" />
             <div class="d-flex justify-content-end gap-2">
-                <button class="btn btn-light" @onclick="HideFolderModal">Cancel</button>
-                <button class="btn btn-dark" @onclick="AddFolder">Create</button>
+                <button class="btn btn-light rounded-pill px-4" @onclick="HideFolderModal">Cancel</button>
+                <button class="btn btn-dark rounded-pill px-4" @onclick="AddFolder">Create</button>
             </div>
         </div>
     </div>
 }
 
-@* MODAL: EDIT FOLDER *@
 @if (showEditModal && folderToEdit != null)
 {
-    <div class="modal-backdrop d-flex justify-content-center align-items-center" style="background: rgba(0,0,0,0.5); position:fixed; top:0; left:0; width:100%; height:100%; z-index:1050;">
-        <div class="bg-white p-4 rounded-4 shadow-lg" style="width: 400px;">
-            <h5 class="fw-bold mb-3">Rename Folder</h5>
-            <input type="text" class="form-control mb-3" @bind="folderToEdit.FolderName" />
+    <div class="modal-backdrop d-flex justify-content-center align-items-center px-3" style="background: rgba(0,0,0,0.6); position:fixed; top:0; left:0; width:100%; height:100%; z-index:1050;">
+        <div class="bg-white p-4 rounded-4 shadow-lg w-100 m-2" style="max-width: 420px;">
+            <h5 class="fw-bold mb-3"><i class="bi bi-pencil-square text-warning me-2"></i>Rename Folder</h5>
+            <input type="text" class="form-control mb-3 py-2 rounded-3" @bind="folderToEdit.FolderName" />
             <div class="d-flex justify-content-end gap-2">
-                <button class="btn btn-light" @onclick="HideEditFolderModal">Cancel</button>
-                <button class="btn btn-dark" @onclick="UpdateFolderName">Save Changes</button>
+                <button class="btn btn-light rounded-pill px-4" @onclick="HideEditFolderModal">Cancel</button>
+                <button class="btn btn-dark rounded-pill px-4" @onclick="UpdateFolderName">Save</button>
             </div>
         </div>
     </div>
 }
 
-@* PANEL: MOVE BOOK TO FOLDER *@
 @if (showAddBookPanel && activeFolderId.HasValue)
 {
-    <div class="modal-backdrop d-flex justify-content-center align-items-center" style="background: rgba(0,0,0,0.5); position:fixed; top:0; left:0; width:100%; height:100%; z-index:1050;">
-        <div class="bg-white p-4 rounded-4 shadow-lg animate__animated animate__zoomIn" style="width: 500px; max-height: 80vh; overflow-y: auto;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0 fw-bold">Move to Folder</h5>
+    <div class="modal-backdrop d-flex justify-content-center align-items-center px-3" style="background: rgba(0,0,0,0.6); position:fixed; top:0; left:0; width:100%; height:100%; z-index:1050;">
+        <div class="bg-white p-4 rounded-4 shadow-lg w-100 m-2" style="max-width: 480px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-plus-circle text-warning me-2"></i>Move to Folder</h5>
                 <button class="btn-close" @onclick="() => showAddBookPanel = false"></button>
             </div>
-            <p class="small text-muted mb-3">Select a book from your unorganized list:</p>
-            @foreach (var book in favoriteBooks ?? new())
-            {
-                <div class="d-flex align-items-center justify-content-between border-bottom py-2 folder-selection-row">
-                    <div class="d-flex align-items-center">
-                        <img src="@book.BookCoverPath" style="width: 35px; height: 50px; object-fit: cover;" class="rounded me-2 shadow-sm" />
-                        <span class="small fw-bold text-truncate" style="max-width: 250px;">@book.BookTitle</span>
+            <p class="small text-muted mb-3">Choose a book to transfer here:</p>
+            <div class="flex-grow-1 overflow-y-auto pe-1" style="max-height: 50vh;">
+                @foreach (var book in favoriteBooks ?? new())
+                {
+                    <div class="d-flex align-items-center justify-content-between border-bottom py-2 gap-2">
+                        <div class="d-flex align-items-center min-width-0">
+                            <img src="@book.BookCoverPath" style="width: 40px; height: 55px; object-fit: cover;" class="rounded me-2 shadow-sm flex-shrink-0" />
+                            <span class="small fw-bold text-truncate text-dark">@book.BookTitle</span>
+                        </div>
+                        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 flex-shrink-0" @onclick="() => AddBookToFolder(book.BookId)">Move</button>
                     </div>
-                    <button class="btn btn-sm btn-warning rounded-pill px-3" @onclick="() => AddBookToFolder(book.BookId)">Move</button>
-                </div>
-            }
-            @if (!favoriteBooks?.Any() ?? true)
-            {
-                <p class="text-center py-3 text-muted">No unorganized books available.</p>
-            }
+                }
+            </div>
         </div>
     </div>
 }
 
 <style>
+    :root {
+        --brown-dark: #5a3e2b;
+        --brown-muted: #7d6352;
+        --accent: #f0a500;
+    }
 
     body {
         background-image: linear-gradient(rgba(253, 246, 238, 0.88), rgba(253, 246, 238, 0.88)), url('https://i.pinimg.com/1200x/33/99/ac/3399ac1d819b89bdb962b893c9554a41.jpg');
@@ -198,132 +202,239 @@
     }
 
     .favorites-layout {
-        display: grid;
-        grid-template-columns: 280px 1fr;
-        gap: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    @@media (min-width: 768px) {
+        .favorites-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
     }
 
     .folder-sidebar {
-        background: #ffffff;
-        padding: 1.5rem;
-        border-radius: 20px;
-        border: 1px solid #f0f0f0;
-        height: fit-content;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-        position: sticky;
-        top: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 1rem;
+        border-radius: 24px;
+        border: 1px solid rgba(90, 62, 43, 0.08);
+        backdrop-filter: blur(4px);
+    }
+
+    .folder-nav-container {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 0.5rem;
+        padding-bottom: 5px;
+        scrollbar-width: none;
+    }
+
+    .folder-nav-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    @@media (min-width: 768px) {
+        .folder-nav-container {
+            flex-direction: column;
+            overflow-x: visible;
+            padding-bottom: 0;
+        }
     }
 
     .folder-nav-item {
-        padding: 12px 16px;
+        padding: 10px 16px;
         border-radius: 12px;
         cursor: pointer;
         transition: all 0.2s ease;
-        margin-bottom: 0.4rem;
         display: flex;
         align-items: center;
-        color: #636e72;
-        border: 1px solid transparent;
+        color: #4a4a4a;
+        background: #ffffff;
+        border: 1px solid #e9e9e9;
+        flex-shrink: 0;
+        min-width: 140px;
     }
 
-        .folder-nav-item:hover {
-            background: #fff9f4;
-            border-color: #ceb9a6;
-            color: #2d3436;
+    @@media (min-width: 768px) {
+        .folder-nav-item {
+            margin-bottom: 0.5rem;
+            background: transparent;
+            border: 1px solid transparent;
+            width: 100%;
+            flex-shrink: 1;
         }
+    }
 
-        .folder-nav-item.active {
-            background: #ceb9a6;
-            color: white;
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(206, 185, 166, 0.3);
-        }
+    .folder-nav-item:hover {
+        background: #f8f1eb;
+        color: #000;
+    }
 
-            .folder-nav-item.active .badge {
-                background: rgba(255,255,255,0.2) !important;
-                color: white !important;
-                border: none !important;
-            }
+    .folder-nav-item.active {
+        background: #ceb9a6;
+        color: white !important;
+        font-weight: 600;
+        border-color: #ceb9a6;
+        box-shadow: 0 4px 10px rgba(206, 185, 166, 0.25);
+    }
+
+    .folder-nav-item.active .badge {
+        background: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+        border: none !important;
+    }
+
+    .folder-nav-item.active .edit-icon, 
+    .folder-nav-item.active .text-muted {
+        color: rgba(255,255,255,0.8) !important;
+    }
 
     .edit-icon {
         cursor: pointer;
-        transition: 0.2s;
+        font-size: 0.95rem;
+        padding: 2px;
+    }
+    .edit-icon:hover {
+        transform: scale(1.15);
     }
 
-        .edit-icon:hover {
-            color: #ceb9a6 !important;
-            transform: scale(1.1);
-        }
+    /* --- BOOKS GRID DESIGN Preluat Direct din Index --- */
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1.5rem;
+        padding-bottom: 50px;
+    }
 
     .book-card {
         background: #fff;
         border-radius: 12px;
         overflow: hidden;
-        transition: all 0.4s ease;
+        transition: all 0.3s ease;
         height: 100%;
         position: relative;
-        border: 1px solid transparent;
+        border: 1px solid rgba(90, 62, 43, 0.05);
+        display: flex;
+        flex-direction: column;
     }
 
-    .books-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 1.5rem;
-        padding-bottom: 50px;
+    .book-card-wrapper:hover .book-card {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(90, 62, 43, 0.08) !important;
     }
 
-    .book-card-wrapper {
-        transition: transform 0.3s ease;
+    .book-img-container { 
+        position: relative; 
+        width: 100%; 
+        aspect-ratio: 2 / 3; 
+        background: #fff; 
     }
-
-        .book-card-wrapper:hover {
-            transform: translateY(-10px);
-        }
-
-    .book-img-container {
-        position: relative;
-        height: 300px;
-        background: #fff;
+    
+    .book-img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+        display: block; 
     }
-
-    .book-img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-        display: block;
-        margin: auto;
+    
+    .book-info { 
+        flex-grow: 1; 
+        padding: 12px !important; 
     }
-
-    .wishlist-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: white;
-        border: none;
-        border-radius: 50%;
-        width: 35px;
-        height: 35px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        z-index: 11;
+    
+    .book-title { 
+        font-size: 0.95rem; 
+        line-height: 1.2; 
+        max-height: 2.4em; 
+        display: -webkit-box; 
+        -webkit-line-clamp: 2; 
+        -webkit-box-orient: vertical; 
+        overflow: hidden; 
+        white-space: normal !important; 
     }
-
-    .is-sold-out {
-        filter: grayscale(1);
-        opacity: 0.6;
+    
+    .book-author { 
+        font-size: 0.8rem; 
+        margin-bottom: 4px; 
     }
-
-    .sold-out-badge {
-        position: absolute;
-        top: 40%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 20;
+    
+    .book-price { 
+        font-size: 1rem; 
+        color: #f0a500; 
+        font-weight: 800; 
     }
 
     .text-accent-yellow {
         color: #f0a500;
-        font-size: 1.2rem;
-        font-weight: 800;
+    }
+
+    .wishlist-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        z-index: 11;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease;
+    }
+    
+    .wishlist-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .is-sold-out { filter: grayscale(1); opacity: 0.6; }
+    
+    .sold-out-badge { 
+        position: absolute; 
+        top: 40%; 
+        left: 50%; 
+        transform: translate(-50%, -50%); 
+        z-index: 20; 
+        font-size: 0.8rem; 
+    }
+
+    .x-small { font-size: 0.75rem; }
+    .min-width-0 { min-width: 0; }
+
+    /* MEDIA QUERIES PENTRU TELEFON (Pentru uniformizare totală) */
+    @@media (max-width: 767.98px) {
+        .books-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.75rem !important;
+        }
+        .folder-sidebar {
+            margin-bottom: 10px;
+        }
+        .book-title {
+            font-size: 0.85rem !important;
+        }
+        .book-author {
+            font-size: 0.75rem !important;
+        }
+        .book-price {
+            font-size: 0.9rem !important;
+        }
+    }
+
+    @@media (max-width: 375px) {
+        .books-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.5rem !important;
+        }
+        .book-info {
+            padding: 8px !important;
+        }
     }
 </style>
 

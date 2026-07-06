@@ -2,15 +2,17 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Booktique.Models.MainModels
+@using ClosedXML.Excel
 @inject IDbContextFactory<BooktiqueContext> DbFactory
 @inject NavigationManager NavManager
+@inject IJSRuntime JS
 @attribute [Authorize(Roles = "Manager")]
 @rendermode InteractiveServer
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-brown fw-bold">Global <span class="text-sepia">Inventory</span></h2>
-        <a href="/admin/dashboard" class="btn btn-outline-brown btn-sm rounded-pill shadow-sm">
+        <a href="/admin/dashboard" class="btn btn-outline-secondary btn-sm rounded-pill shadow-sm">
             <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
     </div>
@@ -34,12 +36,12 @@
     @* FILTERS *@
     <div class="card shadow-sm border-0 mb-4 p-3 bg-white rounded-4 border-start border-brown-thick border-4">
         <div class="row g-3 align-items-end">
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <label class="small fw-bold text-brown-muted">SEARCH BY TITLE OR AUTHOR</label>
                 <input type="text" class="form-control border-sepia shadow-sm" @bind="searchTerm" @bind:event="oninput" placeholder="Search..." />
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="small fw-bold text-brown-muted">@(activeTab == "library" ? "STOCK STATUS" : "CONDITION")</label>
                 <select class="form-select border-sepia shadow-sm" @bind="statusFilter">
                     <option value="all">All Items</option>
@@ -62,6 +64,11 @@
             <div class="col-md-2">
                 <button class="btn btn-brown w-100 rounded-pill fw-bold shadow-sm" @onclick="ApplyFilters">
                     <i class="bi bi-filter me-1"></i> Filter
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100 rounded-pill fw-bold shadow-sm" @onclick="ExportToExcel" disabled="@(filteredBooks == null || !filteredBooks.Any())">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Export
                 </button>
             </div>
             <div class="col-md-2 text-end">
@@ -315,6 +322,96 @@
         }
 
         filteredBooks = await query.OrderBy(b => b.BookTitle).ToListAsync();
+    }
+
+    private async Task ExportToExcel()
+    {
+        if (filteredBooks == null || !filteredBooks.Any()) return;
+
+        using (var workbook = new XLWorkbook())
+        {
+            var sheetName = activeTab == "library" ? "Library Inventory" : "Antique Collection";
+            var worksheet = workbook.Worksheets.Add(sheetName);
+
+            // Setăm structura antetului în funcție de specificul tab-ului selectat
+            List<string> headers = new() { "Book ID", "Title", "Author" };
+            if (activeTab == "library")
+            {
+                headers.Add("Stock Units");
+            }
+            else
+            {
+                headers.Add("Seller ID");
+                headers.Add("Condition");
+            }
+            headers.Add("Price (RON)");
+
+            for (int i = 0; i < headers.Count; i++)
+                worksheet.Cell(1, i + 1).Value = headers[i];
+
+            var headerRow = worksheet.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#F4F1EE"); // Nuanța nativă bg-sepia-light din pagină
+
+            int rowIdx = 2;
+            foreach (var book in filteredBooks)
+            {
+                worksheet.Cell(rowIdx, 1).Value = $"#{book.BookId}";
+                worksheet.Cell(rowIdx, 2).Value = book.BookTitle;
+                worksheet.Cell(rowIdx, 3).Value = book.BookAuthor;
+
+                if (activeTab == "library")
+                {
+                    worksheet.Cell(rowIdx, 4).Value = book.BookStock;
+                    worksheet.Cell(rowIdx, 4).Style.NumberFormat.Format = "#,##0";
+
+                    worksheet.Cell(rowIdx, 5).Value = book.BookPrice ?? 0;
+                    worksheet.Cell(rowIdx, 5).Style.NumberFormat.Format = "#,##0.00";
+                }
+                else
+                {
+                    worksheet.Cell(rowIdx, 4).Value = book.SellerId != null ? $"#{book.SellerId}" : "N/A";
+                    worksheet.Cell(rowIdx, 5).Value = book.Condition ?? "Unknown";
+
+                    worksheet.Cell(rowIdx, 6).Value = book.BookPrice ?? 0;
+                    worksheet.Cell(rowIdx, 6).Style.NumberFormat.Format = "#,##0.00";
+                }
+                rowIdx++;
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                var fileBytes = stream.ToArray();
+                var base64String = Convert.ToBase64String(fileBytes);
+                var fileName = $"Booktique_{activeTab}_Inventory_{DateTime.Now:yyyyMMdd}.xlsx";
+
+                var jsInlineCode = $@"
+                    (function() {{
+                        const byteCharacters = atob('{base64String}');
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {{
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }}
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], {{ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }});
+
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = '{fileName}';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }})();
+                ";
+
+                await JS.InvokeVoidAsync("eval", jsInlineCode);
+            }
+        }
     }
 
     private void GoToPrint()

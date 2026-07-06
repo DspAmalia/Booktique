@@ -150,6 +150,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPdGhlclBhZ2VzXERhc2hib2FyZFNhbGVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/OtherPages/DashboardUsers.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPdGhlclBhZ2VzXERhc2hib2FyZFVzZXJzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/OtherPages/Invoice.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPdGhlclBhZ2VzXEludm9pY2UucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
@@ -160,10 +164,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/OtherPages/Reports/AdminOrders.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPdGhlclBhZ2VzXFJlcG9ydHNcQWRtaW5PcmRlcnMucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/OtherPages/Reports/DashboardUsers.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPdGhlclBhZ2VzXFJlcG9ydHNcRGFzaGJvYXJkVXNlcnMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Ami/Desktop/Booktique/Booktique/Booktique/Components/Pages/OtherPages/Reports/Inventory.razor]

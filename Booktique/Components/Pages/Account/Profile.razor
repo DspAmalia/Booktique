@@ -13,59 +13,61 @@
 
 <PageTitle>My Profile | Booktique</PageTitle>
 
-<div class="profile-page-wrapper">
+<div class="profile-page-wrapper py-4 py-md-5">
     <div class="container">
         @if (user == null)
         {
             <div class="text-center py-5">
                 <div class="spinner-border text-warning" role="status"></div>
-                <p class="mt-2">Loading your bookish world...</p>
+                <p class="mt-2 text-brown fw-medium">Loading your bookish world...</p>
             </div>
         }
         else
         {
-            <div class="row g-4 justify-content-center align-items-stretch">
+            <div class="row g-4 justify-content-center">
                 @* Coloana din Stânga: Profil și Info *@
-                <div class="col-lg-4">
-                    <div class="profile-card shadow-lg border-0 h-100 d-flex flex-column justify-content-between pb-3">
-                        <div>
-                            <div class="avatar-section">
-                                <div class="avatar-wrapper shadow">
-                                    <img src="@(string.IsNullOrEmpty(user.ProfilePicture) ? defaultAvatar : user.ProfilePicture)"
-                                         alt="Profile Picture" class="profile-avatar-img" />
-                                    <button class="change-avatar-btn" @onclick="ToggleAvatarPicker">
-                                        <i class="bi bi-camera-fill"></i>
-                                    </button>
-                                </div>
-                                <h3 class="mt-3 fw-bold text-brown mb-1 fs-4">@user.UserName</h3>
-                                <span class="badge rounded-pill bg-light text-brown border px-3">@user.Role</span>
-                            </div>
-
-                            <div class="info-section mt-3 px-3">
-                                <div class="info-item border-bottom py-2 d-flex justify-content-between align-items-center">
-                                    <span class="text-muted"><i class="bi bi-envelope me-2"></i>Email</span>
-                                    <span class="fw-medium text-truncate ms-2" style="max-width: 180px;">@user.UserEmail</span>
-                                </div>
-                            </div>
-
-                            <div class="actions-section mt-3 d-grid gap-2 px-3 py-1">
-                                <button class="btn btn-warning shadow-sm fw-bold py-2" @onclick="EditProfile">
-                                    <i class="bi bi-pencil-square me-2"></i>Edit Information
+                <div class="col-lg-4 col-md-5">
+                    <div class="profile-card shadow border-0 d-flex flex-column p-3 h-100">
+                        <div class="avatar-section">
+                            <div class="avatar-wrapper shadow-sm">
+                                <img src="@(string.IsNullOrEmpty(user.ProfilePicture) ? defaultAvatar : user.ProfilePicture)"
+                                     alt="Profile Picture" class="profile-avatar-img" />
+                                <button class="change-avatar-btn" @onclick="ToggleAvatarPicker" aria-label="Change avatar">
+                                    <i class="bi bi-camera-fill"></i>
                                 </button>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-secondary w-100 py-2" @onclick="Logout">
+                            </div>
+                            <h3 class="mt-3 fw-bold text-brown mb-1 fs-4 text-truncate px-2">@user.UserName</h3>
+                            <span class="badge rounded-pill bg-light text-brown border px-3 py-2 small">@user.Role</span>
+                        </div>
+
+                        <div class="info-section mt-4 px-2">
+                            <div class="info-item border-bottom pb-2 d-flex justify-content-between align-items-center">
+                                <span class="text-muted small"><i class="bi bi-envelope me-2"></i>Email</span>
+                                <span class="fw-medium text-truncate text-end ms-2" style="max-width: 100%;" title="@user.UserEmail">@user.UserEmail</span>
+                            </div>
+                        </div>
+
+                        <div class="actions-section mt-4 d-grid gap-2 px-2">
+                            <button class="btn btn-warning shadow-sm fw-bold py-2 btn-edit text-dark" @onclick="EditProfile">
+                                <i class="bi bi-pencil-square me-2"></i>Edit Information
+                            </button>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <button class="btn btn-outline-secondary w-100 py-2 btn-action" @onclick="Logout">
                                         <i class="bi bi-box-arrow-right me-1"></i>Logout
                                     </button>
-                                    <button class="btn btn-outline-danger w-100 py-2" @onclick="Delete">
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-outline-danger w-100 py-2 btn-action" @onclick="Delete">
                                         <i class="bi bi-trash me-1"></i>Delete
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="badges-section mt-4 px-3 text-center">
-                            <h6 class="fw-bold text-brown mb-2 small text-uppercase letter-spacing-1">Achievements</h6>
-                            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <div class="badges-section mt-5 px-2 text-center">
+                            <h6 class="fw-bold text-brown mb-3 small text-uppercase letter-spacing-1">Achievements</h6>
+                            <div class="d-flex flex-wrap gap-3 justify-content-center">
                                 @foreach (var badge in Badges)
                                 {
                                     bool isUnlocked = booksCount >= badge.RequiredBooks;
@@ -93,61 +95,60 @@
                 </div>
 
                 @* Coloana din Dreapta: Statistici și Raft *@
-                <div class="col-lg-8">
-                    <div class="stats-card shadow-lg border-0 p-4 h-100 d-flex flex-column justify-content-between">
+                <div class="col-lg-8 col-md-7">
+                    <div class="stats-card shadow border-0 p-4 h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
                                 <div>
                                     <h2 class="mb-0 fw-bold text-brown fs-3">Reading Journey</h2>
-                                    <p class="text-muted mb-0 small">
+                                    <p class="text-muted mb-0 small mt-1">
                                         Status:
-                                        <span class="badge bg-warning text-dark">
+                                        <span class="badge bg-warning text-dark px-2 py-1 ms-1 fw-bold">
                                             @(booksCount > 10 ? "Avid Reader" : "Bookworm")
                                         </span>
                                     </p>
                                 </div>
-                                <div class="text-end">
-                                    <span class="fs-2">🏆</span>
+                                <div class="text-end text-badge-icon">
+                                    <span class="fs-1">🏆</span>
                                 </div>
                             </div>
 
-                            @* Grid Statistici Rapide actualizat la 4 coloane *@
-                            <div class="row g-2 mb-4 text-center">
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column justify-content-center h-100">
+                            @* Grid Statistici Rapide la 4 coloane responsive *@
+                            <div class="row g-3 mb-4 text-center">
+                                <div class="col-6 col-sm-3">
+                                    <div class="stats-box p-3 border rounded bg-light h-100 d-flex flex-column justify-content-center">
                                         <h4 class="fw-bold text-brown mb-0 fs-3">@booksCount</h4>
-                                        <small class="text-muted">Books</small>
+                                        <small class="text-muted fw-medium mt-1">Books</small>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column justify-content-center h-100">
+                                <div class="col-6 col-sm-3">
+                                    <div class="stats-box p-3 border rounded bg-light h-100 d-flex flex-column justify-content-center">
                                         <h4 class="fw-bold text-brown mb-0 fs-3">@reviewsCount</h4>
-                                        <small class="text-muted">Reviews</small>
+                                        <small class="text-muted fw-medium mt-1">Reviews</small>
                                     </div>
                                 </div>
-                                @* Căsuța nouă pentru Puncte de Fidelitate *@
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column justify-content-center h-100">
+                                <div class="col-6 col-sm-3">
+                                    <div class="stats-box p-3 border rounded bg-light h-100 d-flex flex-column justify-content-center">
                                         <h4 class="fw-bold text-success mb-0 fs-3">🌟 @loyaltyPoints</h4>
-                                        <small class="text-muted">Loyalty Points</small>
+                                        <small class="text-muted fw-medium mt-1">Loyalty Points</small>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 border rounded bg-light shadow-sm d-flex flex-column align-items-center justify-content-center h-100">
+                                <div class="col-6 col-sm-3">
+                                    <div class="stats-box p-3 border rounded bg-light h-100 d-flex flex-column align-items-center justify-content-center h-100">
                                         @if (CurrentRank != null)
                                         {
-                                            <div class="d-flex align-items-center gap-1">
-                                                <span class="fs-5">@CurrentRank.Icon</span>
-                                                <h4 class="fw-bold mb-0 style-rank-text @(booksCount >= 50 ? "text-warning shadow-text" : "text-brown")">
+                                            <div class="d-flex align-items-center justify-content-center gap-1 w-100">
+                                                <span class="fs-5 line-height-1">@CurrentRank.Icon</span>
+                                                <h4 class="fw-bold mb-0 style-rank-text text-truncate @(booksCount >= 50 ? "text-warning text-shadow-glow" : "text-brown")">
                                                     @CurrentRank?.Name
                                                 </h4>
                                             </div>
                                         }
                                         else
                                         {
-                                            <h4 class="fw-bold text-muted mb-0 fs-6">Novice</h4>
+                                            <h4 class="fw-bold text-muted mb-0 style-rank-text">Novice</h4>
                                         }
-                                        <small class="text-muted">Current Rank</small>
+                                        <small class="text-muted fw-medium mt-1">Current Rank</small>
                                     </div>
                                 </div>
                             </div>
@@ -164,20 +165,20 @@
 
                             <div class="challenge-container p-3 rounded-3 bg-white border mb-4 shadow-sm">
                                 <div class="d-flex justify-content-between mb-2 small">
-                                    <span class="fw-bold">@DateTime.Now.Year Reading Challenge</span>
+                                    <span class="fw-bold text-brown">@DateTime.Now.Year Reading Challenge</span>
                                     <span class="text-brown fw-bold">@booksCount / @readingGoal books</span>
                                 </div>
-                                <div class="progress" style="height: 14px; background-color: #e9ecef; border-radius: 10px;">
+                                <div class="progress" style="height: 12px; background-color: #f1f3f5; border-radius: 10px;">
                                     <div class="progress-bar bg-warning"
                                          role="progressbar"
-                                         style="width: @(displayPercentage)% ; transition: width 1s ease-in-out;"
+                                         style="width: @(displayPercentage)% ; transition: width 1s ease-in-out; border-radius: 10px;"
                                          aria-valuenow="@displayPercentage"
                                          aria-valuemin="0"
                                          aria-valuemax="100">
                                     </div>
                                 </div>
 
-                                <small class="mt-2 d-block text-muted">
+                                <small class="mt-2 d-block text-muted fw-medium text-center text-sm-start">
                                     @if (booksCount >= readingGoal)
                                     {
                                         <span class="text-success fw-bold">🏆 Goal Achieved! You're a legend!</span>
@@ -198,29 +199,32 @@
                             </div>
                         </div>
 
-                        <div>
-                            <h5 class="fw-bold mb-2 text-brown fs-6"><i class="bi bi-bookshelf me-2"></i>Your Virtual Bookshelf</h5>
-                            <div class="shelf-wrapper">
-                                <div class="book-shelf d-flex gap-2 px-2">
+                        <div class="mt-2">
+                            <h5 class="fw-bold mb-3 text-brown fs-6"><i class="bi bi-bookshelf me-2 text-warning"></i>Your Virtual Bookshelf</h5>
+                            <div class="shelf-wrapper position-relative px-1">
+                                <div class="book-shelf d-flex gap-3 pb-2">
                                     @if (userBooks != null && userBooks.Any())
                                     {
                                         @foreach (var book in userBooks)
                                         {
-                                            <div class="shelf-book shadow"
+                                            <div class="shelf-book shadow-sm"
                                                  @onclick="@(() => NavigationManager.NavigateTo($"/books/details?bookid={book.BookId}"))"
                                                  title="@book.BookTitle by @book.BookAuthor">
-                                                <img src="@book.BookCoverPath" alt="@book.BookTitle" />
+                                                <img src="@book.BookCoverPath" alt="@book.BookTitle" loading="lazy" />
                                             </div>
                                         }
                                     }
                                     else
                                     {
-                                        <div class="text-center w-100 py-3" style="border: 2px dashed #d2a679; border-radius: 10px;">
-                                            <p class="text-muted mb-0 small">Your shelf is empty. Time for a new adventure! 📚</p>
+                                        <div class="text-center w-100 py-4 custom-dashed-border">
+                                            <p class="text-muted mb-0 small fw-medium">Your shelf is empty. Time for a new adventure! 📚</p>
                                         </div>
                                     }
                                 </div>
-                                <div class="shelf-wood"></div>
+                                @if (userBooks != null && userBooks.Any())
+                                {
+                                    <div class="shelf-wood shadow-sm"></div>
+                                }
                             </div>
                         </div>
                     </div>
@@ -233,10 +237,10 @@
                 <div class="avatar-modal-overlay" @onclick="ToggleAvatarPicker">
                     <div class="avatar-modal-content card shadow-lg p-4" @onclick:stopPropagation="true">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="mb-0 fw-bold">Choose your Avatar</h4>
-                            <button class="btn-close" @onclick="ToggleAvatarPicker"></button>
+                            <h4 class="mb-0 fw-bold text-brown">Choose your Avatar</h4>
+                            <button class="btn-close" @onclick="ToggleAvatarPicker" aria-label="Close modal"></button>
                         </div>
-                        <div class="avatar-grid">
+                        <div class="avatar-grid custom-scrollbar">
                             @foreach (var avatarUrl in availableAvatars)
                             {
                                 <div class="avatar-option @(user.ProfilePicture == avatarUrl ? "selected" : "")"
@@ -264,17 +268,12 @@
     }
 
     body {
-        background-image: linear-gradient(rgba(253, 246, 238, 0.88), rgba(253, 246, 238, 0.88)), url('https://i.pinimg.com/1200x/33/99/ac/3399ac1d819b89bdb962b893c9554a41.jpg');
+        background-image: linear-gradient(rgba(253, 246, 238, 0.90), rgba(253, 246, 238, 0.90)), url('https://i.pinimg.com/1200x/33/99/ac/3399ac1d819b89bdb962b893c9554a41.jpg');
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
         background-repeat: no-repeat;
-        overflow: hidden;
-    }
-
-    .container {
-        width: 100%;
-        max-width: 1200px;
+        min-height: 100vh;
     }
 
     .text-brown {
@@ -283,23 +282,23 @@
 
     .profile-card, .stats-card {
         background: white;
-        border-radius: 18px;
-        overflow: hidden;
+        border-radius: 16px;
+        transition: transform 0.2s ease;
     }
 
     .avatar-section {
-        background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
-        padding: 1.5rem 1rem 0.5rem;
+        padding: 1rem 0 0.5rem;
         text-align: center;
     }
 
     .avatar-wrapper {
         position: relative;
-        width: 135px;
-        height: 135px;
+        width: 120px;
+        height: 120px;
         margin: 0 auto;
         border-radius: 50%;
         border: 4px solid white;
+        background: #fff;
     }
 
     .profile-avatar-img {
@@ -311,19 +310,44 @@
 
     .change-avatar-btn {
         position: absolute;
-        bottom: 4px;
-        right: 4px;
+        bottom: 2px;
+        right: 2px;
         background: var(--brown-primary);
         color: white;
         border: 2px solid white;
         border-radius: 50%;
-        width: 35px;
-        height: 35px;
+        width: 34px;
+        height: 34px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: 0.3s;
+        transition: background-color 0.2s ease, transform 0.1s ease;
     }
+
+        .change-avatar-btn:hover {
+            background: var(--brown-hover);
+            transform: scale(1.05);
+        }
+
+    .btn-edit:hover {
+        background-color: #ffca28 !important;
+    }
+
+    .btn-action {
+        border-width: 2px;
+        font-weight: 600;
+    }
+
+    .stats-box {
+        background-color: #fafbfc !important;
+        border: 1px solid #eef0f2 !important;
+        border-radius: 12px !important;
+        transition: transform 0.2s ease;
+    }
+
+        .stats-box:hover {
+            transform: translateY(-2px);
+        }
 
     .avatar-modal-overlay {
         position: fixed;
@@ -331,47 +355,61 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.6);
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 2100;
+        padding: 1rem;
     }
 
     .avatar-modal-content {
-        max-width: 450px;
-        width: 90%;
-        border-radius: 20px;
+        max-width: 420px;
+        width: 100%;
+        border-radius: 16px;
+        border: none;
     }
 
     .avatar-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 15px;
+        max-height: 320px;
+        overflow-y: auto;
+        padding-right: 5px;
     }
 
     .avatar-option {
         cursor: pointer;
-        border-radius: 15px;
-        padding: 5px;
-        border: 3px solid transparent;
-        transition: 0.2s;
+        border-radius: 12px;
+        padding: 4px;
+        border: 3px solid #f1f3f5;
+        transition: all 0.2s ease;
         position: relative;
     }
 
+        .avatar-option:hover {
+            border-color: #ffe082;
+            transform: scale(1.02);
+        }
+
         .avatar-option.selected {
             border-color: var(--brown-primary);
+            background-color: #fdf6ee;
         }
 
         .avatar-option img {
             width: 100%;
-            border-radius: 10px;
+            border-radius: 8px;
+            aspect-ratio: 1;
+            object-fit: cover;
         }
 
     .check-mark {
         position: absolute;
-        top: -5px;
-        right: -5px;
+        top: -6px;
+        right: -6px;
         background: var(--brown-primary);
         color: white;
         width: 22px;
@@ -380,77 +418,89 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 11px;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     }
 
     .book-shelf {
         align-items: flex-end;
-        height: 155px;
+        height: 160px;
         overflow-x: auto;
         scrollbar-width: thin;
+        scroll-behavior: smooth;
     }
 
     .shelf-book {
         width: 95px;
         height: 135px;
         flex-shrink: 0;
-        transition: 0.3s;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         cursor: pointer;
+        border-radius: 4px;
+        overflow: hidden;
     }
 
         .shelf-book img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 2px 4px 4px 2px;
         }
 
         .shelf-book:hover {
-            transform: translateY(-7px) rotate(-2deg);
+            transform: translateY(-8px) scale(1.04);
+            z-index: 5;
         }
 
     .shelf-wood {
-        height: 11px;
+        height: 12px;
         background: linear-gradient(to bottom, #d2a679, #86592d);
-        border-radius: 5px;
+        border-radius: 6px;
+        margin-top: -4px;
+        width: 100%;
+    }
+
+    .custom-dashed-border {
+        border: 2px dashed #d2a679 !important;
+        border-radius: 12px;
+        background-color: #fffdfb;
     }
 
     .badge-item {
         position: relative;
-        width: 64px;
-        height: 64px;
+        width: 58px;
+        height: 58px;
         border-radius: 50%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         background: #f8f9fa;
-        border: 2px solid #eee;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 2px solid #eef0f2;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         cursor: help;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
     }
 
         .badge-item.unlocked {
             background: white;
             border-color: #ffc107;
-            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.18);
+            box-shadow: 0 3px 8px rgba(255, 193, 7, 0.15);
         }
 
             .badge-item.unlocked:hover {
-                transform: scale(1.1) rotate(5deg);
-                box-shadow: 0 7px 17px rgba(255, 193, 7, 0.28);
+                transform: scale(1.15) rotate(4deg);
+                box-shadow: 0 6px 14px rgba(255, 193, 7, 0.25);
                 z-index: 10;
             }
 
         .badge-item.locked {
-            filter: grayscale(1) opacity(0.5);
-            background: #e9ecef;
+            filter: grayscale(1);
+            opacity: 0.45;
             border-style: dashed;
         }
 
     .badge-icon {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         line-height: 1;
     }
 
@@ -459,14 +509,16 @@
         font-weight: 800;
         color: var(--brown-primary);
         text-transform: uppercase;
-        margin-top: 1px;
+        margin-top: 2px;
+        max-width: 90%;
+        text-truncate: true;
     }
 
     .lock-overlay {
         position: absolute;
-        bottom: 0;
-        right: 0;
-        background: #5a3e2b;
+        bottom: -2px;
+        right: -2px;
+        background: var(--brown-primary);
         color: white;
         width: 18px;
         height: 18px;
@@ -482,14 +534,57 @@
         letter-spacing: 1px;
     }
 
-    /* Stil adăugat pentru a preveni textul prea mare la rang pe ecrane mici */
     .style-rank-text {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+    }
+
+    .text-shadow-glow {
+        text-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+    }
+
+    .line-height-1 {
+        line-height: 1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar,
+    .book-shelf::-webkit-scrollbar {
+        height: 5px;
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb,
+    .book-shelf::-webkit-scrollbar-thumb {
+        background-color: #dec2a6;
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track,
+    .book-shelf::-webkit-scrollbar-track {
+        background: transparent;
     }
 
     @@media (min-width: 576px) {
         .style-rank-text {
-            font-size: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .badge-item {
+            width: 64px;
+            height: 64px;
+        }
+
+        .badge-icon {
+            font-size: 1.4rem;
+        }
+
+        .badge-name {
+            font-size: 0.55rem;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .text-badge-icon {
+            display: none;
         }
     }
 </style>
@@ -500,7 +595,7 @@
     private List<Book> userBooks = new();
     private int booksCount = 0;
     private int reviewsCount = 0;
-    private int loyaltyPoints = 0; // Noua variabilă pentru puncte
+    private int loyaltyPoints = 0;
 
     private string defaultAvatar = "https://cdn-icons-png.flaticon.com/512/1903/1903172.png";
 
@@ -540,7 +635,6 @@
             return;
         }
 
-        // Aici preluăm punctele de fidelitate.
         loyaltyPoints = user.LoyaltyPoints;
 
         userBooks = await DbContext.Order

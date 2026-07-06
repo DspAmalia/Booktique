@@ -48,7 +48,7 @@ namespace Booktique.Models.Services
 
         private string DetectGenre(string question)
         {
-            var genres = new[] { "romance", "thriller", "fantasy", "poetry", "history", "sci-fi", "memoir", "drama", "comedy", "classics" };
+            var genres = new[] { "romance", "thriller", "fantasy", "poetry", "history", "sci-fi", "memoir", "drama", "comedy", "classics", "personal development", "police" };
             var lower = question.ToLower();
 
             return genres.FirstOrDefault(g => lower.Contains(g)) ?? string.Empty;
