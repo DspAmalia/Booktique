@@ -299,9 +299,10 @@
     {
         using var context = await DbFactory.CreateDbContextAsync();
 
+        // Modificarea principală: Pentru tab-ul "used" (Antique Shop), adăugăm condiția b.IsApproved == true
         var query = activeTab == "library"
             ? context.Book.Where(b => b.SellerId == null)
-            : context.Book.Where(b => b.SellerId != null);
+            : context.Book.Where(b => b.SellerId != null && b.IsApproved == true);
 
         if (!string.IsNullOrEmpty(searchTerm))
         {

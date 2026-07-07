@@ -332,7 +332,6 @@
     private decimal calculatedDiscount => usePoints ? (userPoints / 10m) : 0;
     private decimal FinalTotal => Math.Max(0, cartService.Items.Sum(i => i.Price * i.Quantity) - calculatedDiscount);
 
-    // Am relaxat validarea stocului de cadouri ca să nu blocheze checkout-ul dacă baza de date dă rateu
     private bool IsFormValid =>
         !string.IsNullOrWhiteSpace(fullName) &&
         !string.IsNullOrWhiteSpace(phoneNumber) &&
@@ -355,10 +354,12 @@
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
-            var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                                ?? user.FindFirst("UserId")?.Value;
 
-            if (int.TryParse(userIdString, out int userIdInt))
+            // Extragem direct ID-ul sub formă de string din Claims
+            var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                            ?? user.FindFirst("UserId")?.Value;
+
+            if (!string.IsNullOrEmpty(userIdString) && int.TryParse(userIdString, out int userIdInt))
             {
                 using var ctx = await DbFactory.CreateDbContextAsync();
                 var dbUser = await ctx.User.FindAsync(userIdInt);
@@ -406,7 +407,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading gifts: {ex.Message}");
-            potentialGifts = new List<Book>(); // Fallback prevent crash
+            potentialGifts = new List<Book>();
         }
     }
 
@@ -435,16 +436,21 @@
         StateHasChanged();
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var userIdString = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                            ?? authState.User.FindFirst("UserId")?.Value;
+        var user = authState.User;
 
-        if (!int.TryParse(userIdString, out int userIdInt))
+        // Preluăm ID-ul ca text direct din Claims
+        var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                        ?? user.FindFirst("UserId")?.Value;
+
+        // Încercăm convertirea directă în număr întreg (int)
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userIdInt))
         {
-            errorMessage = "Authentication Error: User ID not found. Try re-logging.";
+            errorMessage = $"Authentication Error: User ID '{userIdString}' is not a valid number. Try re-logging.";
             isProcessing = false;
             return;
         }
 
+        // --- CONTINUAREA LOGICII TALE DE SALVARE COMANDĂ ---
         try
         {
             using var ctx = await DbFactory.CreateDbContextAsync();
@@ -460,7 +466,7 @@
                 {
                     var order = new Order
                         {
-                            UserId = userIdInt,
+                            UserId = userIdInt, // Folosește ID-ul numeric parsat direct din sesiune
                             SellerId = group.Key,
                             OrderDate = DateTime.Now,
                             TotalAmount = group.Sum(i => i.Price * i.Quantity),
@@ -473,24 +479,21 @@
 
                     foreach (var item in group)
                     {
-                        // === ACTUALIZARE STOC PRODUS STANDARD ===
                         var bookInDb = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == item.BookId);
                         if (bookInDb != null)
                         {
                             if (bookInDb.BookStock < item.Quantity)
                             {
-                                // Oprim tranzacția dacă cineva a cumpărat între timp și stocul e insuficient
                                 throw new Exception($"Insufficient stock for the book: '{bookInDb.BookTitle}'. Remaining stock: {bookInDb.BookStock}.");
                             }
 
-                            // Scădem cantitatea comandată din stoc
                             bookInDb.BookStock -= item.Quantity;
                         }
 
                         order.OrderItems.Add(new OrderItem { BookId = item.BookId, Quantity = item.Quantity, UnitPrice = item.Price });
                     }
 
-                    // Adăugare logică Mystery Gift (stocul pentru cadou se scade și el)
+                    // Adăugare logică Mystery Gift
                     if ((group.Key == null || group.Key == 0) && isEligibleForMysteryBook && selectedMysteryBook != null)
                     {
                         var giftInDb = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == selectedMysteryBook.BookId);
@@ -517,7 +520,6 @@
                     dbUser.LoyaltyPoints += (int)(FinalTotal / 10);
                 }
 
-                // Salvăm modificările (Comenzi, Stocuri cărți și Puncte User)
                 await ctx.SaveChangesAsync();
 
                 // 3. Generare Notificări
@@ -530,12 +532,11 @@
                             Message = $"Your order #{o.OrderId} has been registered successfully.",
                             CreatedAt = DateTime.Now,
                             IsRead = false,
-                            TargetUrl = $"/my-orders/{o.OrderId}"
+                            TargetUrl = $"/order-details/{o.OrderId}"
                         };
                     ctx.Notification.Add(notification);
                 }
 
-                // Salvăm notificările și dăm Commit definitiv în DB
                 await ctx.SaveChangesAsync();
                 await transaction.CommitAsync();
 

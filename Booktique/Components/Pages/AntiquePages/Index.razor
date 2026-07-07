@@ -21,6 +21,20 @@
             </button>
         </div>
 
+        @* --- SECȚIUNE FILTRE (Vizibilă pentru Manageri sau extinsă pentru toți) --- *@
+        @if (isManager)
+        {
+            <div class="archive-filter-box mb-5 p-3 d-flex align-items-center justify-content-between">
+                <span class="font-serif italic text-gold"><i class="bi bi-filter-square me-2"></i>Archive Ledger Filter:</span>
+                <div class="btn-group panel-pills">
+                    <button class="btn btn-scroll-sm @(selectedFilter == "All" ? "active" : "")" @onclick='() => ChangeFilter("All")'>All Registry</button>
+                    <button class="btn btn-scroll-sm @(selectedFilter == "Pending" ? "active" : "")" @onclick='() => ChangeFilter("Pending")'>⏳ Pending</button>
+                    <button class="btn btn-scroll-sm @(selectedFilter == "Valid" ? "active" : "")" @onclick='() => ChangeFilter("Valid")'>✓ Validated</button>
+                    <button class="btn btn-scroll-sm @(selectedFilter == "Invalid" ? "active" : "")" @onclick='() => ChangeFilter("Invalid")'>✗ Invalidated</button>
+                </div>
+            </div>
+        }
+
         @if (books == null)
         {
             <div class="text-center py-5">
@@ -32,7 +46,7 @@
         {
             <div class="empty-shelf text-center py-5">
                 <i class="bi bi-archive display-1"></i>
-                <p class="mt-3">The shelves are dusty and empty. Be the first to donate a story.</p>
+                <p class="mt-3">The shelves are dusty and empty. No records match this criterion.</p>
             </div>
         }
         else
@@ -49,6 +63,25 @@
                                 <div class="tome-price">
                                     @item.BookPrice RON
                                 </div>
+
+                                @* Badge-uri de Status vizibile doar pentru Manager *@
+                                @if (isManager)
+                                {
+                                    <div class="manager-status-badge">
+                                        @if (item.IsApproved == true)
+                                        {
+                                            <span class="badge bg-success text-white">VALID</span>
+                                        }
+                                        else if (item.IsApproved == false)
+                                        {
+                                            <span class="badge bg-danger text-white">INVALID</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">PENDING</span>
+                                        }
+                                    </div>
+                                }
                             </div>
 
                             <div class="tome-details mt-3 position-relative">
@@ -69,18 +102,37 @@
                                     <p>@item.BookDescription</p>
                                 </div>
 
-                                <div class="tome-actions d-flex gap-2 mt-3">
-                                    <button class="btn-scroll w-100" @onclick='() => NavigationManager.NavigateTo($"antique/details?id={item.BookId}")'>
-                                        View Chronicle
-                                    </button>
+                                <div class="tome-actions d-flex flex-column gap-2 mt-3">
+                                    <div class="d-flex gap-2">
+                                        <button class="btn-scroll w-100" @onclick='() => NavigationManager.NavigateTo($"antique/details?id={item.BookId}")'>
+                                            View Chronicle
+                                        </button>
 
-                                    @if (item.BookStock > 0 && currentUserId != item.SellerId.ToString())
+                                        @if (item.BookStock > 0 && currentUserId != item.SellerId.ToString())
+                                        {
+                                            <a href="/chat?targetUserId=@item.SellerId&initialMessage=Greetings, @(item.Seller?.UserName ?? "Curator")! I am interested in the volume: @item.BookTitle"
+                                               class="btn-ink-sm"
+                                               title="Contact Curator">
+                                                <i class="bi bi-chat-left-quote"></i>
+                                            </a>
+                                        }
+                                    </div>
+
+                                    @* --- COMANDE MODERARE MANAGER --- *@
+                                    @if (isManager)
                                     {
-                                        <a href="/chat?targetUserId=@item.SellerId&initialMessage=Greetings, @(item.Seller?.UserName ?? "Curator")! I am interested in the volume: @item.BookTitle"
-                                           class="btn-ink-sm"
-                                           title="Contact Curator">
-                                            <i class="bi bi-chat-left-quote"></i>
-                                        </a>
+                                        <div class="manager-decision-zone d-flex gap-2 pt-2 border-top border-dark border-opacity-10">
+                                            <button class="btn btn-outline-success btn-sm w-50 d-flex align-items-center justify-content-center gap-1" 
+                                                    disabled="@(item.IsApproved == true)"
+                                                    @onclick="() => SetApprovalStatus(item.BookId, true)">
+                                                <i class="bi bi-check-circle-fill"></i> Valid
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm w-50 d-flex align-items-center justify-content-center gap-1" 
+                                                    disabled="@(item.IsApproved == false)"
+                                                    @onclick="() => SetApprovalStatus(item.BookId, false)">
+                                                <i class="bi bi-x-circle-fill"></i> Invalid
+                                            </button>
+                                        </div>
                                     }
                                 </div>
                             </div>
@@ -269,32 +321,50 @@
             transform: translateY(-2px);
         }
 
-        .btn-ink-sm i {
-            font-size: 1.2rem;
-            text-shadow: 1px 1px 0px rgba(0,0,0,0.3);
-        }
+    .archive-filter-box {
+        background: rgba(44, 30, 20, 0.6);
+        border: 1px solid var(--accent-gold);
+        border-radius: 4px;
+    }
 
-        .btn-ink-sm::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border: 1px solid transparent;
-            transition: all 0.3s;
-        }
+    .btn-scroll-sm {
+        background: transparent;
+        border: 1px solid var(--accent-gold);
+        color: var(--sepia-paper);
+        font-family: 'Cinzel', serif;
+        font-size: 0.85rem;
+        padding: 6px 16px;
+        transition: 0.2s;
+    }
 
-        .btn-ink-sm:active {
-            transform: translateY(1px);
-            box-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-        }
+    .btn-scroll-sm:hover, .btn-scroll-sm.active {
+        background: var(--accent-gold);
+        color: var(--ink-color) !important;
+    }
+
+    .manager-status-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 5;
+    }
+
+    .manager-status-badge .badge {
+        font-family: 'Cinzel', serif;
+        letter-spacing: 1px;
+        font-size: 0.75rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
 </style>
 
 @code {
     private BooktiqueContext context = default!;
     private List<Book>? books;
     private string? currentUserId;
+    
+    // State management pentru filtre & drepturi
+    private bool isManager = false;
+    private string selectedFilter = "Pending"; // Managerii pornesc implicit din Pending ca să vadă ce au de lucru
 
     protected override async Task OnInitializedAsync()
     {
@@ -304,14 +374,58 @@
         currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                         ?? user.FindFirst("UserId")?.Value;
 
-        context = DbFactory.CreateDbContext();
+        // Verificăm dacă userul este Manager administrativ
+        isManager = user.IsInRole("Manager") || user.IsInRole("Admin");
 
-        // Filtrare: Doar cărțile care au un vânzător (SellerId != null și != 0)
-        books = await context.Book
+        // Dacă nu este manager, utilizatorul simplu vede automat DOAR cărțile deja validate
+        if (!isManager)
+        {
+            selectedFilter = "Valid";
+        }
+
+        context = DbFactory.CreateDbContext();
+        await LoadFilteredBooksAsync();
+    }
+
+    private async Task LoadFilteredBooksAsync()
+    {
+        var query = context.Book
             .Include(b => b.Seller)
-            .Where(b => b.SellerId != null && b.SellerId != 0)
-            .OrderByDescending(b => b.BookId) // Cele mai noi adăugate primele
-            .ToListAsync();
+            .Where(b => b.SellerId != null && b.SellerId != 0);
+
+        if (selectedFilter == "Valid")
+        {
+            query = query.Where(b => b.IsApproved == true);
+        }
+        else if (selectedFilter == "Invalid")
+        {
+            query = query.Where(b => b.IsApproved == false);
+        }
+        else if (selectedFilter == "Pending")
+        {
+            query = query.Where(b => b.IsApproved == null);
+        }
+
+        books = await query.OrderByDescending(b => b.BookId).ToListAsync();
+    }
+
+    private async Task ChangeFilter(string newFilter)
+    {
+        selectedFilter = newFilter;
+        await LoadFilteredBooksAsync();
+    }
+
+    private async Task SetApprovalStatus(int bookId, bool approved)
+    {
+        var targetBook = await context.Book.FirstOrDefaultAsync(b => b.BookId == bookId);
+        if (targetBook != null)
+        {
+            targetBook.IsApproved = approved;
+            await context.SaveChangesAsync();
+            
+            // Reîncărcăm lista pentru a muta instant cartea din listă dacă filtrul o cere
+            await LoadFilteredBooksAsync();
+        }
     }
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();

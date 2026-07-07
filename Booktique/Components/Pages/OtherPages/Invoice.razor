@@ -7,168 +7,253 @@
 
 @if (order == null)
 {
-    <p>Loading invoice...</p>
+    <div class="text-center my-5">
+        <div class="spinner-border text-warning" role="status"></div>
+        <p class="mt-2">Loading invoice...</p>
+    </div>
 }
 else
 {
-    <div class="invoice-container shadow-sm border p-5 bg-white mx-auto my-5" id="printableInvoice">
-        <div class="row align-items-center border-bottom pb-4 mb-5">
-            <div class="col-7 d-flex align-items-center">
-                <img src="/images/logo.png" alt="Booktique Logo" style="height: 80px; width: auto;" class="me-3" />
-                <div>
-                    <h1 class="text-brown fw-bold mb-0" style="font-size: 2.5rem;">BOOKTIQUE</h1>
-                </div>
-            </div>
+    <div class="invoice-outer-wrapper d-flex flex-column align-items-center py-5 d-print-block p-print-0 m-print-0">
 
-            <div class="col-5 text-end small">
-                <h5 class="fw-bold mb-1">S.C. BOOKTIQUE S.R.L.</h5>
-                <p class="mb-0"><strong>Address:</strong> Str. Lipscani Nr. 12, Bucharest</p>
-                <p class="mb-0"><strong>Phone:</strong> 0749 656 025</p>
-                <p class="mb-0"><strong>Email:</strong> booktique@gmail.com</p>
-            </div>
-        </div>
-        <div class="d-flex justify-content-between mb-5">
-            <div>
-                <p class="text-muted small">Your Favorite Online Bookstore</p>
-            </div>
-            <div class="text-end">
-                <h4 class="fw-bold">INVOICE</h4>
-                <p class="mb-0">#INV-@order.OrderId</p>
-                <p>Date: @order.OrderDate.ToString("dd/MM/yyyy")</p>
-            </div>
-        </div>
+        <div class="invoice-container shadow border bg-white p-5 rounded-3" id="printableInvoice">
 
-        <div class="row mb-5">
-            <div class="col-6">
-                <h6 class="fw-bold text-uppercase text-muted small">Billed To:</h6>
-                <p class="mb-0 fw-bold">@order.ShippingAddress.Split('|')[0]</p> <p class="mb-0">@order.ShippingAddress</p>
-                <p class="mb-0">@order.City</p>
-                <p>Tel: @order.PhoneNumber</p>
-            </div>
-            <div class="col-6 text-end">
-                <h6 class="fw-bold text-uppercase text-muted small">Payment Method:</h6>
-                <p>@order.PaymentMethod</p>
-            </div>
-        </div>
+            <div class="row align-items-center border-bottom pb-4 mb-4">
+                <div class="col-6 d-flex align-items-center">
+                    <img src="/images/logo.png" alt="Booktique Logo" style="height: 65px; width: auto;" class="me-3" />
+                    <div>
+                        <h1 class="text-brown fw-bold mb-0" style="font-size: 2rem; letter-spacing: 1px;">BOOKTIQUE</h1>
+                        <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem;">Your Favorite Bookstore</small>
+                    </div>
+                </div>
 
-        <table class="table table-borderless">
-            <thead class="border-bottom">
-                <tr>
-                    <th>Item Description</th>
-                    <th class="text-center">Qty</th>
-                    <th class="text-end">Price</th>
-                    <th class="text-end">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in order.OrderItems)
-                {
-                    <tr class="border-bottom">
-                        <td>
-                            <span class="fw-bold">@item.Book?.BookTitle</span>
-                        </td>
-                        <td class="text-center">@item.Quantity</td>
-                        <td class="text-end">@item.UnitPrice lei</td>
-                        <td class="text-end fw-bold">@(item.UnitPrice * item.Quantity) lei</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                <div class="col-6 text-end small table-responsive-fix">
+                    <h6 class="fw-bold text-brown mb-1">S.C. BOOKTIQUE S.R.L.</h6>
+                    <p class="mb-0 text-muted"><strong>Reg. Com:</strong> J40/12345/2026 | <strong>CIF:</strong> RO12345678</p>
+                    <p class="mb-0 text-muted"><strong>Address:</strong> Str. Lipscani Nr. 12, Bucharest</p>
+                    <p class="mb-0 text-muted"><strong>Phone:</strong> 0749 656 025 | <strong>Email:</strong> booktique@gmail.com</p>
+                </div>
+            </div>
 
-        <div class="row mt-4">
-            <div class="col-7">
-                <p class="text-muted small">Thank you for your business! For any questions regarding this invoice, please contact support@booktique.ro</p>
-            </div>
-            <div class="col-5 text-end">
-                <div class="d-flex justify-content-between border-top pt-2">
-                    <span class="fs-5 fw-bold">Total:</span>
-                    <span class="fs-5 fw-bold text-orange">@order.TotalAmount lei</span>
-                </div>
-            </div>
-        </div>
-    </div>
+            <div class="row mb-4">
+                <div class="col-6">
+                    <h3 class="fw-bold text-brown mb-0">INVOICE</h3>
+                    <p class="text-muted fw-medium mb-0">Series: <span class="text-dark fw-bold">#INV-@order.OrderId</span></p>
+                </div>
+                <div class="col-6 text-end text-muted small">
+                    <p class="mb-0"><strong>Issue Date:</strong> @order.OrderDate.ToString("dd/MM/yyyy")</p>
+                    <p class="mb-0"><strong>Due Date:</strong> @order.OrderDate.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
 
-    <div class="container text-center mb-5 d-print-none">
-        <button class="btn btn-warning me-2" onclick="window.print()">
-            <i class="bi bi-printer"></i> Print / Save as PDF
-        </button>
-        <button class="btn btn-outline-secondary" @onclick='() => Nav.NavigateTo("/my-orders")'>
-            Back to Orders
-        </button>
-    </div>
+            <hr class="text-muted opacity-25 my-3" />
+
+            <div class="row mb-4 bg-light p-3 rounded-3 mx-0">
+                <div class="col-7">
+                    <h6 class="fw-bold text-uppercase text-muted small mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Billed To:</h6>
+                    <p class="mb-1 fw-bold text-dark">
+                        @(order.ShippingAddress.Contains("|") ? order.ShippingAddress.Split('|')[0] : "Delivery Address")
+                    </p>
+                    <p class="mb-1 text-secondary small text-wrap-custom">@order.ShippingAddress.Replace("|", "")</p>
+                    <p class="mb-0 text-secondary small"><strong>Tel:</strong> @order.PhoneNumber</p>
+                </div>
+                <div class="col-5 text-end border-start-custom">
+                    <h6 class="fw-bold text-uppercase text-muted small mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Payment Info:</h6>
+                    <p class="mb-1 fw-bold text-dark">Method:</p>
+                    <span class="badge bg-secondary-subtle text-secondary px-3 py-1.5 rounded-pill fw-semibold mb-0" style="font-size: 0.85rem;">
+                        @order.PaymentMethod
+                    </span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped-columns align-middle mb-4">
+                    <thead class="table-light border-bottom">
+                        <tr class="text-secondary small text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <th scope="col" style="width: 50%;">Item Description</th>
+                            <th scope="col" class="text-center" style="width: 15%;">Qty</th>
+                            <th scope="col" class="text-end" style="width: 15%;">Price</th>
+                            <th scope="col" class="text-end" style="width: 20%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in order.OrderItems)
+                        {
+                            <tr class="border-bottom-subtle">
+                                <td>
+                                    <div class="fw-bold text-dark">@item.Book?.BookTitle</div>
+                                    <small class="text-muted small">@item.Book?.BookAuthor</small>
+                                </td>
+                                <td class="text-center fw-medium">@item.Quantity</td>
+                                <td class="text-end text-secondary">@item.UnitPrice.ToString("N2") lei</td>
+                                <td class="text-end fw-bold text-dark">@((item.UnitPrice * item.Quantity).ToString("N2")) lei</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row pt-2">
+                <div class="col-7">
+                    <div class="alert alert-warning-subtle border-0 rounded-3 p-3 text-muted small mb-0">
+                        <i class="bi bi-info-circle-fill me-1 text-warning"></i>
+                        Thank you for your business! For any questions regarding this invoice, please contact <strong>support@booktique.ro</strong>.
+                    </div>
+                </div>
+                <div class="col-5 ms-auto">
+                    <div class="d-flex justify-content-between align-items-center border-top border-2 pt-3">
+                        <span class="fs-5 fw-bold text-dark">Total Amount:</span>
+                        <span class="fs-4 fw-black text-orange fw-bold">@order.TotalAmount.ToString("N2") lei</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="container text-center mt-4 mb-5 d-print-none">
+            <button class="btn btn-warning px-4 py-2 rounded-pill fw-bold text-dark shadow-sm me-2" onclick="window.print()">
+                <i class="bi bi-printer-fill me-1"></i> Print / Save as PDF
+            </button>
+            <button class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold shadow-sm" @onclick='() => Nav.NavigateTo("/my-orders")'>
+                <i class="bi bi-arrow-left me-1"></i> Back to Orders
+            </button>
+        </div>
+
+    </div>
 }
 
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #fdf6ee;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    }
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fdf6ee;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    }
 
-    .invoice-container {
-        max-width: 800px;
-        min-height: 1000px;
-    }
+    /* Wrapper-ul web pentru a centra "foaia" pe ecrane mari (laptop) */
+    .invoice-outer-wrapper {
+        width: 100%;
+        min-height: 100vh;
+    }
 
-    .text-brown {
-        color: #5a3e2b;
-    }
+    /* Design stilizat de pagină A4 fizică pentru vizualizarea pe laptop */
+    .invoice-container {
+        width: 100%;
+        max-width: 820px; /* Lățime perfectă pentru laptop-uri și ecrane wide */
+        min-height: 1050px;
+        box-sizing: border-box;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        background: #ffffff;
+    }
 
-    .text-orange {
-        color: #f0a500;
-    }
+    .text-brown {
+        color: #5a3e2b;
+    }
 
-    @@media print {
-        nav, .sidebar, .top-row, .navbar, .d-print-none, header, footer {
-            display: none !important;
-        }
+    .text-orange {
+        color: #e69500;
+    }
 
-        * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
+    .fw-black {
+        font-weight: 800;
+    }
 
-        @@page {
-            margin: 0;
-            size: auto;
-        }
+    .border-start-custom {
+        border-left: 1px solid #dee2e6;
+    }
 
-        body {
-            background-color: white !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
+    .text-wrap-custom {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
 
-        .invoice-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 1.5cm !important; 
-            border: none !important;
-            box-shadow: none !important;
-            background-color: white !important;
-        }
+    .bg-secondary-subtle {
+        background-color: #f0f1f3 !important;
+    }
 
-        .text-brown { color: #5a3e2b !important; }
-        .text-orange { color: #f0a500 !important; }
-    }
+    /* STILURI DE PRINTARE */
+    @@media print {
+        /* 1. Ascundem complet elementele de interfață ale site-ului */
+        nav, .sidebar, .top-row, .navbar, .d-print-none, header, footer, .btn, .sidebar-wrapper {
+            display: none !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        /* 2. Resetăm containerele globale ca să nu blocheze înălțimea paginii */
+        html, body, #app, main, .page, .main, .content, app {
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: initial !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            position: static !important;
+        }
+        /* 3. Containerul facturii ocupă toată foaia A4 cu stilurile intacte */
+        .invoice-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: initial !important;
+            margin: 0 !important;
+            padding: 1.5cm !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+            position: static !important;
+            overflow: visible !important;
+        }
+        /* 4. REPARARE TABEL: Păstrăm aspectul original Bootstrap, dar ucidem complet scrollbar-ul */
+        .table-responsive, [class*="table-responsive"] {
+            overflow: visible !important;
+            overflow-x: visible !important;
+            overflow-y: visible !important;
+            border: none !important; /* Elimină eventualele borduri gri de container */
+        }
+            /* Forțăm eliminarea vizuală a oricărei bare de scroll din browserele bazate pe Chromium (Chrome, Edge, Opera) */
+            .table-responsive::-webkit-scrollbar,
+            html::-webkit-scrollbar,
+            body::-webkit-scrollbar {
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
+                background: transparent !important;
+            }
+        /* Păstrează culorile de fundal ale tabelelor și alertelor la export PDF */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            box-shadow: none !important;
+        }
+
+        .bg-light, .table-light, .alert {
+            background-color: #f8f9fa !important;
+        }
+
+        @@page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        .border-start-custom {
+            border-left: 1px solid #dee2e6 !important;
+        }
+    }
 </style>
 
 @code {
-    [Parameter] public int OrderId { get; set; }
-    private Order? order;
+    [Parameter] public int OrderId { get; set; }
+    private Order? order;
 
-    protected override async Task OnInitializedAsync()
-    {
-        using var ctx = DbFactory.CreateDbContext();
-        order = await ctx.Order
-            .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.Book)
-            .FirstOrDefaultAsync(o => o.OrderId == OrderId);
-    }
+    protected override async Task OnInitializedAsync()
+    {
+        using var ctx = DbFactory.CreateDbContext();
+        order = await ctx.Order
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Book)
+            .FirstOrDefaultAsync(o => o.OrderId == OrderId);
+    }
 }
