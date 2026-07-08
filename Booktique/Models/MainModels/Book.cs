@@ -84,7 +84,7 @@ namespace Booktique.Models.MainModels
         public int? BookRating { get; set; }
         public string? Condition { get; set; }
         public DateTime DatePosted { get; set; } = DateTime.Now;
-        public bool? IsApproved { get; set; } = false;
+        public int IsApproved { get; set; } = 0;
 
         public int? SellerId { get; set; }
         public User Seller { get; set; }

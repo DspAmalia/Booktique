@@ -302,7 +302,7 @@
         // Modificarea principală: Pentru tab-ul "used" (Antique Shop), adăugăm condiția b.IsApproved == true
         var query = activeTab == "library"
             ? context.Book.Where(b => b.SellerId == null)
-            : context.Book.Where(b => b.SellerId != null && b.IsApproved == true);
+            : context.Book.Where(b => b.SellerId != null && b.IsApproved == 1);
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
