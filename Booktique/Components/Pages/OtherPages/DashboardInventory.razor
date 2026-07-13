@@ -237,7 +237,6 @@
         font-style: italic;
     }
 
-    /* Condition Badge Colors */
     .badge-mint {
         background-color: #2d6a4f;
         color: white;
@@ -299,7 +298,7 @@
     {
         using var context = await DbFactory.CreateDbContextAsync();
 
-        // Modificarea principală: Pentru tab-ul "used" (Antique Shop), adăugăm condiția b.IsApproved == true
+        // Pentru tab-ul "used" (Antique Shop), adăugăm condiția b.IsApproved == true
         var query = activeTab == "library"
             ? context.Book.Where(b => b.SellerId == null)
             : context.Book.Where(b => b.SellerId != null && b.IsApproved == 1);
@@ -352,7 +351,7 @@
 
             var headerRow = worksheet.Row(1);
             headerRow.Style.Font.Bold = true;
-            headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#F4F1EE"); // Nuanța nativă bg-sepia-light din pagină
+            headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#F4F1EE");
 
             int rowIdx = 2;
             foreach (var book in filteredBooks)

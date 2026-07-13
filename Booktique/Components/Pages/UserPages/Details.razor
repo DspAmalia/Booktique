@@ -254,7 +254,7 @@
         }
         else
         {
-            // Preluăm comenzile direct din contextul Order filtrând după UserId
+            // Preluăm comenzile din contextul Order filtrând după UserId
             userOrders = await context.Order
                 .Where(o => o.UserId == UserId)
                 .OrderByDescending(o => o.OrderDate)

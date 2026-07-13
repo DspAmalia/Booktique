@@ -12,7 +12,7 @@ namespace Booktique.Models.Services
             // 1. Încearcă varianta standard (folosită de admin)
             var id = user?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            // 2. Dacă e null, încearcă varianta ta personalizată (folosită de AmaliaD)
+            // 2. Dacă e null, încearcă varianta personalizată
             if (string.IsNullOrEmpty(id))
             {
                 id = user?.FindFirst("UserId")?.Value;

@@ -22,10 +22,9 @@ public class ExcelExportService
             worksheet.Cell(1, 7).Value = "Total (RON)";
             worksheet.Cell(1, 8).Value = "Status";
 
-            // Stilizăm header-ul (Bolding și culoare de fundal discretă)
             var headerRow = worksheet.Row(1);
             headerRow.Style.Font.Bold = true;
-            headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#F1E6D8"); // Culoarea maro/crem din Booktique
+            headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#F1E6D8");
 
             // 2. Populăm datele din listă
             int currentRow = 2;
@@ -61,7 +60,7 @@ public class ExcelExportService
     }
 }
 
-// Un mic DTO (Data Transfer Object) - înlocuiește-l cu modelul tău real de Factură
+// Un DTO (Data Transfer Object) 
 public class InvoiceDto
 {
     public string InvoiceNumber { get; set; }

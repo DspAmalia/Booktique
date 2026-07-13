@@ -237,7 +237,6 @@
 
     private async Task TriggerStockNotificationsAsync(int bookId, string bookTitle)
     {
-        // Folosește direct versiunea Async a fabricii pentru siguranță în Blazor Server
         using var context = await DbFactory.CreateDbContextAsync();
 
         var userIds = await context.Favorite
@@ -276,7 +275,7 @@
             .Where(n => !n.IsRead && n.OrderId != null) // Numărăm doar notificările de comenzi
             .CountAsync();
 
-        // Trimitem noile valori către serviciul tău de chat/notificări
+        // Trimitem noile valori către serviciul de chat/notificări
         NotificationService.UpdateBackInStockCount(totalBackInStockInDb);
     }
 }

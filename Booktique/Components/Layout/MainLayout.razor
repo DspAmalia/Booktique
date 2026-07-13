@@ -23,7 +23,6 @@
                     <strong>Booktique</strong>
                 </a>
 
-                <!-- Am eliminat d-none și am adăugat clasa custom 'nav-scrollable' -->
                 <nav class="nav-scrollable d-flex align-items-center gap-1">
                     <NavLink class="nav-horizontal-link" href="" Match="NavLinkMatch.All">
                         <i class="bi bi-house-door"></i> Home
@@ -53,7 +52,7 @@
                 </nav>
             </div>
 
-            <!-- Zona Dreapta: Panouri Administrative, Notificări, Utilizator (Rămâne neschimbată, dar compactată) -->
+            <!-- Zona Dreapta: Panouri Administrative, Notificări, Utilizator -->
             <div class="d-flex align-items-center gap-1 flex-shrink-0">
 
                 <AuthorizeView Roles="Admin, Administrator, Manager">
@@ -77,7 +76,7 @@
                                     </span>
                                 }
                             </a>
-                            <!-- Meniul dropdown de notificări rămâne la fel -->
+                            <!-- Meniul dropdown de notificări -->
                             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-modern notification-dropdown shadow-lg border-0 p-0">
                                 <li class="dropdown-header-modern">
                                     <span class="fw-bold text-brown-dark">Notifications</span>

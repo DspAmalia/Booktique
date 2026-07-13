@@ -8,6 +8,8 @@
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
+<PageTitle>Checkout | Booktique</PageTitle>
+
 <div class="container mt-5 mb-5">
     <div class="row">
         @* Coloana Stângă: Detalii Livrare *@
@@ -73,32 +75,40 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-0 small fw-bold">@item.Title</h6>
                                 <span class="text-muted small">@item.Quantity x @item.Price lei</span>
+                                @if (item.SellerId != 0 && item.SellerId != null)
+                                {
+                                    <span class="badge bg-secondary d-block mt-1" style="width: max-content; font-size: 0.65rem;">Antique / Seller</span>
+                                }
                             </div>
                             <span class="fw-bold small">@(item.Price * item.Quantity) lei</span>
                         </div>
                     }
 
-                    @if (!isEligibleForMysteryBook)
+                    @* Zona de cadou se ascunde complet dacă coșul conține cărți din anticariat *@
+                    @if (!HasAnticariatItems)
                     {
-                        decimal remaining = 200 - cartService.Items.Sum(i => i.Price * i.Quantity);
-                        <div class="alert alert-info border-0 rounded-4 shadow-sm mb-4">
-                            <i class="bi bi-gift-fill me-2"></i>
-                            Add <strong>@remaining lei</strong> more to your cart to unlock a <strong>FREE Mystery Book!</strong>
-                        </div>
-                    }
-
-                    @if (selectedMysteryBook != null)
-                    {
-                        <div class="d-flex align-items-center mb-3 p-2 rounded-3 border border-success bg-white position-relative shadow-sm animate__animated animate__fadeInUp">
-                            <img src="@selectedMysteryBook.BookCoverPath" class="rounded me-3 shadow-sm" style="width: 45px; height: 65px; object-fit: cover;" />
-                            <div class="flex-grow-1">
-                                <h6 class="mb-0 small fw-bold text-success">@selectedMysteryBook.BookTitle (Gift)</h6>
-                                <span class="badge bg-success small">FREE</span>
+                        @if (!isEligibleForMysteryBook)
+                        {
+                            decimal remaining = 200 - cartService.Items.Sum(i => i.Price * i.Quantity);
+                            <div class="alert alert-info border-0 rounded-4 shadow-sm mb-4">
+                                <i class="bi bi-gift-fill me-2"></i>
+                                Add <strong>@remaining lei</strong> more to your cart to unlock a <strong>FREE Mystery Book!</strong>
                             </div>
-                            <button class="btn btn-sm text-muted" @onclick="ChangeGiftChoice">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                        </div>
+                        }
+
+                        @if (selectedMysteryBook != null)
+                        {
+                            <div class="d-flex align-items-center mb-3 p-2 rounded-3 border border-success bg-white position-relative shadow-sm animate__animated animate__fadeInUp">
+                                <img src="@selectedMysteryBook.BookCoverPath" class="rounded me-3 shadow-sm" style="width: 45px; height: 65px; object-fit: cover;" />
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 small fw-bold text-success">@selectedMysteryBook.BookTitle (Gift)</h6>
+                                    <span class="badge bg-success small">FREE</span>
+                                </div>
+                                <button class="btn btn-sm text-muted" @onclick="ChangeGiftChoice">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                            </div>
+                        }
                     }
                 </div>
 
@@ -167,7 +177,7 @@
     </div>
 
     @* MODAL PENTRU CADOU *@
-    @if (showGiftModal)
+    @if (showGiftModal && !HasAnticariatItems)
     {
         <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6);" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
@@ -208,13 +218,8 @@
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
     }
 
-    .text-brown {
-        color: #5a3e2b;
-    }
-
-    .text-orange {
-        color: #f0a500;
-    }
+    .text-brown { color: #5a3e2b; }
+    .text-orange { color: #f0a500; }
 
     .payment-card {
         cursor: pointer;
@@ -222,112 +227,60 @@
         border: 2px solid #eee !important;
         background: white;
     }
-
-        .payment-card:hover {
-            border-color: #f0a500 !important;
-            background-color: #fffdfa;
-        }
-
-        .payment-card.selected {
-            border-color: #f0a500 !important;
-            background-color: #fdf6ee;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-
-    .btn-finalize:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
+    .payment-card:hover {
+        border-color: #f0a500 !important;
+        background-color: #fffdfa;
+    }
+    .payment-card.selected {
+        border-color: #f0a500 !important;
+        background-color: #fdf6ee;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     }
 
-    .rounded-4 {
-        border-radius: 1.25rem !important;
-    }
-
-    .border-dashed {
-        border-style: dashed !important;
-    }
-
-    .gift-box-wrapper {
-        cursor: pointer;
-        transition: transform 0.3s ease;
-    }
-
-        .gift-box-wrapper:hover {
-            transform: scale(1.15);
-        }
-
-    .gift-box-icon {
-        font-size: 3rem;
-        filter: drop-shadow(0 5px 10px rgba(40, 167, 69, 0.2));
-    }
-
-    .pulse-animation {
-        animation: boxPulse 1.5s infinite ease-in-out;
-    }
+    .btn-finalize:disabled { opacity: 0.6; cursor: not-allowed; }
+    .rounded-4 { border-radius: 1.25rem !important; }
+    .border-dashed { border-style: dashed !important; }
+    .gift-box-wrapper { cursor: pointer; transition: transform 0.3s ease; }
+    .gift-box-wrapper:hover { transform: scale(1.15); }
+    .gift-box-icon { font-size: 3rem; filter: drop-shadow(0 5px 10px rgba(40, 167, 69, 0.2)); }
+    .pulse-animation { animation: boxPulse 1.5s infinite ease-in-out; }
 
     @@keyframes boxPulse {
-        0% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.05);
-        }
-
-        100% {
-            transform: scale(1);
-        }
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
     }
 
-    .animate__animated {
-        animation-duration: 0.5s;
-        animation-fill-mode: both;
-    }
-
+    .animate__animated { animation-duration: 0.5s; animation-fill-mode: both; }
     @@keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translate3d(0, 40px, 0);
-        }
-
-        to {
-            opacity: 1;
-            transform: translate3d(0, 0, 0);
-        }
+        from { opacity: 0; transform: translate3d(0, 40px, 0); }
+        to { opacity: 1; transform: translate3d(0, 0, 0); }
     }
-
-    .animate__fadeInUp {
-        animation-name: fadeInUp;
-    }
-
-    .cart-items-preview {
-        height: auto;
-        max-height: none;
-        overflow-y: visible;
-    }
+    .animate__fadeInUp { animation-name: fadeInUp; }
+    .cart-items-preview { height: auto; max-height: none; overflow-y: visible; }
 </style>
 
 @code {
-    // --- Date Formular ---
     private string fullName = "";
     private string phoneNumber = "";
     private string city = "";
     private string shippingAddress = "";
     private string? paymentMethod = null;
 
-    // --- State-uri pentru Debug și UX ---
     private string errorMessage = "";
     private bool isProcessing = false;
 
-    // --- Logica Mystery Book ---
     private bool isEligibleForMysteryBook = false;
     private Book? selectedMysteryBook = null;
     private List<Book> potentialGifts = new();
     private bool showGiftModal = false;
 
-    // --- LOGICA PUNCTE DE LOIALITATE ---
     private int userPoints = 0;
     private bool usePoints = false;
+
+    // --- VERIFICARE PRODUSE ANTICARIAT ---
+    // Întoarce true dacă în coș există măcar o carte din anticariat (vânzător terț)
+    private bool HasAnticariatItems => cartService.Items.Any(i => i.SellerId != 0 && i.SellerId != null);
 
     private decimal calculatedDiscount => usePoints ? (userPoints / 10m) : 0;
     private decimal FinalTotal => Math.Max(0, cartService.Items.Sum(i => i.Price * i.Quantity) - calculatedDiscount);
@@ -354,10 +307,8 @@
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
-
-            // Extragem direct ID-ul sub formă de string din Claims
             var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                            ?? user.FindFirst("UserId")?.Value;
+                                ?? user.FindFirst("UserId")?.Value;
 
             if (!string.IsNullOrEmpty(userIdString) && int.TryParse(userIdString, out int userIdInt))
             {
@@ -377,6 +328,16 @@
 
     private async Task CheckMysteryEligibility()
     {
+        // Pasul 1: Dacă are cărți din anticariat, nu este eligibil deloc
+        if (HasAnticariatItems)
+        {
+            isEligibleForMysteryBook = false;
+            selectedMysteryBook = null;
+            showGiftModal = false;
+            return;
+        }
+
+        // Pasul 2: Dacă are doar cărți din magazin, păstrăm regula sumei de 200 lei
         decimal cartTotal = cartService.Items.Sum(i => i.Price * i.Quantity);
         if (cartTotal >= 200)
         {
@@ -402,7 +363,11 @@
         try
         {
             using var ctx = await DbFactory.CreateDbContextAsync();
-            potentialGifts = await ctx.Book.Where(b => b.BookStock > 0).OrderBy(r => Guid.NewGuid()).Take(3).ToListAsync();
+            potentialGifts = await ctx.Book
+                .Where(b => b.BookStock > 0 && (b.SellerId == 0 || b.SellerId == null)) // Condiția sa fie din librarie
+                .OrderBy(r => Guid.NewGuid())
+                .Take(3)
+                .ToListAsync();
         }
         catch (Exception ex)
         {
@@ -423,6 +388,7 @@
 
     private void ChangeGiftChoice()
     {
+        if (HasAnticariatItems) return; // Blocăm redeschiderea dacă s-au adăugat cărți din anticariat ulterior
         selectedMysteryBook = null;
         showGiftModal = true;
     }
@@ -437,12 +403,9 @@
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-
-        // Preluăm ID-ul ca text direct din Claims
         var userIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                        ?? user.FindFirst("UserId")?.Value;
+                            ?? user.FindFirst("UserId")?.Value;
 
-        // Încercăm convertirea directă în număr întreg (int)
         if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userIdInt))
         {
             errorMessage = $"Authentication Error: User ID '{userIdString}' is not a valid number. Try re-logging.";
@@ -450,7 +413,6 @@
             return;
         }
 
-        // --- CONTINUAREA LOGICII TALE DE SALVARE COMANDĂ ---
         try
         {
             using var ctx = await DbFactory.CreateDbContextAsync();
@@ -461,21 +423,20 @@
                 var groupedItems = cartService.Items.GroupBy(i => i.SellerId).ToList();
                 var createdOrders = new List<Order>();
 
-                // 1. Creează comenzile și actualizează stocurile
                 foreach (var group in groupedItems)
                 {
                     var order = new Order
-                        {
-                            UserId = userIdInt, // Folosește ID-ul numeric parsat direct din sesiune
-                            SellerId = group.Key,
-                            OrderDate = DateTime.Now,
-                            TotalAmount = group.Sum(i => i.Price * i.Quantity),
-                            ShippingAddress = $"{fullName}, {city}, {shippingAddress}",
-                            PhoneNumber = phoneNumber,
-                            PaymentMethod = paymentMethod!,
-                            Status = OrderStatus.Pending,
-                            OrderItems = new List<OrderItem>()
-                        };
+                    {
+                        UserId = userIdInt,
+                        SellerId = group.Key,
+                        OrderDate = DateTime.Now,
+                        TotalAmount = group.Sum(i => i.Price * i.Quantity),
+                        ShippingAddress = $"{fullName}, {city}, {shippingAddress}",
+                        PhoneNumber = phoneNumber,
+                        PaymentMethod = paymentMethod!,
+                        Status = OrderStatus.Pending,
+                        OrderItems = new List<OrderItem>()
+                    };
 
                     foreach (var item in group)
                     {
@@ -486,15 +447,13 @@
                             {
                                 throw new Exception($"Insufficient stock for the book: '{bookInDb.BookTitle}'. Remaining stock: {bookInDb.BookStock}.");
                             }
-
                             bookInDb.BookStock -= item.Quantity;
                         }
-
                         order.OrderItems.Add(new OrderItem { BookId = item.BookId, Quantity = item.Quantity, UnitPrice = item.Price });
                     }
 
-                    // Adăugare logică Mystery Gift
-                    if ((group.Key == null || group.Key == 0) && isEligibleForMysteryBook && selectedMysteryBook != null)
+                    // Se oferă cadoul doar dacă nu există cărți din anticariat în întreaga sesiune
+                    if (!HasAnticariatItems && (group.Key == null || group.Key == 0) && isEligibleForMysteryBook && selectedMysteryBook != null)
                     {
                         var giftInDb = await ctx.Book.FirstOrDefaultAsync(b => b.BookId == selectedMysteryBook.BookId);
                         if (giftInDb != null && giftInDb.BookStock > 0)
@@ -508,7 +467,6 @@
                     createdOrders.Add(order);
                 }
 
-                // 2. Actualizare Puncte Loialitate
                 var dbUser = await ctx.User.FindAsync(userIdInt);
                 if (dbUser != null)
                 {
@@ -522,18 +480,17 @@
 
                 await ctx.SaveChangesAsync();
 
-                // 3. Generare Notificări
                 foreach (var o in createdOrders)
                 {
                     var notification = new Notification
-                        {
-                            UserId = userIdInt,
-                            OrderId = o.OrderId,
-                            Message = $"Your order #{o.OrderId} has been registered successfully.",
-                            CreatedAt = DateTime.Now,
-                            IsRead = false,
-                            TargetUrl = $"/order-details/{o.OrderId}"
-                        };
+                    {
+                        UserId = userIdInt,
+                        OrderId = o.OrderId,
+                        Message = $"Your order #{o.OrderId} has been registered successfully.",
+                        CreatedAt = DateTime.Now,
+                        IsRead = false,
+                        TargetUrl = $"/order-details/{o.OrderId}"
+                    };
                     ctx.Notification.Add(notification);
                 }
 

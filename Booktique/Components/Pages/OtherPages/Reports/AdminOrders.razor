@@ -312,7 +312,7 @@
                 dbOrder.Status = newStatus;
                 dbOrder.LastUpdated = DateTime.Now;
 
-                // 1. Creăm obiectul fără proprietatea TargetUrl pentru moment
+                // 1. Creăm obiectul fără proprietatea TargetUrl
                 var notification = new Notification
                     {
                         UserId = dbOrder.UserId,

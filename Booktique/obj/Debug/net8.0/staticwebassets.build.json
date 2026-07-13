@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "4K70EvrHmTWzQcTtnQQ9jqJb7aJa9gQFUN/v5fwnNk4=",
+  "Hash": "GcVboHJt+7ZCUUCWq5UlJCIm/qCLQOAyzPY9vHjcboM=",
   "Source": "Booktique",
   "BasePath": "_content/Booktique",
   "Mode": "Default",
@@ -1098,6 +1098,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\logo.png"
+    },
+    {
+      "Identity": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\previews\\Feodor_Mihailovici_Dostoievski_NOPTI_ALB.pdf",
+      "SourceId": "Booktique",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\",
+      "BasePath": "_content/Booktique",
+      "RelativePath": "previews/Feodor_Mihailovici_Dostoievski_NOPTI_ALB.pdf",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\previews\\Feodor_Mihailovici_Dostoievski_NOPTI_ALB.pdf"
     },
     {
       "Identity": "C:\\Users\\Ami\\Desktop\\Booktique\\Booktique\\Booktique\\wwwroot\\previews\\pacatul meu.pdf",
