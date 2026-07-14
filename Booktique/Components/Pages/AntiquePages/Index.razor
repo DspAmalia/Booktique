@@ -30,7 +30,6 @@
                     <button class="btn btn-scroll-sm @(selectedFilter == "All" ? "active" : "")" @onclick='() => ChangeFilter("All")'>All Registry</button>
                     <button class="btn btn-scroll-sm @(selectedFilter == "Pending" ? "active" : "")" @onclick='() => ChangeFilter("Pending")'>⏳ Pending</button>
                     <button class="btn btn-scroll-sm @(selectedFilter == "Valid" ? "active" : "")" @onclick='() => ChangeFilter("Valid")'>✓ Validated</button>
-                    <button class="btn btn-scroll-sm @(selectedFilter == "Invalid" ? "active" : "")" @onclick='() => ChangeFilter("Invalid")'>✗ Invalidated</button>
                 </div>
             </div>
         }

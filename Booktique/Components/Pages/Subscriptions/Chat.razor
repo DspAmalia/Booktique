@@ -558,10 +558,7 @@
                 {
                     var now = DateTime.UtcNow;
 
-                    // Pasul 2: Aici se află destinatarul (cel care primește mesajul). Doar el salvează în baza de date?
-                    // NU. Pentru a fi 100% siguri că mesajul se salvează O SINGURĂ dată în baza de date,
-                    // am eliminat salvarea din `ReceiveMessage`. Mesajul se salvează acum doar în `ProcessAndSendMessage` (la trimitere).
-
+                    // Pasul 2: Aici se află destinatarul (cel care primește mesajul). 
                     await InvokeAsync(async () =>
                     {
                         chatMessages.Add(new LocalMessage
