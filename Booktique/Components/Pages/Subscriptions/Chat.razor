@@ -3,6 +3,7 @@
 @using Booktique.Models.MainModels
 @using Microsoft.EntityFrameworkCore
 @using System.Security.Claims
+@using System.Collections.Concurrent
 @using static Booktique.Models.MainModels.User
 @implements IAsyncDisposable
 @inject IDbContextFactory<BooktiqueContext> DbFactory
@@ -32,7 +33,7 @@
 
                                 <div class="user-item @(selectedUserId == user.UserId ? "active" : "") d-flex align-items-center justify-content-between"
                                      @onclick="() => UpdateSelectedUser(user.UserId)">
-                                    
+
                                     <div class="d-flex align-items-center flex-grow-1 min-w-0">
                                         <div class="user-avatar position-relative flex-shrink-0">
                                             @if (!string.IsNullOrEmpty(user.ProfilePicture))
@@ -43,7 +44,7 @@
                                             {
                                                 @user.UserName.Substring(0, 1).ToUpper()
                                             }
-                                            
+
                                             @if (unreadCount > 0)
                                             {
                                                 <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle animate-pulse"></span>
@@ -73,7 +74,7 @@
                     </div>
                 </div>
 
-                @* Fereastra de Chat - Ocupă tot ecranul pe mobil dacă un utilizator este selectat *@
+                @* Fereastra de Chat *@
                 <div class="col-md-8 d-flex flex-column chat-content @(selectedUserId == null ? "d-none d-md-flex" : "d-flex")">
                     @if (selectedUserId == null)
                     {
@@ -91,7 +92,7 @@
                                 <button class="btn btn-sm btn-light border-0 me-2 d-md-none text-brown" type="button" @onclick="BackToUserList">
                                     <i class="bi bi-arrow-left fs-5"></i>
                                 </button>
-                                
+
                                 <div class="user-avatar me-2 bg-orange text-white flex-shrink-0">
                                     @{
                                         var selectedUser = users.FirstOrDefault(u => u.UserId == selectedUserId);
@@ -121,7 +122,7 @@
                             @foreach (var msg in chatMessages)
                             {
                                 var localTime = msg.Timestamp.ToLocalTime();
-                                
+
                                 @if (lastDate == null || lastDate.Value.Date != localTime.Date)
                                 {
                                     lastDate = localTime;
@@ -138,14 +139,14 @@
                                         {
                                             <span class="message-user">@msg.User</span>
                                         }
-                                        
+
                                         @if (msg.Text != null && msg.Text.StartsWith("[BOOK_CLUB]"))
                                         {
                                             var parts = msg.Text.Replace("[BOOK_CLUB]", "").Split('|');
                                             var bookTitle = parts.Length > 0 ? parts[0] : "Book";
                                             var bookAuthor = parts.Length > 1 ? parts[1] : "";
                                             var bookComment = parts.Length > 2 ? parts[2] : "";
-                                            
+
                                             <div class="book-share-card p-2 my-1 bg-white text-dark rounded border border-warning shadow-xs">
                                                 <div class="fw-bold text-brown small">
                                                     <i class="bi bi-book-half text-orange me-1"></i> Book Club
@@ -165,7 +166,7 @@
                                         {
                                             <div class="message-text">@msg.Text</div>
                                         }
-                                        
+
                                         <div class="message-time d-flex align-items-center justify-content-end opacity-75 mt-1" style="font-size: 0.65rem;">
                                             <span>@localTime.ToString("HH:mm")</span>
                                             @if (msg.IsOwnMessage)
@@ -183,7 +184,7 @@
                                 <button class="btn btn-outline-brown rounded-pill-start px-2 px-md-3" type="button" @onclick="OpenBookModal" title="Recommend a book">
                                     <i class="bi bi-book text-orange" style="font-size: 1.1rem;"></i>
                                 </button>
-                                
+
                                 <input @bind="messageInput"
                                        @bind:event="oninput"
                                        @onkeyup="HandleKeyUp"
@@ -225,15 +226,15 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold text-brown small">Your comm / Thoughts about the book</label>
-                        <textarea class="form-control border-2 border-light small" rows="3" 
-                                  placeholder="What did you like about this book?" 
+                        <textarea class="form-control border-2 border-light small" rows="3"
+                                  placeholder="What did you like about this book?"
                                   @bind="bookCommentInput"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light p-2" style="border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" @onclick="CloseBookModal">Close</button>
-                    <button type="button" class="btn btn-sm btn-orange rounded-pill px-3" 
-                            disabled="@(selectedBookId == 0 || string.IsNullOrWhiteSpace(bookCommentInput))" 
+                    <button type="button" class="btn btn-sm btn-orange rounded-pill px-3"
+                            disabled="@(selectedBookId == 0 || string.IsNullOrWhiteSpace(bookCommentInput))"
                             @onclick="SendBookRecommendation">
                         <i class="bi bi-share-fill me-1"></i> Share
                     </button>
@@ -259,7 +260,7 @@
     }
 
     .chat-main-container {
-        height: 82vh; /* Mărit ușor înălțimea pentru a folosi mai bine ecranul mobil */
+        height: 82vh;
         min-height: 480px;
         background: white;
         border-radius: 1rem;
@@ -268,7 +269,7 @@
 
     @@media (max-width: 767.98px) {
         .chat-main-container {
-            height: calc(100vh - 70px); /* Ajustare dinamică pe mobil în funcție de ecran */
+            height: calc(100vh - 70px);
             border-radius: 0.5rem;
         }
     }
@@ -283,9 +284,10 @@
         border-right: none;
         background: #fdf6ee;
     }
-    .btn-outline-brown:hover {
-        background: #f1e6d8;
-    }
+
+        .btn-outline-brown:hover {
+            background: #f1e6d8;
+        }
 
     .btn-orange {
         background-color: var(--orange-accent);
@@ -293,10 +295,10 @@
         border: none;
     }
 
-    .btn-orange:hover {
-        background-color: #d49200;
-        color: white;
-    }
+        .btn-orange:hover {
+            background-color: #d49200;
+            color: white;
+        }
 
     .text-orange {
         color: var(--orange-accent);
@@ -319,13 +321,13 @@
         transition: 0.2s;
     }
 
-    .user-item:hover {
-        background-color: #f8f1e9;
-    }
+        .user-item:hover {
+            background-color: #f8f1e9;
+        }
 
-    .user-item.active {
-        background-color: #f1e6d8;
-    }
+        .user-item.active {
+            background-color: #f1e6d8;
+        }
 
     .fw-extrabold {
         font-weight: 800 !important;
@@ -341,9 +343,20 @@
     }
 
     @@keyframes pulse {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(220, 53, 69, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 5px rgba(220, 53, 69, 0);
+        }
+
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
     }
 
     .user-avatar {
@@ -385,7 +398,7 @@
     }
 
     .message-bubble {
-        max-width: 85%; /* Mărit lățimea bulei pe mobil de la 75% la 85% */
+        max-width: 85%;
         padding: 8px 14px;
         border-radius: 1rem;
         font-size: 0.9rem;
@@ -446,17 +459,17 @@
 @code {
     private HubConnection? hubConnection;
     private List<User> users = new();
-    private readonly object _messageLock = new();
-    private List<LocalMessage> chatMessages = new(); 
-    private int? selectedUserId; 
+
+    private List<LocalMessage> chatMessages = new();
+    private int? selectedUserId;
     private string? messageInput;
-    private int? currentUserId; 
+    private int? currentUserId;
     private string? currentUserName;
 
-    private Dictionary<int, int> unreadMessagesCounts = new();
+    private ConcurrentDictionary<int, int> unreadMessagesCounts = new();
 
     private bool isBookModalOpen = false;
-    private List<BookDummy> availableBooks = new(); 
+    private List<BookDummy> availableBooks = new();
     private int selectedBookId = 0;
     private string bookCommentInput = string.Empty;
 
@@ -466,14 +479,13 @@
     [SupplyParameterFromQuery]
     public string? initialMessage { get; set; }
 
-    private bool hasAutoSent = false; 
+    private bool hasAutoSent = false;
 
     private bool IsButtonDisabled =>
         hubConnection?.State != HubConnectionState.Connected ||
         string.IsNullOrWhiteSpace(messageInput) ||
         selectedUserId == null;
 
-    // Metodă pentru revenirea la listă pe telefon
     private void BackToUserList()
     {
         selectedUserId = null;
@@ -505,8 +517,7 @@
                 .Select(g => new { SenderId = g.Key, Count = g.Count() })
                 .ToListAsync();
 
-            unreadMessagesCounts = new Dictionary<int, int>();
-
+            unreadMessagesCounts.Clear();
             foreach (var group in unreadGroups)
             {
                 if (group.SenderId.HasValue)
@@ -516,13 +527,14 @@
             }
         }
 
-        try 
+        try
         {
             availableBooks = await context.Book
                 .Select(b => new BookDummy { Id = b.BookId, Title = b.BookTitle, Author = b.BookAuthor })
                 .ToListAsync();
         }
-        catch {
+        catch
+        {
             availableBooks = new List<BookDummy> {
                 new() { Id = 1, Title = "Mândrie și Prejudecată", Author = "Jane Austen" },
                 new() { Id = 2, Title = "1984", Author = "George Orwell" }
@@ -538,27 +550,19 @@
         {
             if (int.TryParse(senderId, out int parsedSenderId))
             {
+                // Pasul 1: Dacă mesajul este de la noi, ignorăm complet evenimentul de primire SignalR
+                // pentru că l-am adăugat deja local în UI și l-am salvat în baza de date în `ProcessAndSendMessage`.
                 if (parsedSenderId == currentUserId) return;
 
                 if (parsedSenderId == selectedUserId)
                 {
                     var now = DateTime.UtcNow;
 
-                    using (var dbContext = DbFactory.CreateDbContext())
-                    {
-                        var liveMsg = new ChatMessage
-                            {
-                                SenderId = parsedSenderId,
-                                ReceiverId = currentUserId!.Value,
-                                Text = text,
-                                Timestamp = now,
-                                IsRead = true
-                            };
-                        dbContext.ChatMessage.Add(liveMsg);
-                        await dbContext.SaveChangesAsync();
-                    }
+                    // Pasul 2: Aici se află destinatarul (cel care primește mesajul). Doar el salvează în baza de date?
+                    // NU. Pentru a fi 100% siguri că mesajul se salvează O SINGURĂ dată în baza de date,
+                    // am eliminat salvarea din `ReceiveMessage`. Mesajul se salvează acum doar în `ProcessAndSendMessage` (la trimitere).
 
-                    lock (_messageLock)
+                    await InvokeAsync(async () =>
                     {
                         chatMessages.Add(new LocalMessage
                             {
@@ -568,17 +572,13 @@
                                 Timestamp = now,
                                 IsRead = true
                             });
-                    }
-                    await InvokeAsync(StateHasChanged);
-                    await ScrollToBottom();
+                        StateHasChanged();
+                        await ScrollToBottom();
+                    });
                 }
                 else
                 {
-                    if (unreadMessagesCounts.ContainsKey(parsedSenderId))
-                        unreadMessagesCounts[parsedSenderId]++;
-                    else
-                        unreadMessagesCounts[parsedSenderId] = 1;
-
+                    unreadMessagesCounts.AddOrUpdate(parsedSenderId, 1, (key, oldValue) => oldValue + 1);
                     await InvokeAsync(StateHasChanged);
                 }
             }
@@ -595,9 +595,9 @@
     private async Task UpdateSelectedUser(int userId)
     {
         selectedUserId = userId;
-        
+
         using var context = DbFactory.CreateDbContext();
-        
+
         var unreadDbMessages = await context.ChatMessage
             .Where(m => m.SenderId == selectedUserId && m.ReceiverId == currentUserId && !m.IsRead)
             .ToListAsync();
@@ -611,11 +611,8 @@
             await context.SaveChangesAsync();
         }
 
-        if (unreadMessagesCounts.ContainsKey(userId))
-        {
-            unreadMessagesCounts[userId] = 0;
-        }
-        
+        unreadMessagesCounts.TryUpdate(userId, 0, unreadMessagesCounts.GetValueOrDefault(userId));
+
         var dbMessages = await context.ChatMessage
             .Include(m => m.Sender)
             .Where(m => (m.SenderId == currentUserId && m.ReceiverId == selectedUserId) ||
@@ -623,9 +620,7 @@
             .OrderBy(m => m.Timestamp)
             .ToListAsync();
 
-        lock (_messageLock)
-        {
-            chatMessages = dbMessages.Select(m => new LocalMessage
+        chatMessages = dbMessages.Select(m => new LocalMessage
             {
                 Text = m.Text,
                 IsOwnMessage = m.SenderId == currentUserId,
@@ -633,8 +628,7 @@
                 Timestamp = m.Timestamp,
                 IsRead = m.IsRead
             }).ToList();
-        }
-        
+
         await InvokeAsync(StateHasChanged);
         await ScrollToBottom();
     }
@@ -643,8 +637,9 @@
     {
         if (hubConnection is not null && selectedUserId.HasValue && !string.IsNullOrWhiteSpace(messageInput) && currentUserId.HasValue)
         {
-            await ProcessAndSendMessage(messageInput);
+            var textToSend = messageInput;
             messageInput = "";
+            await ProcessAndSendMessage(textToSend);
         }
     }
 
@@ -652,31 +647,35 @@
     {
         try
         {
-            var now = DateTime.UtcNow; 
+            var now = DateTime.UtcNow;
 
+            // Pasul 3: EXPEDITORUL (Cel care trimite) este singurul care salvează mesajul în baza de date.
             using (var context = DbFactory.CreateDbContext())
             {
                 var newDbMessage = new ChatMessage
-                {
-                    SenderId = currentUserId!.Value,
-                    ReceiverId = selectedUserId!.Value,
-                    Text = textContent,
-                    Timestamp = now,
-                    IsRead = false
-                };
+                    {
+                        SenderId = currentUserId!.Value,
+                        ReceiverId = selectedUserId!.Value,
+                        Text = textContent,
+                        Timestamp = now,
+                        IsRead = false
+                    };
                 context.ChatMessage.Add(newDbMessage);
                 await context.SaveChangesAsync();
             }
 
-            await hubConnection!.InvokeAsync("SendPrivateMessage",
-                selectedUserId.Value.ToString(),
-                textContent,
-                currentUserId.Value.ToString(),
-                currentUserName);
-
-            lock (_messageLock)
+            // Trimitem prin SignalR către partenerul de chat
+            if (hubConnection?.State == HubConnectionState.Connected)
             {
-                chatMessages.Add(new LocalMessage
+                await hubConnection.InvokeAsync("SendPrivateMessage",
+                    selectedUserId.Value.ToString(),
+                    textContent,
+                    currentUserId.Value.ToString(),
+                    currentUserName);
+            }
+
+            // Îl punem local direct în lista de chat
+            chatMessages.Add(new LocalMessage
                 {
                     User = "Eu",
                     Text = textContent,
@@ -684,7 +683,6 @@
                     Timestamp = now,
                     IsRead = false
                 });
-            }
 
             await InvokeAsync(StateHasChanged);
             await ScrollToBottom();
@@ -700,9 +698,9 @@
         try
         {
             await Task.Delay(50);
-            await JS.InvokeVoidAsync("eval", "document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;");
+            await JS.InvokeVoidAsync("InteropChatScroll", "chatWindow");
         }
-        catch {}
+        catch { }
     }
 
     private void OpenBookModal() => isBookModalOpen = true;
@@ -728,6 +726,8 @@
     {
         if (firstRender)
         {
+            await JS.InvokeVoidAsync("eval", "window.InteropChatScroll = function(id) { var el = document.getElementById(id); if(el) el.scrollTop = el.scrollHeight; };");
+
             if (!hasAutoSent && !string.IsNullOrEmpty(targetUserId) && int.TryParse(targetUserId, out int targetId))
             {
                 hasAutoSent = true;
@@ -736,9 +736,9 @@
 
                 if (!string.IsNullOrWhiteSpace(initialMessage))
                 {
-                    for (int i = 0; i < 10 && (hubConnection == null || hubConnection.State != HubConnectionState.Connected); i++)
+                    for (int i = 0; i < 15 && (hubConnection == null || hubConnection.State != HubConnectionState.Connected); i++)
                     {
-                        await Task.Delay(200);
+                        await Task.Delay(300);
                     }
 
                     if (hubConnection?.State == HubConnectionState.Connected && currentUserId.HasValue)
@@ -770,8 +770,8 @@
         public string User { get; set; } = "";
         public string Text { get; set; } = "";
         public bool IsOwnMessage { get; set; }
-        public DateTime Timestamp { get; set; } 
-        public bool IsRead { get; set; } 
+        public DateTime Timestamp { get; set; }
+        public bool IsRead { get; set; }
     }
 
     public class BookDummy

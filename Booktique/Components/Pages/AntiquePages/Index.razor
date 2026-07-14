@@ -400,7 +400,21 @@
         }
 
         context = DbFactory.CreateDbContext();
+
+        // [OPȚIONAL] Ștergem cărțile care au rămas cu statusul 2 (Invalid) din trecut, ca să curățăm baza de date
+        await DeleteExistingInvalidBooksAsync();
+
         await LoadFilteredBooksAsync();
+    }
+
+    private async Task DeleteExistingInvalidBooksAsync()
+    {
+        var invalidBooks = await context.Book.Where(b => b.IsApproved == 2).ToListAsync();
+        if (invalidBooks.Any())
+        {
+            context.Book.RemoveRange(invalidBooks);
+            await context.SaveChangesAsync();
+        }
     }
 
     private async Task LoadFilteredBooksAsync()
@@ -409,19 +423,15 @@
             .Include(b => b.Seller)
             .Where(b => b.SellerId != null && b.SellerId != 0);
 
-        // Maparea pe numere intregi (int)
         if (selectedFilter == "Valid")
         {
             query = query.Where(b => b.IsApproved == 1);
-        }
-        else if (selectedFilter == "Invalid")
-        {
-            query = query.Where(b => b.IsApproved == 2);
         }
         else if (selectedFilter == "Pending")
         {
             query = query.Where(b => b.IsApproved == 0);
         }
+        // Am eliminat ramura "Invalid" deoarece aceste cărți sunt șterse imediat
 
         books = await query.OrderByDescending(b => b.BookId).ToListAsync();
     }
@@ -437,9 +447,16 @@
         var targetBook = await context.Book.FirstOrDefaultAsync(b => b.BookId == bookId);
         if (targetBook != null)
         {
-            targetBook.IsApproved = status; // Va salva direct statusul numeric (1 sau 2)
-            await context.SaveChangesAsync();
+            if (status == 2) // Dacă managerul apasă pe "Invalid"
+            {
+                context.Book.Remove(targetBook); // Ștergem direct din baza de date
+            }
+            else
+            {
+                targetBook.IsApproved = status; // Altfel (Valid / 1), doar actualizăm statusul
+            }
 
+            await context.SaveChangesAsync();
             await LoadFilteredBooksAsync();
         }
     }

@@ -191,7 +191,14 @@
 
         using var context = DbFactory.CreateDbContext();
         
-        // Dacă email-ul există deja
+        // Pasul 1: Verificăm dacă username-ul este deja în uz
+        if (await context.User.AnyAsync(u => u.UserName == NewUser.UserName))
+        {
+            ErrorMessage = "Username is already taken!";
+            return;
+        }
+        
+        // Pasul 2: Verificăm dacă email-ul există deja
         if (await context.User.AnyAsync(u => u.UserEmail == NewUser.UserEmail))
         {
             ErrorMessage = "Email already registered!";
